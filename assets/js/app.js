@@ -300,8 +300,9 @@ async function initiatePayment() {
       const data = await res.json();
       if (data.reference) reference = data.reference;
     }
-  } catch (_) {
+  } catch (err) {
     // Backend unavailable — continue with client-generated reference
+    console.warn('[initiatePayment] Backend unreachable, using client reference:', err.message);
   } finally {
     payBtn.disabled = false;
     payBtn.innerHTML = origText;

@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
     const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const totalAmountKES = Math.round(amount / 100); // amount is in kobo/cents
+      const totalAmountKES = Math.round(amount / 100); // amount arrives in kobo/cents; divide by 100 for KES
 
       // Insert the order as "pending" before the user pays
       const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
