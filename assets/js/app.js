@@ -262,7 +262,7 @@ function initiatePayment() {
   }
 
   const amount = cartTotal() * 100; // Paystack uses kobo/cents
-  const ref = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2,8).toUpperCase();
+  const ref = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).padEnd(6, '0').toUpperCase();
 
   const metadata = {
     custom_fields: [

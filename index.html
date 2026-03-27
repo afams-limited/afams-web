@@ -20,15 +20,18 @@
 
 <!-- ANNOUNCE BAR -->
 <div class="announce">
-  🌿 Pre-orders now open — ship within 3 days · Free delivery in Nairobi ·
-  <a href="#products" onclick="scrollTo('products')">Order yours →</a>
+  Pre-orders now open &ensp;&middot;&ensp; Free delivery in Nairobi &ensp;&middot;&ensp; Ships in 3 days
+  <a href="#products" onclick="scrollTo('products')">Order yours &rarr;</a>
 </div>
 
 <!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#" class="nav-logo">
-      <div class="nav-logo-leaf"></div>
+      <svg class="nav-logo-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 2C10 2 4 6 4 12C4 15.3 6.7 18 10 18C13.3 18 16 15.3 16 12C16 6 10 2 10 2Z" stroke="#D4A017" stroke-width="1.5"/>
+        <path d="M10 18L10 11M10 11C10 11 7.5 9 7.5 12" stroke="#D4A017" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
       Afams
     </a>
     <div class="nav-links">
@@ -65,39 +68,38 @@
   <div class="hero-inner">
     <div class="hero-content">
       <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        Pre-orders now open · Ships in 3 days
+        AFAMS &ensp;&mdash;&ensp; EST. 2021 &middot; NAIROBI, KENYA
       </div>
+      <div class="hero-gold-line"></div>
       <h1 class="hero-title">
-        Grow your own food.<br/>
-        <span>Anywhere.</span>
+        Urban farming.<br/>
+        <em>Reimagined.</em>
       </h1>
       <p class="hero-sub">
-        The Afams FarmBag is the world's first 3-zone foldable urban farming system.
-        Compost. Grow. Propagate. In your apartment, on your rooftop, in your school —
-        no garden needed.
+        The FarmBag is the world&rsquo;s first 3-zone sealed urban farming system.
+        Grow food in your apartment, school, or restaurant &mdash; with no soil mess,
+        no daily watering, and no complexity.
       </p>
       <div class="hero-actions">
         <button class="btn-hero-primary" onclick="scrollTo('products')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
           Pre-Order Now
         </button>
-        <button class="btn-hero-secondary" onclick="scrollTo('how-it-works')">
-          See how it works
+        <button class="btn-hero-secondary" onclick="scrollTo('products')">
+          Explore Products
         </button>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-num" data-count="5" data-suffix=" products">0 products</div>
-          <div class="hero-stat-label">In the lineup</div>
+          <span class="hero-stat-num" data-count="5" data-suffix="">5</span>
+          <span class="hero-stat-label">Products / Global Presence</span>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-num" data-count="5" data-suffix=" countries">0 countries</div>
-          <div class="hero-stat-label">Global presence</div>
+          <span class="hero-stat-num" data-prefix="KES " data-count="4200">KES 4,200</span>
+          <span class="hero-stat-label">Starting Price</span>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-num" data-prefix="KES " data-count="4200">0</div>
-          <div class="hero-stat-label">Starting price</div>
+          <span class="hero-stat-num" data-count="3" data-suffix="">3</span>
+          <span class="hero-stat-label">Days / Pre-order Delivery</span>
         </div>
       </div>
     </div>
@@ -119,51 +121,63 @@
   </div>
 </section>
 
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="ticker-content">FARMBAG CLASSIC &ensp;&middot;&ensp; FARMBAG VERTICAL &ensp;&middot;&ensp; GROW CUBE&trade; &ensp;&middot;&ensp; NUTRIPORT&trade; &ensp;&middot;&ensp; AQUAFARMBAG &ensp;&middot;&ensp; AQUAPANEL&trade; &ensp;&middot;&ensp; FARMING INTO THE FUTURE &ensp;&middot;&ensp; &ensp;&ensp;FARMBAG CLASSIC &ensp;&middot;&ensp; FARMBAG VERTICAL &ensp;&middot;&ensp; GROW CUBE&trade; &ensp;&middot;&ensp; NUTRIPORT&trade; &ensp;&middot;&ensp; AQUAFARMBAG &ensp;&middot;&ensp; AQUAPANEL&trade; &ensp;&middot;&ensp; FARMING INTO THE FUTURE &ensp;&middot;&ensp; &ensp;</span>
+  </div>
+</div>
+
 <!-- PRE-ORDER BANNER -->
-<section style="padding:2.5rem 2rem" id="preorder">
-  <div style="max-width:1280px;margin:0 auto">
-    <div class="preorder-banner">
-      <div>
-        <div class="preorder-label">Tesla-style pre-order</div>
-        <div class="preorder-title">Reserve yours. Pay now. Receive in 3 days.</div>
-        <div class="preorder-sub">
-          We're in pre-order season — your payment funds production and secures your place.
-          Every pre-order is fulfilled within 3 business days. No waiting lists, no surprises.
-        </div>
-        <div class="preorder-steps">
-          <div class="preorder-step">
-            <div class="preorder-step-num">1</div>
-            Choose your FarmBag
-          </div>
-          <div class="preorder-step">
-            <div class="preorder-step-num">2</div>
-            Pay securely via Paystack
-          </div>
-          <div class="preorder-step">
-            <div class="preorder-step-num">3</div>
-            Receive in 3 days
-          </div>
-        </div>
+<section class="section--preorder" id="preorder">
+  <div class="preorder-inner">
+    <div class="section-label">Reserve yours today</div>
+    <h2 class="preorder-title">Pay now. Receive in 3 days.</h2>
+    <p class="preorder-sub">
+      Every pre-order is fulfilled within 3 business days. Your payment funds production
+      and secures your place. No waiting lists &mdash; just your FarmBag, on your doorstep.
+    </p>
+    <div class="preorder-steps">
+      <div class="preorder-step">
+        <div class="preorder-step-num">1</div>
+        <div class="preorder-step-title">Choose</div>
+        <div class="preorder-step-sub">Browse the collection</div>
       </div>
-      <button class="preorder-cta" onclick="scrollTo('products')">Browse Products →</button>
+      <div class="preorder-step">
+        <div class="preorder-step-num">2</div>
+        <div class="preorder-step-title">Pay</div>
+        <div class="preorder-step-sub">M-Pesa, card, mobile money</div>
+      </div>
+      <div class="preorder-step">
+        <div class="preorder-step-num">3</div>
+        <div class="preorder-step-title">Receive</div>
+        <div class="preorder-step-sub">Delivered in 3 business days</div>
+      </div>
+    </div>
+    <button class="preorder-cta" onclick="scrollTo('products')">Pre-Order Now</button>
+    <div class="preorder-payment-methods">
+      <span class="payment-pill">M-Pesa</span>
+      <span class="payment-pill">Visa</span>
+      <span class="payment-pill">Mastercard</span>
+      <span class="payment-pill">Airtel Money</span>
     </div>
   </div>
 </section>
 
 <!-- PRODUCTS -->
-<section class="section section--gray" id="products">
+<section class="section section--products" id="products">
   <div class="section-inner">
-    <div class="section-center" style="margin-bottom:3rem">
+    <div class="section-center products-header">
       <div class="section-label">The Product Lineup</div>
-      <h2 class="section-title">Pick your FarmBag</h2>
+      <h2 class="section-title">The Collection</h2>
       <p class="section-sub">
         Five innovations. One mission: making urban food production accessible to every household,
-        school, restaurant, and office on Earth — and eventually, beyond.
+        school, restaurant, and office on Earth &mdash; and eventually, beyond.
       </p>
     </div>
     <div class="products-grid">
       <!-- Products rendered by JS below, but also hardcoded for SEO/no-JS -->
-      <div class="product-card fade-up">
+      <div class="product-card product-card--featured fade-up">
         <div class="product-img-wrap">
           <img src="assets/images/farmbag-classic.jpg" alt="FarmBag Classic" class="product-img"
             onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-size:4rem\'>🌿</div>'"/>
@@ -390,7 +404,7 @@
   <div class="section-inner">
     <div class="section-center" style="margin-bottom:2rem">
       <div class="section-label">Our global presence</div>
-      <h2 class="section-title">Farming into the future — worldwide</h2>
+      <h2 class="section-title">Farming into the future &mdash; worldwide</h2>
       <p class="section-sub">Afams is a Nairobi-born, globally-minded AgriTech company. We are actively operating in Kenya, expanding to the UK and UAE, and building the infrastructure for East Africa and beyond.</p>
     </div>
     <div class="countries-grid">
@@ -460,7 +474,7 @@
       </div>
     </div>
     <div style="text-align:center;margin-top:2rem">
-      <p style="font-size:0.88rem;color:var(--gray-mid)">🌍 Interested in distributing Afams in your country? <a href="#contact" onclick="scrollTo('contact')" style="color:var(--g-mid);font-weight:600">Get in touch</a></p>
+      <p style="font-size:0.88rem;color:var(--muted)">Interested in distributing Afams in your country? <a href="#contact" onclick="scrollTo('contact')" style="color:var(--gold);font-weight:600">Get in touch</a></p>
     </div>
   </div>
 </section>
@@ -475,15 +489,15 @@
     </div>
     <div class="inst-grid">
       <div class="inst-card fade-up">
-        <div class="inst-img" style="background:linear-gradient(135deg,var(--g-pale),var(--g-soft))">🏫</div>
+        <div class="inst-img"></div>
         <div class="inst-body">
           <div class="inst-type">Education</div>
-          <div class="inst-title">The Garden-Lab · Schools</div>
+          <div class="inst-title">The Garden-Lab &middot; Schools</div>
           <div class="inst-desc">A living science corridor. Biology, chemistry, ecology — taught through a real growing system. Includes curriculum guide, training day, and seasonal seed kit delivery. From KES 85,000 per programme.</div>
         </div>
       </div>
       <div class="inst-card fade-up">
-        <div class="inst-img" style="background:linear-gradient(135deg,#FFF8E1,#FFE082)">🍽️</div>
+        <div class="inst-img"></div>
         <div class="inst-body">
           <div class="inst-type">Hospitality</div>
           <div class="inst-title">The Living Restaurant</div>
@@ -491,7 +505,7 @@
         </div>
       </div>
       <div class="inst-card fade-up">
-        <div class="inst-img" style="background:linear-gradient(135deg,var(--blue-l,#E3F2FD),#BBDEFB)">🏨</div>
+        <div class="inst-img"></div>
         <div class="inst-body">
           <div class="inst-type">Hotels</div>
           <div class="inst-title">The Wellness Hotel</div>
@@ -499,7 +513,7 @@
         </div>
       </div>
       <div class="inst-card fade-up">
-        <div class="inst-img" style="background:linear-gradient(135deg,#E8EAF6,#C5CAE9)">🏢</div>
+        <div class="inst-img"></div>
         <div class="inst-body">
           <div class="inst-type">Corporate</div>
           <div class="inst-title">The Biophilic Workplace</div>
@@ -508,7 +522,7 @@
       </div>
     </div>
     <div style="text-align:center;margin-top:2.5rem">
-      <a href="mailto:afamskenya@gmail.com?subject=Institutional Installation Enquiry" class="btn-preorder-nav" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 2rem;font-size:1rem;background:var(--g-mid);color:white;border-radius:100px;font-weight:700;transition:all 0.25s">
+      <a href="mailto:afamskenya@gmail.com?subject=Institutional Installation Enquiry" class="inst-cta">
         Request an institutional quote
       </a>
     </div>
@@ -561,34 +575,34 @@
 </section>
 
 <!-- TRUST / PARTNERS -->
-<section class="section" id="partners" style="padding:3rem 2rem">
+<section class="section" id="partners">
   <div class="section-inner">
     <div class="section-center" style="margin-bottom:1.5rem">
       <div class="section-label">Partners &amp; ecosystem</div>
     </div>
     <div class="trust-logos">
       <div class="trust-item">
-        <div class="trust-icon">🌱</div>
+        <div class="trust-icon"></div>
         <span>Kenya Seed Co.</span>
       </div>
       <div class="trust-item">
-        <div class="trust-icon">🌿</div>
+        <div class="trust-icon"></div>
         <span>Simlaw Seeds</span>
       </div>
       <div class="trust-item">
-        <div class="trust-icon">🍃</div>
+        <div class="trust-icon"></div>
         <span>Mzuri Organic</span>
       </div>
       <div class="trust-item">
-        <div class="trust-icon">🏗️</div>
+        <div class="trust-icon"></div>
         <span>Tatu City SEZ</span>
       </div>
       <div class="trust-item">
-        <div class="trust-icon">💳</div>
+        <div class="trust-icon"></div>
         <span>Paystack Payments</span>
       </div>
       <div class="trust-item">
-        <div class="trust-icon">📦</div>
+        <div class="trust-icon"></div>
         <span>KIPI Patent Pending</span>
       </div>
     </div>
@@ -602,48 +616,48 @@
       <div class="section-label">FAQ</div>
       <h2 class="section-title">Frequently asked questions</h2>
     </div>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-summary">
           What is a pre-order and when do I get my bag?
-          <span>+</span>
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">A pre-order means you pay now and we prepare your FarmBag immediately. We fulfill every order within 3 business days of payment. Nairobi delivery is included. You receive order confirmation and tracking by email and WhatsApp as soon as your bag is dispatched.</p>
+        <div class="faq-answer">A pre-order means you pay now and we prepare your FarmBag immediately. We fulfill every order within 3 business days of payment. Nairobi delivery is included. You receive order confirmation and tracking by email and WhatsApp as soon as your bag is dispatched.</div>
       </details>
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+      <details class="faq-item">
+        <summary class="faq-summary">
           Can I use the FarmBag indoors?
-          <span>+</span>
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">Yes — all FarmBag versions have a fully sealed canvas exterior with a polythene inner liner. No soil, water, or mess escapes. The FarmBag Vertical and Hydro Pro are specifically designed for indoor use on hardwood, tile, or carpet floors. The Classic also includes an overflow port that prevents waterlogging.</p>
+        <div class="faq-answer">Yes &mdash; all FarmBag versions have a fully sealed canvas exterior with a polythene inner liner. No soil, water, or mess escapes. The FarmBag Vertical and Hydro Pro are specifically designed for indoor use on hardwood, tile, or carpet floors. The Classic also includes an overflow port that prevents waterlogging.</div>
       </details>
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+      <details class="faq-item">
+        <summary class="faq-summary">
           What can I grow in the FarmBag?
-          <span>+</span>
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">The Classic and Vertical support any crop: sukuma wiki, tomatoes, kale, spinach, lettuce, capsicum, herbs, chillies, beans, and more. The Hydro Pro is optimised for fast-turnaround crops: lettuce, basil, dhania, mint, spinach, and microgreens. The AquaFarmBag grows any crop the Hydro Pro does, with the addition of tilapia, catfish, or ornamental fish.</p>
+        <div class="faq-answer">The Classic and Vertical support any crop: sukuma wiki, tomatoes, kale, spinach, lettuce, capsicum, herbs, chillies, beans, and more. The Hydro Pro is optimised for fast-turnaround crops: lettuce, basil, dhania, mint, spinach, and microgreens. The AquaFarmBag grows any crop the Hydro Pro does, with the addition of tilapia, catfish, or ornamental fish.</div>
       </details>
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
-          How do NutriPort™ cartridges work?
-          <span>+</span>
+      <details class="faq-item">
+        <summary class="faq-summary">
+          How do NutriPort&trade; cartridges work?
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">NutriPort cartridges screw into threaded ports on the FarmBag Hydro Pro. Each cartridge contains a concentrated nutrient solution and a porous ceramic diffuser stone at the nozzle. The solution diffuses passively through the stone into the reservoir — creating visible micro-bubbles that oxygenate the root zone. No pump, no timer, no electricity required. Replace each cartridge every 3–6 weeks.</p>
+        <div class="faq-answer">NutriPort cartridges screw into threaded ports on the FarmBag Hydro Pro. Each cartridge contains a concentrated nutrient solution and a porous ceramic diffuser stone at the nozzle. The solution diffuses passively through the stone into the reservoir &mdash; creating visible micro-bubbles that oxygenate the root zone. No pump, no timer, no electricity required. Replace each cartridge every 3&ndash;6 weeks.</div>
       </details>
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+      <details class="faq-item">
+        <summary class="faq-summary">
           Do you deliver outside Nairobi?
-          <span>+</span>
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">Yes. Kenya-wide delivery via courier partners: 3–5 business days to Mombasa, Kisumu, Nakuru, and other major towns. UK and UAE delivery is quoted per order — contact us at afamskenya@gmail.com for international shipping rates. We are building our international fulfilment infrastructure now.</p>
+        <div class="faq-answer">Yes. Kenya-wide delivery via courier partners: 3&ndash;5 business days to Mombasa, Kisumu, Nakuru, and other major towns. UK and UAE delivery is quoted per order &mdash; contact us at afamskenya@gmail.com for international shipping rates. We are building our international fulfilment infrastructure now.</div>
       </details>
-      <details style="background:white;border-radius:var(--radius-md);padding:1.2rem 1.5rem;box-shadow:var(--shadow-sm)">
-        <summary style="font-weight:700;color:var(--g-dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
-          Can I return my FarmBag if I'm not happy?
-          <span>+</span>
+      <details class="faq-item">
+        <summary class="faq-summary">
+          Can I return my FarmBag if I&rsquo;m not happy?
+          <span class="faq-icon">+</span>
         </summary>
-        <p style="margin-top:1rem;font-size:0.9rem;color:var(--gray-dark);line-height:1.7">Yes. We offer a 14-day satisfaction guarantee on all FarmBag hardware products. If your bag has a manufacturing defect or you are not satisfied, contact us within 14 days of delivery and we will arrange a replacement or full refund. Pre-order payments are refundable if you change your mind before your bag is dispatched.</p>
+        <div class="faq-answer">Yes. We offer a 14-day satisfaction guarantee on all FarmBag hardware products. If your bag has a manufacturing defect or you are not satisfied, contact us within 14 days of delivery and we will arrange a replacement or full refund. Pre-order payments are refundable if you change your mind before your bag is dispatched.</div>
       </details>
     </div>
   </div>
@@ -652,7 +666,7 @@
 <!-- NEWSLETTER -->
 <section class="newsletter" id="contact">
   <div style="max-width:600px;margin:0 auto">
-    <div class="section-label" style="color:#A5D6A7;text-align:center">Stay connected</div>
+    <div class="section-label" style="text-align:center">Stay connected</div>
     <h2>Join the Afams Growers Club</h2>
     <p>Growing guides, product launches, harvest challenges, and exclusive member discounts. We send one email per week. Always worth opening.</p>
     <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
@@ -672,13 +686,16 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">
-          <div class="nav-logo-leaf"></div>
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 2C10 2 4 6 4 12C4 15.3 6.7 18 10 18C13.3 18 16 15.3 16 12C16 6 10 2 10 2Z" stroke="#D4A017" stroke-width="1.5"/>
+            <path d="M10 18L10 11M10 11C10 11 7.5 9 7.5 12" stroke="#D4A017" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
           Afams Ltd
         </div>
         <p class="footer-desc">
           Afams Ltd is an urban AgriTech company registered in Kenya in 2021.
           We build innovative, accessible food-growing systems for cities, homes,
-          schools, and institutions — with a vision to feed the future,
+          schools, and institutions &mdash; with a vision to feed the future,
           wherever that future may be.
         </p>
         <div class="footer-email">afamskenya@gmail.com</div>
@@ -725,9 +742,9 @@
         KIPI patent applications pending.
       </div>
       <div class="footer-socials">
-        <a href="https://instagram.com" target="_blank" class="social-btn" title="Instagram">📷</a>
-        <a href="https://tiktok.com" target="_blank" class="social-btn" title="TikTok">🎵</a>
-        <a href="https://youtube.com" target="_blank" class="social-btn" title="YouTube">▶</a>
+        <a href="https://instagram.com" target="_blank" class="social-btn" title="Instagram">IG</a>
+        <a href="https://tiktok.com" target="_blank" class="social-btn" title="TikTok">TT</a>
+        <a href="https://youtube.com" target="_blank" class="social-btn" title="YouTube">YT</a>
         <a href="https://linkedin.com" target="_blank" class="social-btn" title="LinkedIn">in</a>
         <a href="#" onclick="openWhatsApp()" class="social-btn" title="WhatsApp">💬</a>
       </div>
@@ -739,14 +756,16 @@
 <div class="cart-overlay" id="cart-overlay"></div>
 <div class="cart-drawer" id="cart-drawer">
   <div class="cart-header">
-    <h2>🛒 Your Cart</h2>
-    <div class="cart-close" onclick="closeCart()">×</div>
+    <h2>Your Order</h2>
+    <div class="cart-close" onclick="closeCart()">&times;</div>
   </div>
   <div class="cart-items" id="cart-items">
     <div class="cart-empty">
-      <div class="cart-empty-icon">🛒</div>
-      <p style="font-weight:600;color:var(--gray-dark);margin-bottom:0.5rem">Your cart is empty</p>
-      <p style="font-size:0.85rem;color:var(--gray-mid)">Add a FarmBag to get started</p>
+      <div class="cart-empty-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      </div>
+      <p style="font-weight:600;color:var(--cream);margin-bottom:0.5rem">Your order is empty</p>
+      <p style="font-size:0.85rem;color:var(--muted)">Add a FarmBag to get started</p>
     </div>
   </div>
   <div class="cart-footer">
@@ -755,11 +774,10 @@
       <span id="cart-total">KES 0</span>
     </div>
     <div class="cart-note">
-      🚚 Free delivery within Nairobi · Pre-orders fulfilled in 3 business days ·
+      Free delivery within Nairobi &middot; Pre-orders fulfilled in 3 business days &middot;
       Secure payment via Paystack (M-Pesa, card, mobile money)
     </div>
     <button class="btn-checkout" id="checkout-btn" onclick="openCheckout()" disabled>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
       Proceed to Checkout
     </button>
   </div>
@@ -838,37 +856,43 @@
 <div class="modal-overlay" id="success-overlay">
   <div class="modal success-modal">
     <div class="modal-body">
-      <div class="success-icon">✅</div>
-      <div class="success-title">Pre-order confirmed, <span id="success-name">friend</span>!</div>
+      <div class="success-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#F4C430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6,18 14,26 30,10"/>
+        </svg>
+      </div>
+      <div class="success-title">Your order is confirmed, <span id="success-name">friend</span></div>
       <div class="success-sub">Your FarmBag is secured. We are preparing your order now. Expect delivery within 3 business days. You will receive tracking updates via email and WhatsApp.</div>
       <div class="order-ref" id="order-ref-display">AFAMS-...</div>
       <div class="timeline">
         <div class="timeline-item">
-          <div class="timeline-dot active">✓</div>
+          <div class="timeline-dot active">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>
+          </div>
           <div class="timeline-info">
             <div class="timeline-label">Payment confirmed</div>
-            <div class="timeline-time">Just now · confirmation sent to <span id="success-email"></span></div>
+            <div class="timeline-time">Just now &middot; confirmation sent to <span id="success-email"></span></div>
           </div>
         </div>
         <div class="timeline-item">
           <div class="timeline-dot">2</div>
           <div class="timeline-info">
             <div class="timeline-label">Order in production</div>
-            <div class="timeline-time">Within 24 hours · assembly &amp; QC check</div>
+            <div class="timeline-time">Within 24 hours &middot; assembly &amp; QC check</div>
           </div>
         </div>
         <div class="timeline-item">
           <div class="timeline-dot">3</div>
           <div class="timeline-info">
             <div class="timeline-label">Dispatched for delivery</div>
-            <div class="timeline-time">Within 2 business days · WhatsApp tracking link sent</div>
+            <div class="timeline-time">Within 2 business days &middot; WhatsApp tracking link sent</div>
           </div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot">🌿</div>
+          <div class="timeline-dot">4</div>
           <div class="timeline-info">
             <div class="timeline-label">Delivered &amp; growing</div>
-            <div class="timeline-time">Within 3 business days · setup takes 30 minutes</div>
+            <div class="timeline-time">Within 3 business days &middot; setup takes 30 minutes</div>
           </div>
         </div>
       </div>
