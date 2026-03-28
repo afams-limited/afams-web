@@ -2,8 +2,8 @@
 
 // ── CONFIG ───────────────────────────────────────────────────────
 const AFAMS = {
-  paystackKey: 'pk_live_YOUR_PAYSTACK_PUBLIC_KEY_HERE', // ← Replace with your key
-  whatsapp: '+254700000000', // ← Replace with your WhatsApp number
+  paystackKey: 'pk_live_f381ff48e30a32e169afcb9084e2e6664cb95876E', // ← Replace with your key
+  whatsapp: '+254702359618', // ← Replace with your WhatsApp number
   email: 'afamskenya@gmail.com',
   currency: 'KES',
   deliveryDays: 3,
