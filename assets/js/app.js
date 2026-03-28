@@ -405,8 +405,33 @@ function subscribeNewsletter(e) {
     showToast('⚠️ Please enter a valid email');
     return;
   }
+  // Submit to Netlify Forms via AJAX (fire-and-forget)
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ 'form-name': 'newsletter', email }).toString(),
+  }).catch(() => {}); // non-fatal — toast shows regardless
   showToast('✓ Subscribed! Welcome to the Afams Growers Club');
   document.getElementById('nl-email').value = '';
+}
+
+// ── INSTITUTIONAL ENQUIRY ─────────────────────────────────────────
+function submitInstitutional(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(data).toString(),
+  })
+    .then(() => {
+      showToast("✓ Enquiry sent! We'll be in touch within 24 hours");
+      form.reset();
+    })
+    .catch(() => {
+      showToast('⚠️ Could not send — please email afamskenya@gmail.com directly');
+    });
 }
 
 // ── WHATSAPP ──────────────────────────────────────────────────────
