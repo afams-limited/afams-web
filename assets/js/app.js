@@ -319,7 +319,8 @@ async function initiatePayment() {
     ],
   };
 
-  const handler = PaystackPop.setup({
+  const paystack = new PaystackPop();
+  paystack.newTransaction({
     key:      AFAMS.paystackKey,
     email,
     amount:   amountKobo,
@@ -327,20 +328,17 @@ async function initiatePayment() {
     ref:      reference,
     metadata,
     label: 'Afams FarmBag Pre-Order',
-    onClose: () => {
+    onCancel: () => {
       showToast('Payment cancelled — your cart is saved');
     },
-    callback: (response) => {
-      if (response.status === 'success') {
-        closeCheckout();
-        showSuccessModal(reference, name, email);
-        cart = [];
-        saveCart();
-        updateCartUI();
-      }
+    onSuccess: (transaction) => {
+      closeCheckout();
+      showSuccessModal(transaction.reference || reference, name, email);
+      cart = [];
+      saveCart();
+      updateCartUI();
     },
   });
-  handler.openIframe();
 }
 
 // ── SUCCESS MODAL ─────────────────────────────────────────────────
