@@ -499,6 +499,35 @@ function initStockBadge() {
   if (el) el.textContent = AFAMS.batchStock;
 }
 
+// ── PRODUCT IMAGE LOADING ─────────────────────────────────────────
+// Uses fetch() instead of <img src> so missing images don't produce
+// "Failed to load resource" console errors.
+function showEmojiPlaceholder(wrap, emoji) {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;font-size:4rem';
+  div.textContent = emoji;
+  wrap.innerHTML = '';
+  wrap.appendChild(div);
+}
+
+function initProductImages() {
+  document.querySelectorAll('img.lazy-img[data-src]').forEach(img => {
+    const src = img.dataset.src;
+    const emoji = img.dataset.emoji || '';
+    fetch(src, { method: 'HEAD' })
+      .then(r => {
+        if (r.ok) {
+          img.src = src;
+        } else {
+          showEmojiPlaceholder(img.parentElement, emoji);
+        }
+      })
+      .catch(() => {
+        showEmojiPlaceholder(img.parentElement, emoji);
+      });
+  });
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
@@ -506,6 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartUI();
   initCountdown();
   initStockBadge();
+  initProductImages();
 
   // Cart overlay click to close
   document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
