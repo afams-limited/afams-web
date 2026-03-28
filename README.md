@@ -9,15 +9,15 @@ Official website for Afams Ltd — urban agricultural technology company based i
 - Pure HTML5 / CSS3 / Vanilla JavaScript — zero frameworks, zero build step
 - Paystack for payments (M-Pesa, cards, mobile money)
 - Google Fonts (Inter)
-- Deployed on Vercel via GitHub
+- Deployed on Netlify via GitHub
 
-## Quick Deploy to Vercel
+## Quick Deploy to Netlify
 
 1. Push this repo to GitHub
-2. Go to vercel.com → New Project → Import from GitHub
-3. Select this repository
-4. Leave all settings as default (Vercel auto-detects static HTML)
-5. Click Deploy
+2. Go to app.netlify.com → Add new site → Import an existing project
+3. Select GitHub and choose this repository
+4. Set **Publish directory** to `.` (the repo root)
+5. Click Deploy site
 
 Your site is live in ~60 seconds.
 
@@ -48,19 +48,25 @@ Place your product images in `assets/images/` with these exact filenames:
 Images gracefully fallback to emoji placeholders if not found.
 
 ### 4. Custom domain (afams.co.ke)
-In Vercel Dashboard → Project → Settings → Domains → Add → `afams.co.ke`
-Vercel provides the DNS records to add in TrueHost.
+In Netlify Dashboard → Project → Domain management → Add a domain → `afams.co.ke`
+Netlify provides the DNS records to add in TrueHost.
 
 ## File structure
 ```
 afams-web/
-├── index.html          # Main website (single page)
-├── vercel.json         # Vercel configuration + security headers
+├── index.html              # Main website (single page)
+├── admin.html              # Admin panel
+├── netlify.toml            # Netlify configuration + security headers
 ├── assets/
 │   ├── css/
-│   │   └── style.css   # All styles (dark mode ready, fully responsive)
-│   └── js/
-│       └── app.js      # Cart, Paystack, animations, all JS
+│   │   ├── style.css       # All styles (dark mode ready, fully responsive)
+│   │   └── admin.css       # Admin panel styles
+│   ├── js/
+│   │   ├── app.js          # Cart, Paystack, animations, all JS
+│   │   └── admin.js        # Admin panel JS
+│   └── images/             # Product images
+├── netlify/
+│   └── functions/          # Netlify serverless functions (Paystack API)
 └── README.md
 ```
 
@@ -81,7 +87,7 @@ afams-web/
 - ✅ Founder story section
 - ✅ Toast notifications
 - ✅ SEO meta tags (Open Graph)
-- ✅ Security headers via vercel.json
+- ✅ Security headers via netlify.toml
 
 ## Contact
 afamskenya@gmail.com · afams.co.ke · Nairobi, Kenya
