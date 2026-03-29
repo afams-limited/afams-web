@@ -3,7 +3,7 @@ name: Deploy to Truehost
 on:
   push:
     branches:
-      - main        # auto-deploys every time you push to main
+      - main
 
 jobs:
   deploy:
@@ -15,10 +15,10 @@ jobs:
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server:   ${{ secrets.sftp://141.95.45.75 }}
-          username: ${{ secrets.uqjhuzrr }}
-          password: ${{ secrets.kS6w[59GuZvT]6 }}
-          local-dir: ./          # root of your repo
+          server:     ${{ secrets.FTP_HOST }}
+          username:   ${{ secrets.FTP_USER }}
+          password:   ${{ secrets.FTP_PASS }}
+          local-dir:  ./
           server-dir: /public_html/
           exclude: |
             **/.git*
