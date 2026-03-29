@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex"/>
+  <title>Checkout — Afams FarmBag</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green:      #1E7D34;
+      --green-dark: #0D3D1A;
+      --green-pale: #E6F0E7;
+      --slate:      #1A2028;
+      --gray-mid:   #718096;
+      --gray-light: #F7F9F7;
+      --white:      #FFFFFF;
+      --red:        #C62828;
+      --red-pale:   #FFEBEE;
+      --radius:     12px;
+      --shadow:     0 4px 24px rgba(0,0,0,0.1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--gray-light);
+      color: var(--slate);
+      min-height: 100vh;
+    }
+    h1,h2,h3 { font-family: 'Playfair Display', Georgia, serif; }
+
+    /* ── NAV ── */
+    .nav {
+      background: var(--green-dark);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .nav-logo img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .nav-back {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ── LAYOUT ── */
+    .checkout-wrap {
+      max-width: 900px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem 5rem;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .checkout-wrap { grid-template-columns: 1fr; }
+      .order-summary { order: -1; }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+    }
+    .card h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1.5rem;
+      color: var(--slate);
+    }
+    .card-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-bottom: 1rem;
+    }
+
+    /* ── FORM ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4A5568;
+      margin-bottom: 0.35rem;
+    }
+    label .req { color: var(--red); margin-left: 2px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 8px;
+      outline: none;
+      background: var(--white);
+      color: var(--slate);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(30,125,52,0.12);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── ORDER SUMMARY ── */
+    .order-summary {}
+    .product-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--green-pale);
+      margin-bottom: 1.25rem;
+    }
+    .product-thumb {
+      width: 64px;
+      height: 64px;
+      background: var(--green-pale);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .product-info-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.15rem;
+    }
+    .product-info-sku {
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+    }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      color: var(--slate);
+      margin-bottom: 0.6rem;
+    }
+    .summary-line .label { color: var(--gray-mid); }
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding-top: 0.85rem;
+      border-top: 2px solid var(--slate);
+      margin-top: 0.5rem;
+    }
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 8px;
+      background: var(--white);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .qty-btn:hover { border-color: var(--green); color: var(--green); }
+    .qty-val {
+      width: 40px;
+      text-align: center;
+      font-weight: 700;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 0.35rem 0;
+    }
+
+    /* ── DELIVERY BADGE ── */
+    .delivery-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--green-pale);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--green-dark);
+      font-weight: 500;
+    }
+
+    /* ── PAY BUTTON ── */
+    .btn-pay {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-pay:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); }
+    .btn-pay:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .btn-pay svg { flex-shrink: 0; }
+
+    /* ── ERROR ── */
+    .error-msg {
+      background: var(--red-pale);
+      color: var(--red);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* ── SECURE NOTE ── */
+    .secure-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+
+    /* ── PRODUCT SELECTOR ── */
+    .product-selector { margin-bottom: 1.5rem; }
+    .product-selector select { font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/images/afams-logo.jpg" alt="Afams"/>
+    Afams
+  </a>
+  <a href="products.html" class="nav-back">
+    ← Back to products
+  </a>
+</nav>
+
+<div class="checkout-wrap">
+
+  <!-- Left: Customer form -->
+  <div>
+    <div class="card">
+      <h2>Your details</h2>
+
+      <div id="form-error" class="error-msg"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f-name">Full name <span class="req">*</span></label>
+          <input type="text" id="f-name" placeholder="e.g. Jane Muthoni" autocomplete="name" required/>
+        </div>
+        <div class="form-group">
+          <label for="f-phone">Phone / WhatsApp <span class="req">*</span></label>
+          <input type="tel" id="f-phone" placeholder="+254 7XX XXX XXX" autocomplete="tel" required/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="f-email">Email address <span class="req">*</span></label>
+        <input type="email" id="f-email" placeholder="you@example.com" autocomplete="email" required/>
+      </div>
+
+      <div class="form-group">
+        <label for="f-address">Delivery address</label>
+        <input type="text" id="f-address" placeholder="Building, street, area" autocomplete="street-address"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f-county">County</label>
+          <select id="f-county">
+            <option value="">Select county…</option>
+            <option>Nairobi</option><option>Mombasa</option><option>Kisumu</option>
+            <option>Nakuru</option><option>Eldoret</option><option>Thika</option>
+            <option>Kiambu</option><option>Machakos</option><option>Nyeri</option>
+            <option>Meru</option><option>Kakamega</option><option>Kisii</option>
+            <option>Other (Kenya)</option><option>Outside Kenya</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="delivery-badge">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        Free delivery within Nairobi · 3 business days
+      </div>
+
+      <button class="btn-pay" id="pay-btn" onclick="launchPaystack()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Pay with M-Pesa / Card
+      </button>
+
+      <p class="secure-note">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Secured by Paystack · 256-bit SSL encryption
+      </p>
+    </div>
+  </div>
+
+  <!-- Right: Order summary -->
+  <div class="order-summary">
+    <div class="card">
+      <h2>Order summary</h2>
+
+      <div class="product-selector">
+        <label for="s-product">Product</label>
+        <select id="s-product" onchange="updateSummary()">
+          <!-- populated by JS -->
+        </select>
+      </div>
+
+      <div class="product-row" id="product-row">
+        <div class="product-thumb" id="product-thumb">🌿</div>
+        <div>
+          <div class="product-info-name" id="product-display-name">FarmBag Classic</div>
+          <div class="product-info-sku" id="product-display-sku">SKU: FB-CLS-01</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
+            <input class="qty-val" id="qty" type="number" value="1" min="1" max="99" onchange="updateSummary()"/>
+            <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-line">
+        <span class="label">Unit price</span>
+        <span id="unit-price-display">KES 4,200</span>
+      </div>
+      <div class="summary-line">
+        <span class="label">Quantity</span>
+        <span id="qty-display">× 1</span>
+      </div>
+      <div class="summary-line">
+        <span class="label">Delivery</span>
+        <span>Free</span>
+      </div>
+      <div class="summary-total">
+        <span>Total</span>
+        <span id="total-display">KES 4,200</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Paystack Inline JS -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+const PRODUCTS = [
+  { sku: 'FB-CLS-01', name: 'FarmBag Classic',        price: 4200,  emoji: '🌿', image: 'assets/images/farmbag-classic.jpg' },
+  { sku: 'FB-HYD-01', name: 'FarmBag Hydro Pro',      price: 10500, emoji: '💧', image: 'assets/images/farmbag-hydro.jpg' },
+  { sku: 'FB-GRW-01', name: 'FarmBag Grow Cube',      price: 5000,  emoji: '🌱', image: 'assets/images/farmbag-vertical.jpg' },
+  { sku: 'FB-AQU-01', name: 'AquaFarmBag',            price: 14000, emoji: '🐟', image: 'assets/images/aquafarmbag.jpg' },
+  { sku: 'FB-STR-01', name: 'FarmBag Starter Kit',    price: 6500,  emoji: '🎁', image: '' },
+  { sku: 'FB-PRO-01', name: 'FarmBag Pro Bundle',     price: 18000, emoji: '🌟', image: '' },
+  { sku: 'FB-ENT-01', name: 'FarmBag Enterprise Kit', price: 35000, emoji: '🏢', image: '' },
+];
+
+// ── Read URL params: ?sku=FB-CLS-01&name=...&price=...
+const params = new URLSearchParams(window.location.search);
+const paramSku   = params.get('sku');
+const paramPrice = parseInt(params.get('price') || '0', 10);
+const paramName  = params.get('name');
+
+// ── Populate product selector
+const select = document.getElementById('s-product');
+PRODUCTS.forEach((p, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `${p.name} — KES ${p.price.toLocaleString()}`;
+  if (paramSku && p.sku === paramSku) opt.selected = true;
+  select.appendChild(opt);
+});
+
+function selectedProduct() {
+  return PRODUCTS[parseInt(select.value, 10)] || PRODUCTS[0];
+}
+
+function updateSummary() {
+  const p   = selectedProduct();
+  const qty = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
+  const total = p.price * qty;
+
+  document.getElementById('product-display-name').textContent = p.name;
+  document.getElementById('product-display-sku').textContent  = 'SKU: ' + p.sku;
+  document.getElementById('unit-price-display').textContent   = 'KES ' + p.price.toLocaleString();
+  document.getElementById('qty-display').textContent          = '× ' + qty;
+  document.getElementById('total-display').textContent        = 'KES ' + total.toLocaleString();
+  document.getElementById('pay-btn').textContent              = '';
+  document.getElementById('pay-btn').innerHTML = `
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Pay KES ${total.toLocaleString()} — M-Pesa / Card`;
+
+  // Update thumb
+  const thumb = document.getElementById('product-thumb');
+  if (p.image) {
+    const img = new Image();
+    img.src = p.image;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px';
+    img.onload = () => { thumb.innerHTML = ''; thumb.appendChild(img); };
+    img.onerror = () => { thumb.textContent = p.emoji; };
+  } else {
+    thumb.textContent = p.emoji;
+  }
+}
+
+function changeQty(delta) {
+  const el  = document.getElementById('qty');
+  const val = Math.max(1, Math.min(99, (parseInt(el.value, 10) || 1) + delta));
+  el.value  = val;
+  updateSummary();
+}
+
+function showError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideError() {
+  document.getElementById('form-error').style.display = 'none';
+}
+
+function launchPaystack() {
+  hideError();
+  const name    = document.getElementById('f-name').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+  const county  = document.getElementById('f-county').value;
+
+  if (!name)  { return showError('Please enter your full name.'); }
+  if (!phone) { return showError('Please enter your phone number.'); }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return showError('Please enter a valid email address.');
+  }
+
+  const paystackKey = window.__PAYSTACK_PUBLIC_KEY;
+  if (!paystackKey) {
+    return showError(
+      'Payment gateway is not configured. Please contact support at afamskenya@gmail.com.'
+    );
+  }
+
+  const product = selectedProduct();
+  const qty     = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
+  const total   = product.price * qty;
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+
+  const handler = PaystackPop.setup({
+    key:      paystackKey,
+    email:    email,
+    amount:   total * 100,    // Paystack uses smallest currency unit (kobo/cents)
+    currency: 'KES',
+    // Paystack payment reference (stored as paystack_ref in orders table).
+    // This differs from the sequential order_number (AFM-YYYY-00001) which is
+    // generated by the database trigger after the webhook creates the order.
+    ref:      'AFM-' + Date.now(),
+    metadata: {
+      customer_name:    name,
+      customer_email:   email,
+      customer_phone:   phone,
+      product_sku:      product.sku,
+      product_name:     product.name,
+      quantity:         qty,
+      unit_price:       product.price,
+      delivery_address: address,
+      county:           county,
+    },
+    callback: function(response) {
+      // Payment complete — DO NOT write to Supabase here; webhook handles that.
+      window.location.href = '/order-confirm.html?ref=' + encodeURIComponent(response.reference)
+        + '&name=' + encodeURIComponent(name)
+        + '&amount=' + total;
+    },
+    onClose: function() {
+      btn.disabled = false;
+    },
+  });
+
+  handler.openIframe();
+}
+
+// Initial render
+updateSummary();
+</script>
+</body>
+</html>

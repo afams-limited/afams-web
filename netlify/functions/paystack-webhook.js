@@ -1,102 +1,127 @@
-// netlify/functions/paystack-webhook.js
-// Receives Paystack webhook events, verifies the HMAC-SHA512 signature,
-// and updates the matching order in Supabase when payment is confirmed.
+// ============================================================
+// Afams Ltd — Paystack Webhook Handler
+// Path: netlify/functions/paystack-webhook.js
+// Runtime: Node.js 18 (Netlify Functions)
+// ============================================================
 
 const crypto = require('crypto');
+const { createClient } = require('@supabase/supabase-js');
+
+// ── Supabase client (service role — bypasses RLS) ────────────
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// ── Verify Paystack HMAC signature ───────────────────────────
+function verifySignature(body, signature) {
+  const hash = crypto
+    .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+    .update(body)
+    .digest('hex');
+  return hash === signature;
+}
 
 exports.handler = async (event) => {
-  const headers = { 'Cache-Control': 'no-store' };
-
+  // Only accept POST
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: '' };
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const secret = process.env.PAYSTACK_SECRET_KEY;
-  if (!secret) {
-    console.error('[webhook] PAYSTACK_SECRET_KEY is not set');
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server misconfigured' }) };
+  const signature = event.headers['x-paystack-signature'];
+  const rawBody = event.body;
+
+  // ── Signature verification ──────────────────────────────────
+  if (!verifySignature(rawBody, signature)) {
+    console.error('[Webhook] Invalid Paystack signature');
+    return { statusCode: 401, body: 'Unauthorized' };
   }
 
-  // event.body is the raw request body string — use it directly for signature verification
-  // so the hash matches exactly what Paystack signed (no re-serialisation needed).
-  const rawBody = event.body || '';
-  const expectedHash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
-  const receivedHash = event.headers['x-paystack-signature'];
-
-  if (!receivedHash || expectedHash !== receivedHash) {
-    console.warn('[webhook] Signature mismatch — possible spoofed request');
-    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid signature' }) };
+  let payload;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch (e) {
+    return { statusCode: 400, body: 'Bad Request' };
   }
 
-  const payload = JSON.parse(rawBody);
+  const { event: eventType, data } = payload;
+  console.log(`[Webhook] Event: ${eventType} | Ref: ${data?.reference}`);
 
-  if (payload?.event === 'charge.success') {
-    const { reference } = payload.data || {};
-    if (!reference) {
-      console.error('[webhook] charge.success event missing reference');
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Missing reference in event data' }),
-      };
+  // ── Handle charge.success ───────────────────────────────────
+  if (eventType === 'charge.success') {
+    const {
+      reference,
+      amount,       // in kobo/cents — Paystack sends smallest unit
+      currency,
+      customer,
+      metadata,
+      paid_at,
+    } = data;
+
+    const totalKes = Math.round(amount / 100); // convert from cents to KES
+
+    if (!paid_at) {
+      console.warn(`[Webhook] paid_at missing from payload for ref ${reference} — using server time`);
     }
 
-    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('[webhook] Supabase credentials not configured');
-      // Return 200 so Paystack does not retry — log the event manually
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ message: 'Received; DB not configured' }),
-      };
+    // metadata is set during Paystack popup initialisation
+    // Expected shape: { customer_name, customer_phone, product_sku,
+    //                   product_name, quantity, unit_price, delivery_address, county }
+    const {
+      customer_name,
+      customer_phone,
+      product_sku,
+      product_name,
+      quantity,
+      unit_price,
+      delivery_address,
+      county,
+    } = metadata || {};
+
+    // Check for duplicate (idempotency)
+    const { data: existing } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('paystack_ref', reference)
+      .single();
+
+    if (existing) {
+      console.log(`[Webhook] Duplicate ref ${reference} — skipping`);
+      return { statusCode: 200, body: 'OK' };
     }
 
-    // Idempotency check — skip if already marked as paid
-    const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?paystack_reference=eq.${encodeURIComponent(reference)}&payment_status=eq.paid&select=id`,
-      {
-        headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      }
-    );
-    const existing = await checkRes.json();
-    if (Array.isArray(existing) && existing.length > 0) {
-      return { statusCode: 200, headers, body: JSON.stringify({ message: 'Already processed' }) };
+    // Write order to Supabase
+    const { error } = await supabase
+      .from('orders')
+      .insert({
+        customer_name:    customer_name || customer?.name || 'Unknown',
+        customer_email:   customer?.email,
+        customer_phone:   customer_phone || customer?.phone,
+        delivery_address: delivery_address || null,
+        county:           county || null,
+        product_sku:      product_sku || null,
+        product_name:     product_name || 'FarmBag Product',
+        quantity:         parseInt(quantity) || 1,
+        unit_price:       parseInt(unit_price) || totalKes,
+        total_amount:     totalKes,
+        paystack_ref:     reference,
+        payment_method:   'paystack',
+        status:           'paid',
+        paid_at:          paid_at || new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('[Webhook] Supabase insert error:', error);
+      return { statusCode: 500, body: 'Internal Server Error' };
     }
 
-    // Update order to paid + confirmed
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?paystack_reference=eq.${encodeURIComponent(reference)}`,
-      {
-        method: 'PATCH',
-        headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({
-          payment_status: 'paid',
-          order_status: 'confirmed',
-        }),
-      }
-    );
+    console.log(`[Webhook] Order created for ${customer?.email} — KES ${totalKes}`);
 
-    if (!updateRes.ok) {
-      const errText = await updateRes.text();
-      console.error('[webhook] Supabase PATCH failed:', errText);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'Failed to update order' }),
-      };
-    }
+    // TODO: Send confirmation email via Resend/Brevo (future enhancement)
 
-    console.log(`[webhook] Order confirmed for reference: ${reference}`);
+    return { statusCode: 200, body: 'OK' };
   }
 
-  return { statusCode: 200, headers, body: JSON.stringify({ message: 'Webhook received' }) };
+  // ── Acknowledge all other events ────────────────────────────
+  return { statusCode: 200, body: 'OK' };
 };

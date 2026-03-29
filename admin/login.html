@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Admin Login — Afams</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/admin.css"/>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #071A0B 0%, #0D3D1A 100%);
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+  <div class="auth-logo">🌿 Afams Admin</div>
+  <h2 class="auth-title">Sign in</h2>
+  <p class="auth-sub">Access is restricted to authorised Afams team members.</p>
+
+  <div class="form-group">
+    <label class="form-label">Email address</label>
+    <input type="email" id="login-email" placeholder="admin@afams.co.ke" autocomplete="email"/>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+  </div>
+
+  <div id="login-error" class="auth-error" style="display:none"></div>
+
+  <button class="btn-primary" id="login-btn" onclick="signIn()">Sign in</button>
+
+  <p class="auth-hint">
+    No account? Ask your Supabase admin to add you via Supabase Auth → Users.<br/>
+    <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">Open Supabase Dashboard ↗</a>
+  </p>
+</div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL     = window.__SUPABASE_URL || 'https://wklhcmaodxatavuoduhd.supabase.co';
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY
+  || localStorage.getItem('afams_admin_supabase_key')
+  || '';
+
+let sb = null;
+
+function initClient() {
+  if (!SUPABASE_ANON_KEY) {
+    document.getElementById('login-error').textContent =
+      'Supabase anon key is not configured. Set window.__SUPABASE_ANON_KEY via Netlify snippet injection.';
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-btn').disabled = true;
+    return false;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return true;
+}
+
+async function checkExistingSession() {
+  if (!initClient()) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    window.location.href = '/admin/dashboard.html';
+  }
+}
+
+async function signIn() {
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+
+  if (!initClient()) return;
+
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in…';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  btn.disabled    = false;
+  btn.textContent = 'Sign in';
+
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  window.location.href = '/admin/dashboard.html';
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') signIn();
+});
+
+checkExistingSession();
+</script>
+</body>
+</html>
