@@ -1,39 +1,28 @@
 [build]
+  functions = "netlify/functions"
   publish = "."
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
+# SPA routing — serve index.html for all non-file routes
 [[redirects]]
-  from = "/api/paystack/initialize"
-  to = "/.netlify/functions/paystack-initialize"
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Admin routes — serve admin/login if not authenticated
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/login.html"
   status = 200
 
-[[redirects]]
-  from = "/api/paystack/webhook"
-  to = "/.netlify/functions/paystack-webhook"
-  status = 200
-
+# Paystack webhook endpoint
 [[redirects]]
   from = "/api/paystack-webhook"
   to = "/.netlify/functions/paystack-webhook"
   status = 200
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
 [functions]
-  directory = "netlify/functions"
   node_bundler = "esbuild"
+
+[dev]
+  port = 8888
