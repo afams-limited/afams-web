@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Dashboard — Afams Admin</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/admin.css"/>
+  <style>
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 1rem 0 0;
+      font-size: 0.82rem;
+      color: var(--gray-mid);
+    }
+    .pagination-btns { display: flex; gap: 0.5rem; }
+    .btn-page {
+      padding: 0.4rem 0.8rem;
+      border: 1.5px solid rgba(0,0,0,0.12);
+      border-radius: 6px;
+      background: var(--white);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-page:hover:not(:disabled) { border-color: var(--g-rich); color: var(--g-rich); }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-page.active { background: var(--g-rich); color: #fff; border-color: var(--g-rich); }
+
+    /* ── Sortable headers ── */
+    th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+    th.sortable:hover { color: var(--g-rich); }
+    th.sortable .sort-indicator { margin-left: 4px; opacity: 0.4; }
+    th.sortable.sort-asc .sort-indicator,
+    th.sortable.sort-desc .sort-indicator { opacity: 1; color: var(--g-rich); }
+
+    /* ── Flag ── */
+    .btn-flag {
+      padding: 0.3rem 0.5rem;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+    .btn-flag:hover { border-color: #C05800; }
+    .btn-flag.flagged { background: #FFF3E0; border-color: #C05800; }
+
+    /* ── Export button ── */
+    .btn-export {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: var(--white);
+      border: 1.5px solid rgba(0,0,0,0.1);
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-export:hover { border-color: var(--g-rich); color: var(--g-rich); }
+
+    /* ── Slide-over detail panel ── */
+    .detail-overlay {
+      position: fixed; inset: 0;
+      background: rgba(7,26,11,0.5);
+      z-index: 500;
+      display: none;
+    }
+    .detail-overlay.open { display: block; }
+    .detail-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(520px, 100vw);
+      background: var(--white);
+      box-shadow: -8px 0 40px rgba(0,0,0,0.18);
+      z-index: 501;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .detail-panel.open { transform: translateX(0); }
+    .detail-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--g-pale);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: var(--off-white);
+    }
+    .detail-header h2 { font-size: 1.15rem; color: var(--slate); }
+    .btn-close-panel {
+      width: 36px; height: 36px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-dark);
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-close-panel:hover { background: var(--g-pale); }
+    .detail-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    .detail-section { margin-bottom: 1.75rem; }
+    .detail-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-bottom: 0.85rem;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--g-pale);
+      font-size: 0.875rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--gray-mid); flex-shrink: 0; }
+    .detail-value { font-weight: 500; text-align: right; word-break: break-all; }
+    .detail-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--g-pale);
+      background: var(--off-white);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .detail-footer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .detail-footer label { font-size: 0.75rem; font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem; display: block; }
+    .detail-footer input,
+    .detail-footer select,
+    .detail-footer textarea {
+      font-family: inherit;
+      font-size: 0.875rem;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      background: var(--white);
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .detail-footer input:focus,
+    .detail-footer select:focus,
+    .detail-footer textarea:focus { border-color: var(--g-rich); }
+    .detail-footer textarea { resize: vertical; min-height: 70px; }
+    .btn-save-detail {
+      padding: 0.75rem 1.5rem;
+      background: var(--g-rich);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save-detail:hover { background: var(--g-dark); }
+    .detail-flag-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--gray-dark);
+    }
+    .detail-flag-toggle input[type=checkbox] {
+      width: 16px; height: 16px;
+      accent-color: var(--amber);
+    }
+
+    /* ── Search/filter bar tweaks ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .toolbar .filter-group { flex: 1; min-width: 140px; max-width: 200px; }
+    .toolbar .search-group { flex: 2; min-width: 200px; }
+    .toolbar .filter-group label,
+    .toolbar .search-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    /* ── Responsive table ── */
+    .table-wrap { overflow-x: auto; }
+    .orders-table th { cursor: default; }
+    .orders-table td { vertical-align: middle; }
+    tr.flagged-row { background: #FFFDE7; }
+    .status-select {
+      padding: 0.3rem 0.55rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      background: var(--white);
+      font-family: inherit;
+      cursor: pointer;
+      width: auto;
+    }
+    .status-select:focus { border-color: var(--g-rich); outline: none; }
+    .btn-update {
+      padding: 0.3rem 0.65rem;
+      background: var(--g-rich);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-update:hover { background: var(--g-dark); }
+
+    /* ── Badges ── */
+    .badge { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+    .badge-pending    { background: #FFF3E0; color: #C05800; }
+    .badge-paid       { background: #E8F5E9; color: #2E7D32; }
+    .badge-processing { background: #E3F2FD; color: #1565C0; }
+    .badge-shipped    { background: #EDE7F6; color: #6A1B9A; }
+    .badge-delivered  { background: var(--g-pale); color: var(--g-dark); }
+    .badge-cancelled  { background: #FFEBEE; color: #C62828; }
+  </style>
+</head>
+<body>
+
+<!-- ── MAIN LAYOUT ── -->
+<div class="admin-layout" id="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-leaf">🌿</span>
+      <span>Afams<span class="sidebar-admin-label"> Admin</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active" id="nav-orders" onclick="setView('orders')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Orders
+      </a>
+      <a class="sidebar-link" id="nav-analytics" onclick="setView('analytics')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="main-header">
+      <div>
+        <h1 class="main-title" id="view-title">Orders</h1>
+        <p class="main-sub" id="view-sub">All customer pre-orders</p>
+      </div>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn-export" id="btn-export" onclick="exportCSV()" title="Export to CSV" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn-refresh" onclick="refresh()" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ORDERS VIEW ── -->
+    <div id="view-orders">
+
+      <!-- Stats row -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-total">—</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card stat-card--green">
+          <div class="stat-val" id="stat-revenue">—</div>
+          <div class="stat-label">Revenue (KES)</div>
+        </div>
+        <div class="stat-card stat-card--amber">
+          <div class="stat-val" id="stat-pending">—</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card stat-card--gold">
+          <div class="stat-val" id="stat-in-progress">—</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-delivered">—</div>
+          <div class="stat-label">Delivered</div>
+        </div>
+      </div>
+
+      <!-- Toolbar: filters + search -->
+      <div class="toolbar">
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filter-status" onchange="applyFilters()">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Product SKU</label>
+          <select id="filter-sku" onchange="applyFilters()">
+            <option value="">All products</option>
+            <option value="FB-CLS-01">FB-CLS-01</option>
+            <option value="FB-HYD-01">FB-HYD-01</option>
+            <option value="FB-GRW-01">FB-GRW-01</option>
+            <option value="FB-AQU-01">FB-AQU-01</option>
+            <option value="FB-STR-01">FB-STR-01</option>
+            <option value="FB-PRO-01">FB-PRO-01</option>
+            <option value="FB-ENT-01">FB-ENT-01</option>
+          </select>
+        </div>
+        <div class="search-group">
+          <label>Search</label>
+          <input type="search" id="filter-search" placeholder="Name, email, order number, ref…" oninput="applyFilters()"/>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div id="table-loading" class="table-loading">Loading orders…</div>
+        <table class="orders-table" id="orders-table" style="display:none">
+          <thead>
+            <tr>
+              <th class="sortable" data-col="order_number" onclick="toggleSort('order_number')">
+                Order # <span class="sort-indicator">↕</span>
+              </th>
+              <th>Customer</th>
+              <th>Product</th>
+              <th class="sortable" data-col="total_amount" onclick="toggleSort('total_amount')">
+                Amount <span class="sort-indicator">↕</span>
+              </th>
+              <th class="sortable" data-col="status" onclick="toggleSort('status')">
+                Status <span class="sort-indicator">↕</span>
+              </th>
+              <th class="sortable" data-col="created_at" onclick="toggleSort('created_at')">
+                Date <span class="sort-indicator">↕</span>
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+        <div id="table-empty" class="table-empty" style="display:none">No orders found.</div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination" style="display:none">
+        <span id="pagination-info"></span>
+        <div class="pagination-btns" id="pagination-btns"></div>
+      </div>
+
+    </div><!-- /view-orders -->
+
+    <!-- ── ANALYTICS VIEW ── -->
+    <div id="view-analytics" style="display:none">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="an-total">—</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card stat-card--green">
+          <div class="stat-val" id="an-revenue">—</div>
+          <div class="stat-label">Confirmed Revenue (KES)</div>
+        </div>
+        <div class="stat-card stat-card--gold">
+          <div class="stat-val" id="an-avg">—</div>
+          <div class="stat-label">Avg Order Value</div>
+        </div>
+        <div class="stat-card stat-card--amber">
+          <div class="stat-val" id="an-conversion">—</div>
+          <div class="stat-label">Paid Conversion</div>
+        </div>
+      </div>
+      <div class="analytics-breakdown" id="analytics-breakdown"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── DETAIL SLIDE-OVER ── -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <h2 id="detail-title">Order details</h2>
+    <button class="btn-close-panel" onclick="closeDetail()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="detail-body" id="detail-body"><!-- populated by JS --></div>
+  <div class="detail-footer">
+    <div class="detail-footer-row">
+      <div>
+        <label for="d-status">Status</label>
+        <select id="d-status">
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <label for="d-tracking">Tracking number</label>
+        <input type="text" id="d-tracking" placeholder="e.g. GKP123456"/>
+      </div>
+    </div>
+    <div>
+      <label for="d-notes">Internal notes</label>
+      <textarea id="d-notes" placeholder="Admin notes (not visible to customer)…"></textarea>
+    </div>
+    <div class="detail-flag-toggle">
+      <input type="checkbox" id="d-flagged"/>
+      <label for="d-flagged" style="cursor:pointer;font-size:0.82rem;color:var(--gray-dark)">
+        🚩 Flag this order for attention
+      </label>
+    </div>
+    <button class="btn-save-detail" onclick="saveDetail()">Save changes</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="admin-toast"></div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ── AFAMS LTD · Admin Dashboard · 2026 ── */
+
+const SUPABASE_URL      = 'https://wklhcmaodxatavuoduhd.supabase.co';
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY
+  || localStorage.getItem('afams_admin_supabase_key')
+  || '';
+
+let sb         = null;
+let allOrders  = [];      // full loaded dataset
+let filtered   = [];      // post-filter + search
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let sortCol    = 'created_at';
+let sortAsc    = false;
+let detailOrderId = null;
+
+// ── AUTH GUARD ────────────────────────────────────────────────────────────────
+async function init() {
+  if (!SUPABASE_ANON_KEY) {
+    // Fallback: redirect to login
+    window.location.href = '/admin/login.html';
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '/admin/login.html';
+    return;
+  }
+  setView('orders');
+  loadStats();
+  loadOrders();
+}
+
+async function signOut() {
+  if (sb) await sb.auth.signOut();
+  window.location.href = '/admin/login.html';
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function setView(view) {
+  document.getElementById('view-orders').style.display    = view === 'orders'    ? 'block' : 'none';
+  document.getElementById('view-analytics').style.display = view === 'analytics' ? 'block' : 'none';
+  document.getElementById('nav-orders').classList.toggle('active',    view === 'orders');
+  document.getElementById('nav-analytics').classList.toggle('active', view === 'analytics');
+  document.getElementById('btn-export').style.display = view === 'orders' ? 'flex' : 'none';
+
+  if (view === 'orders') {
+    document.getElementById('view-title').textContent = 'Orders';
+    document.getElementById('view-sub').textContent   = 'All customer pre-orders';
+  } else {
+    document.getElementById('view-title').textContent = 'Analytics';
+    document.getElementById('view-sub').textContent   = 'Revenue and order insights';
+    loadAnalytics();
+  }
+}
+
+function refresh() {
+  loadStats();
+  loadOrders();
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const { data, error } = await sb.from('order_stats').select('*').single();
+  if (error || !data) return;
+
+  document.getElementById('stat-total').textContent       = data.total_orders   ?? '—';
+  document.getElementById('stat-pending').textContent     = data.pending         ?? '—';
+  document.getElementById('stat-delivered').textContent   = data.delivered       ?? '—';
+  document.getElementById('stat-in-progress').textContent =
+    ((data.paid || 0) + (data.processing || 0) + (data.shipped || 0)).toString();
+  document.getElementById('stat-revenue').textContent =
+    'KES ' + Number(data.confirmed_revenue_kes || 0).toLocaleString();
+}
+
+// ── ORDERS ────────────────────────────────────────────────────────────────────
+async function loadOrders() {
+  showTableState('loading');
+
+  let query = sb
+    .from('orders')
+    .select('*')
+    .order(sortCol, { ascending: sortAsc });
+
+  const statusFilter = document.getElementById('filter-status')?.value;
+  const skuFilter    = document.getElementById('filter-sku')?.value;
+  const search       = document.getElementById('filter-search')?.value.trim();
+
+  if (statusFilter) query = query.eq('status', statusFilter);
+  if (skuFilter)    query = query.eq('product_sku', skuFilter);
+
+  // Server-side ILIKE search
+  if (search) {
+    query = query.or(
+      `customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,order_number.ilike.%${search}%,paystack_ref.ilike.%${search}%`
+    );
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    toast('⚠️ Failed to load orders: ' + error.message);
+    showTableState('empty');
+    return;
+  }
+
+  allOrders  = data || [];
+  filtered   = allOrders;
+  currentPage = 1;
+  renderTable();
+}
+
+function applyFilters() {
+  // Filters trigger a fresh server-side query for accurate ILIKE search
+  loadOrders();
+}
+
+// ── TABLE RENDER ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('orders-body');
+  const total = filtered.length;
+
+  if (!total) {
+    showTableState('empty');
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  showTableState('table');
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  tbody.innerHTML = page.map(o => {
+    const date = new Date(o.created_at).toLocaleDateString('en-KE', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+    const flagClass = o.flagged ? 'flagged-row' : '';
+    return `
+      <tr class="${flagClass}" data-id="${o.id}" onclick="openDetail('${o.id}')" style="cursor:pointer">
+        <td data-label="Order #">
+          <span class="order-ref">${esc(o.order_number || '—')}</span>
+        </td>
+        <td data-label="Customer">
+          <div class="customer-name">${esc(o.customer_name || '—')}</div>
+          <div class="customer-phone" style="font-size:0.75rem;color:var(--gray-mid)">${esc(o.customer_email || '')}</div>
+        </td>
+        <td data-label="Product">
+          <div style="font-size:0.82rem;font-weight:600">${esc(o.product_name || o.product_sku || '—')}</div>
+          <div style="font-size:0.72rem;color:var(--gray-mid)">${esc(o.product_sku || '')} × ${o.quantity || 1}</div>
+        </td>
+        <td data-label="Amount">KES ${Number(o.total_amount || 0).toLocaleString()}</td>
+        <td data-label="Status"><span class="badge badge-${o.status || 'pending'}">${o.status || 'pending'}</span></td>
+        <td data-label="Date">${date}</td>
+        <td data-label="Actions" onclick="event.stopPropagation()">
+          <div class="action-cell" style="display:flex;gap:0.4rem;align-items:center">
+            <select class="status-select" id="row-status-${o.id}" onclick="event.stopPropagation()">
+              ${['pending','paid','processing','shipped','delivered','cancelled'].map(s =>
+                `<option value="${s}"${o.status === s ? ' selected' : ''}>${s}</option>`
+              ).join('')}
+            </select>
+            <button class="btn-update" onclick="updateRowStatus('${o.id}')">✓</button>
+            <button class="btn-flag ${o.flagged ? 'flagged' : ''}" onclick="toggleFlag('${o.id}', ${!o.flagged})" title="Flag order">🚩</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  renderPagination(total);
+}
+
+function renderPagination(total) {
+  const pages   = Math.ceil(total / PAGE_SIZE);
+  const start   = (currentPage - 1) * PAGE_SIZE + 1;
+  const end     = Math.min(currentPage * PAGE_SIZE, total);
+  const pag     = document.getElementById('pagination');
+  const info    = document.getElementById('pagination-info');
+  const btns    = document.getElementById('pagination-btns');
+
+  pag.style.display = pages > 1 ? 'flex' : 'flex'; // always show for count
+  info.textContent  = `Showing ${start}–${end} of ${total} orders`;
+
+  if (pages <= 1) { btns.innerHTML = ''; return; }
+
+  let html = `<button class="btn-page" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← Prev</button>`;
+  const range = buildPageRange(currentPage, pages);
+  range.forEach(p => {
+    if (p === '…') {
+      html += `<span style="padding:0.4rem 0.5rem;color:var(--gray-mid)">…</span>`;
+    } else {
+      html += `<button class="btn-page${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+    }
+  });
+  html += `<button class="btn-page" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>Next →</button>`;
+  btns.innerHTML = html;
+}
+
+function buildPageRange(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
+  if (current >= total - 3) return [1, '…', total-4, total-3, total-2, total-1, total];
+  return [1, '…', current-1, current, current+1, '…', total];
+}
+
+function goPage(p) {
+  const pages = Math.ceil(filtered.length / PAGE_SIZE);
+  currentPage = Math.max(1, Math.min(pages, p));
+  renderTable();
+  document.getElementById('orders-table').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────────────
+function toggleSort(col) {
+  if (sortCol === col) {
+    sortAsc = !sortAsc;
+  } else {
+    sortCol = col;
+    sortAsc = col !== 'created_at'; // default desc for date, asc for others
+  }
+
+  // Update header indicators
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === col) th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+    const indicator = th.querySelector('.sort-indicator');
+    if (indicator) indicator.textContent = th.dataset.col === col ? (sortAsc ? '↑' : '↓') : '↕';
+  });
+
+  loadOrders();
+}
+
+// ── INLINE STATUS UPDATE ──────────────────────────────────────────────────────
+async function updateRowStatus(orderId) {
+  const select   = document.getElementById('row-status-' + orderId);
+  if (!select) return;
+  const newStatus = select.value;
+  const timestamps = buildTimestamps(newStatus);
+
+  const { error } = await sb.from('orders').update({ status: newStatus, ...timestamps }).eq('id', orderId);
+  if (error) { toast('⚠️ ' + error.message); return; }
+
+  toast('✓ Status updated to ' + newStatus);
+  const cached = allOrders.find(o => o.id === orderId);
+  if (cached) { cached.status = newStatus; Object.assign(cached, timestamps); }
+  renderTable();
+  loadStats();
+}
+
+// ── FLAG TOGGLE ───────────────────────────────────────────────────────────────
+async function toggleFlag(orderId, flagged) {
+  const { error } = await sb.from('orders').update({ flagged }).eq('id', orderId);
+  if (error) { toast('⚠️ ' + error.message); return; }
+
+  const cached = allOrders.find(o => o.id === orderId);
+  if (cached) cached.flagged = flagged;
+  renderTable();
+  toast(flagged ? '🚩 Order flagged' : '✓ Flag removed');
+}
+
+// ── DETAIL SLIDE-OVER ─────────────────────────────────────────────────────────
+function openDetail(orderId) {
+  const order = allOrders.find(o => o.id === orderId);
+  if (!order) return;
+
+  detailOrderId = orderId;
+
+  document.getElementById('detail-title').textContent =
+    'Order ' + (order.order_number || order.id.slice(0, 8));
+
+  // Populate readonly fields
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Customer</div>
+      ${detailRow('Name',    order.customer_name)}
+      ${detailRow('Email',   order.customer_email)}
+      ${detailRow('Phone',   order.customer_phone)}
+      ${detailRow('Address', order.delivery_address)}
+      ${detailRow('County',  order.county)}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Order</div>
+      ${detailRow('Order number', order.order_number)}
+      ${detailRow('Product',      (order.product_name || '') + (order.product_sku ? ' (' + order.product_sku + ')' : ''))}
+      ${detailRow('Quantity',     order.quantity)}
+      ${detailRow('Unit price',   'KES ' + Number(order.unit_price || 0).toLocaleString())}
+      ${detailRow('Total',        'KES ' + Number(order.total_amount || 0).toLocaleString())}
+      ${detailRow('Paystack ref', order.paystack_ref)}
+      ${detailRow('Paid at',      order.paid_at ? new Date(order.paid_at).toLocaleString('en-KE') : '—')}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Fulfilment</div>
+      ${detailRow('Status',    `<span class="badge badge-${order.status}">${order.status}</span>`)}
+      ${detailRow('Shipped at',   order.shipped_at   ? new Date(order.shipped_at).toLocaleString('en-KE')   : '—')}
+      ${detailRow('Delivered at', order.delivered_at ? new Date(order.delivered_at).toLocaleString('en-KE') : '—')}
+    </div>
+  `;
+
+  // Populate editable fields
+  document.getElementById('d-status').value   = order.status   || 'pending';
+  document.getElementById('d-tracking').value = order.tracking_number || '';
+  document.getElementById('d-notes').value    = order.notes    || '';
+  document.getElementById('d-flagged').checked = !!order.flagged;
+
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function detailRow(label, value) {
+  return `<div class="detail-row">
+    <span class="detail-label">${label}</span>
+    <span class="detail-value">${value == null || value === '' ? '<span style="color:var(--gray-mid)">—</span>' : value}</span>
+  </div>`;
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  detailOrderId = null;
+}
+
+async function saveDetail() {
+  if (!detailOrderId) return;
+
+  const newStatus      = document.getElementById('d-status').value;
+  const trackingNumber = document.getElementById('d-tracking').value.trim();
+  const notes          = document.getElementById('d-notes').value.trim();
+  const flagged        = document.getElementById('d-flagged').checked;
+  const timestamps     = buildTimestamps(newStatus, allOrders.find(o => o.id === detailOrderId));
+
+  const { error } = await sb.from('orders').update({
+    status:          newStatus,
+    tracking_number: trackingNumber || null,
+    notes:           notes          || null,
+    flagged,
+    ...timestamps,
+  }).eq('id', detailOrderId);
+
+  if (error) { toast('⚠️ ' + error.message); return; }
+
+  toast('✓ Order updated');
+  const cached = allOrders.find(o => o.id === detailOrderId);
+  if (cached) {
+    cached.status = newStatus;
+    cached.tracking_number = trackingNumber;
+    cached.notes = notes;
+    cached.flagged = flagged;
+    Object.assign(cached, timestamps);
+  }
+  closeDetail();
+  renderTable();
+  loadStats();
+}
+
+function buildTimestamps(newStatus, existing) {
+  const now = new Date().toISOString();
+  const ts  = {};
+  if (newStatus === 'paid'      && !existing?.paid_at)      ts.paid_at      = now;
+  if (newStatus === 'shipped'   && !existing?.shipped_at)   ts.shipped_at   = now;
+  if (newStatus === 'delivered' && !existing?.delivered_at) ts.delivered_at = now;
+  return ts;
+}
+
+// ── ANALYTICS ────────────────────────────────────────────────────────────────
+async function loadAnalytics() {
+  const [statsRes, ordersRes] = await Promise.all([
+    sb.from('order_stats').select('*').single(),
+    sb.from('orders').select('status, product_sku, product_name, total_amount, county'),
+  ]);
+
+  if (!statsRes.error && statsRes.data) {
+    const d = statsRes.data;
+    const paid = (d.paid || 0) + (d.processing || 0) + (d.shipped || 0) + (d.delivered || 0);
+    const avgVal = paid > 0 ? Math.round((d.confirmed_revenue_kes || 0) / paid) : 0;
+    const convPct = d.total_orders > 0 ? Math.round((paid / d.total_orders) * 100) : 0;
+    document.getElementById('an-total').textContent      = d.total_orders;
+    document.getElementById('an-revenue').textContent    = 'KES ' + Number(d.confirmed_revenue_kes).toLocaleString();
+    document.getElementById('an-avg').textContent        = 'KES ' + avgVal.toLocaleString();
+    document.getElementById('an-conversion').textContent = convPct + '%';
+  }
+
+  if (!ordersRes.error && ordersRes.data) {
+    const orders = ordersRes.data;
+    const statusCount  = {};
+    const productCount = {};
+    const countyCount  = {};
+    orders.forEach(o => {
+      statusCount[o.status]  = (statusCount[o.status]  || 0) + 1;
+      const pname = o.product_name || o.product_sku || 'Unknown';
+      productCount[pname]    = (productCount[pname]    || 0) + 1;
+      const c = o.county || 'Unknown';
+      countyCount[c]         = (countyCount[c]         || 0) + 1;
+    });
+
+    document.getElementById('analytics-breakdown').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin-top:1.5rem">
+        <div>
+          <h3 style="font-size:0.95rem;margin-bottom:1rem">Orders by Status</h3>
+          ${Object.entries(statusCount).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
+            <div class="breakdown-row">
+              <span><span class="badge badge-${k}">${k}</span></span>
+              <span class="breakdown-val">${v}</span>
+            </div>`).join('')}
+        </div>
+        <div>
+          <h3 style="font-size:0.95rem;margin-bottom:1rem">Orders by Product</h3>
+          ${Object.entries(productCount).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
+            <div class="breakdown-row">
+              <span class="breakdown-label">${esc(k)}</span>
+              <span class="breakdown-val">${v}</span>
+            </div>`).join('')}
+        </div>
+        <div>
+          <h3 style="font-size:0.95rem;margin-bottom:1rem">Orders by County</h3>
+          ${Object.entries(countyCount).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v]) => `
+            <div class="breakdown-row">
+              <span class="breakdown-label">${esc(k)}</span>
+              <span class="breakdown-val">${v}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────────────────────
+async function exportCSV() {
+  toast('⏳ Preparing export…');
+  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+  if (error) { toast('⚠️ Export failed: ' + error.message); return; }
+
+  const cols = [
+    'order_number','created_at','status','customer_name','customer_email','customer_phone',
+    'delivery_address','county','product_sku','product_name','quantity','unit_price',
+    'total_amount','paystack_ref','payment_method','paid_at','shipped_at','delivered_at',
+    'tracking_number','notes','flagged',
+  ];
+
+  const csvLines = [
+    cols.join(','),
+    ...(data || []).map(row =>
+      cols.map(col => {
+        const val = row[col];
+        if (val == null) return '';
+        const str = String(val);
+        return str.includes(',') || str.includes('"') || str.includes('\n')
+          ? '"' + str.replace(/"/g, '""') + '"'
+          : str;
+      }).join(',')
+    ),
+  ];
+
+  const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href     = url;
+  a.download = `afams-orders-${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ Export downloaded');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function showTableState(state) {
+  document.getElementById('table-loading').style.display = state === 'loading' ? 'block' : 'none';
+  document.getElementById('orders-table').style.display  = state === 'table'   ? 'table' : 'none';
+  document.getElementById('table-empty').style.display   = state === 'empty'   ? 'block' : 'none';
+}
+
+function toast(msg) {
+  const el = document.getElementById('admin-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

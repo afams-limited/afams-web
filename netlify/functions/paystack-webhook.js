@@ -1,6 +1,10 @@
 // netlify/functions/paystack-webhook.js
 // Receives Paystack webhook events, verifies the HMAC-SHA512 signature,
-// and updates the matching order in Supabase when payment is confirmed.
+// and writes a confirmed order to Supabase on charge.success.
+//
+// Flow: client launches Paystack popup with customer metadata →
+//       Paystack calls this webhook on successful payment →
+//       webhook creates the order record in Supabase.
 
 const crypto = require('crypto');
 
@@ -31,7 +35,9 @@ exports.handler = async (event) => {
   const payload = JSON.parse(rawBody);
 
   if (payload?.event === 'charge.success') {
-    const { reference } = payload.data || {};
+    const data = payload.data || {};
+    const { reference, amount, customer: paystackCustomer, metadata = {} } = data;
+
     if (!reference) {
       console.error('[webhook] charge.success event missing reference');
       return {
@@ -52,50 +58,66 @@ exports.handler = async (event) => {
       };
     }
 
-    // Idempotency check — skip if already marked as paid
+    const supabaseHeaders = {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+    };
+
+    // Idempotency check — skip if this reference was already processed
     const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?paystack_reference=eq.${encodeURIComponent(reference)}&payment_status=eq.paid&select=id`,
-      {
-        headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      }
+      `${SUPABASE_URL}/rest/v1/orders?paystack_ref=eq.${encodeURIComponent(reference)}&select=id`,
+      { headers: supabaseHeaders }
     );
     const existing = await checkRes.json();
     if (Array.isArray(existing) && existing.length > 0) {
+      console.log(`[webhook] Reference already processed: ${reference}`);
       return { statusCode: 200, headers, body: JSON.stringify({ message: 'Already processed' }) };
     }
 
-    // Update order to paid + confirmed
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?paystack_reference=eq.${encodeURIComponent(reference)}`,
-      {
-        method: 'PATCH',
-        headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({
-          payment_status: 'paid',
-          order_status: 'confirmed',
-        }),
-      }
-    );
+    // Build the order record from Paystack data + metadata supplied by the checkout page
+    const totalAmountKES = Math.round((amount || 0) / 100);
+    const unitPrice      = metadata.unit_price   || totalAmountKES;
+    const quantity       = metadata.quantity      || 1;
+    const customerEmail  = metadata.customer_email || paystackCustomer?.email || '';
 
-    if (!updateRes.ok) {
-      const errText = await updateRes.text();
-      console.error('[webhook] Supabase PATCH failed:', errText);
+    const orderRecord = {
+      customer_name:    metadata.customer_name    || paystackCustomer?.first_name || 'Unknown',
+      customer_email:   customerEmail,
+      customer_phone:   metadata.customer_phone   || paystackCustomer?.phone || null,
+      delivery_address: metadata.delivery_address || null,
+      county:           metadata.county           || null,
+      product_sku:      metadata.product_sku      || null,
+      product_name:     metadata.product_name     || null,
+      quantity:         Number(quantity),
+      unit_price:       Number(unitPrice),
+      total_amount:     totalAmountKES,
+      paystack_ref:     reference,
+      payment_method:   'paystack',
+      paid_at:          new Date().toISOString(),
+      status:           'paid',
+    };
+
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        ...supabaseHeaders,
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(orderRecord),
+    });
+
+    if (!insertRes.ok) {
+      const errText = await insertRes.text();
+      console.error('[webhook] Supabase INSERT failed:', errText);
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Failed to update order' }),
+        body: JSON.stringify({ error: 'Failed to record order' }),
       };
     }
 
-    console.log(`[webhook] Order confirmed for reference: ${reference}`);
+    console.log(`[webhook] Order created for reference: ${reference}`);
   }
 
   return { statusCode: 200, headers, body: JSON.stringify({ message: 'Webhook received' }) };

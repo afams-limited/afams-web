@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex"/>
+  <title>Order Confirmed — Afams FarmBag</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green:       #1E7D34;
+      --green-dark:  #0D3D1A;
+      --green-pale:  #E6F0E7;
+      --green-soft:  #C3DFC7;
+      --slate:       #1A2028;
+      --gray-mid:    #718096;
+      --gray-light:  #F7F9F7;
+      --white:       #FFFFFF;
+      --gold:        #B8860B;
+      --gold-pale:   #FFF8E6;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--gray-light);
+      color: var(--slate);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1,h2,h3 { font-family: 'Playfair Display', Georgia, serif; }
+
+    /* ── NAV ── */
+    .nav {
+      background: var(--green-dark);
+      padding: 1rem 1.5rem;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      width: fit-content;
+    }
+    .nav-logo img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+
+    /* ── HERO ── */
+    .confirm-hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, #155D27 100%);
+      color: #fff;
+      text-align: center;
+      padding: 4.5rem 1.5rem 3.5rem;
+    }
+    .check-circle {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .confirm-hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.8rem);
+      margin-bottom: 0.5rem;
+    }
+    .confirm-hero p {
+      color: rgba(255,255,255,0.82);
+      font-size: 1.05rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── CONTENT ── */
+    .confirm-content {
+      max-width: 680px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem 5rem;
+      flex: 1;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1.25rem;
+      color: var(--slate);
+    }
+
+    /* ── REFERENCE BOX ── */
+    .ref-box {
+      background: var(--green-pale);
+      border: 1.5px solid var(--green-soft);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .ref-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+    .ref-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      word-break: break-all;
+    }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      position: relative;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: 0;
+      width: 2px;
+      background: var(--green-pale);
+    }
+    .timeline-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.9rem;
+    }
+    .dot-done  { background: var(--green);      color: #fff; }
+    .dot-wait  { background: var(--gold-pale);  color: var(--gold); border: 2px solid var(--gold); }
+    .dot-later { background: var(--green-pale); color: var(--green); border: 2px solid var(--green-soft); }
+    .timeline-body { padding-top: 0.35rem; }
+    .timeline-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0.15rem;
+    }
+    .timeline-sub {
+      font-size: 0.8rem;
+      color: var(--gray-mid);
+    }
+
+    /* ── ACTIONS ── */
+    .actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      padding: 0.75rem 1.5rem;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      color: var(--slate);
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── WHATSAPP NOTE ── */
+    .whatsapp-note {
+      background: #E8F5E9;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--green-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/images/afams-logo.jpg" alt="Afams"/>
+    Afams
+  </a>
+</nav>
+
+<div class="confirm-hero">
+  <div class="check-circle">
+    <svg width="36" height="36" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  </div>
+  <h1>Payment confirmed!</h1>
+  <p>Thank you for your pre-order. Your FarmBag is being prepared.</p>
+</div>
+
+<div class="confirm-content">
+
+  <!-- Reference -->
+  <div class="ref-box">
+    <div>
+      <div class="ref-label">Order reference</div>
+      <div class="ref-value" id="order-ref">—</div>
+    </div>
+    <div id="order-name" style="margin-left:auto;font-size:0.85rem;color:var(--gray-mid)"></div>
+  </div>
+
+  <!-- WhatsApp note -->
+  <div class="whatsapp-note">
+    <span style="font-size:1.3rem">💬</span>
+    Save your order reference above. We'll confirm your order via WhatsApp at
+    <strong style="margin-left:0.25rem">+254 702 359 618</strong>.
+  </div>
+
+  <!-- Delivery timeline -->
+  <div class="card">
+    <h2>Delivery timeline</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot dot-done">✓</div>
+        <div class="timeline-body">
+          <div class="timeline-title">Payment confirmed</div>
+          <div class="timeline-sub" id="ts-now">Just now</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot dot-wait">2</div>
+        <div class="timeline-body">
+          <div class="timeline-title">Order being prepared</div>
+          <div class="timeline-sub">Within 24 hours</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot dot-later">3</div>
+        <div class="timeline-body">
+          <div class="timeline-title">Dispatched to courier</div>
+          <div class="timeline-sub" id="ts-dispatch">Within 1–2 business days</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot dot-later">🏡</div>
+        <div class="timeline-body">
+          <div class="timeline-title">Delivered to you</div>
+          <div class="timeline-sub" id="ts-delivery">Within 3 business days</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="card">
+    <h2>What's next?</h2>
+    <p style="font-size:0.875rem;color:var(--gray-mid);margin-bottom:1.25rem">
+      Keep an eye on your email and WhatsApp for dispatch notifications.
+      You can also browse more products below.
+    </p>
+    <div class="actions">
+      <a href="products.html" class="btn-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Browse more products
+      </a>
+      <a href="index.html" class="btn-secondary">Back to home</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Read URL params
+const params  = new URLSearchParams(window.location.search);
+const ref     = params.get('ref')    || '';
+const name    = params.get('name')   || '';
+const amount  = params.get('amount') || '';
+
+// Display reference
+document.getElementById('order-ref').textContent = ref || 'Check your email';
+if (name) document.getElementById('order-name').textContent = 'Hi, ' + name + '!';
+
+// Timestamps
+const now = new Date();
+document.getElementById('ts-now').textContent = now.toLocaleString('en-KE', {
+  day: 'numeric', month: 'short', year: 'numeric',
+  hour: '2-digit', minute: '2-digit',
+});
+
+function addBusinessDays(date, days) {
+  const d = new Date(date);
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) added++;
+  }
+  return d;
+}
+
+const deliveryDate = addBusinessDays(now, 3);
+const dispatchDate = addBusinessDays(now, 2);
+
+const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
+document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
+document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
+
+// Clear cart if using the localStorage cart from index.html
+try { localStorage.removeItem('afams_cart'); } catch(_) {}
+</script>
+</body>
+</html>
