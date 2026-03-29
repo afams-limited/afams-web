@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/paystack-webhook.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/paystack-webhook",
+      "dest": "/api/paystack-webhook.js"
+    }
+  ]
+}
