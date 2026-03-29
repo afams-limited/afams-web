@@ -298,7 +298,7 @@ function renderProducts(products) {
 
 async function loadProducts() {
   // Try to load active products from Supabase
-  const supabaseUrl  = 'https://wklhcmaodxatavuoduhd.supabase.co';
+  const supabaseUrl  = window.__SUPABASE_URL || 'https://wklhcmaodxatavuoduhd.supabase.co';
   const anonKey      = window.__SUPABASE_ANON_KEY;
 
   if (anonKey) {

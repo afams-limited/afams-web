@@ -86,6 +86,9 @@ CREATE TRIGGER orders_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- ── ORDER NUMBER GENERATOR (AFM-YYYY-00001) ───────────────────────────────────
+-- Note: sequence-based numbering may produce gaps when transactions are rolled
+-- back after nextval() is called. This is normal PostgreSQL sequence behaviour.
+-- Gaps in order_number are acceptable; uniqueness is guaranteed.
 CREATE SEQUENCE IF NOT EXISTS public.order_number_seq START 1;
 
 CREATE OR REPLACE FUNCTION public.generate_order_number()

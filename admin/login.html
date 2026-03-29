@@ -50,7 +50,7 @@
 <!-- Supabase JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const SUPABASE_URL     = 'https://wklhcmaodxatavuoduhd.supabase.co';
+const SUPABASE_URL     = window.__SUPABASE_URL || 'https://wklhcmaodxatavuoduhd.supabase.co';
 const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY
   || localStorage.getItem('afams_admin_supabase_key')
   || '';

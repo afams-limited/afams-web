@@ -474,7 +474,7 @@
 <script>
 /* ── AFAMS LTD · Admin Dashboard · 2026 ── */
 
-const SUPABASE_URL      = 'https://wklhcmaodxatavuoduhd.supabase.co';
+const SUPABASE_URL      = window.__SUPABASE_URL || 'https://wklhcmaodxatavuoduhd.supabase.co';
 const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY
   || localStorage.getItem('afams_admin_supabase_key')
   || '';
@@ -709,7 +709,8 @@ async function updateRowStatus(orderId) {
   const select   = document.getElementById('row-status-' + orderId);
   if (!select) return;
   const newStatus = select.value;
-  const timestamps = buildTimestamps(newStatus);
+  const existing  = allOrders.find(o => o.id === orderId);
+  const timestamps = buildTimestamps(newStatus, existing);
 
   const { error } = await sb.from('orders').update({ status: newStatus, ...timestamps }).eq('id', orderId);
   if (error) { toast('⚠️ ' + error.message); return; }
