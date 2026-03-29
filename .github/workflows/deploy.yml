@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
@@ -21,4 +21,3 @@ jobs:
           port:        22
           local_path:  ./*
           remote_path: /home/${{ secrets.FTP_USER }}/public_html
-          exclude:     '.git*,.github*,supabase/*,COPILOT_PROMPT.md'
