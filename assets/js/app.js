@@ -203,7 +203,7 @@ function renderOrderSummary() {
 }
 
 // ── PAYSTACK PAYMENT ──────────────────────────────────────────────
-async function initiatePayment() {
+function initiatePayment() {
   const name    = document.getElementById('f-name').value.trim();
   const email   = document.getElementById('f-email').value.trim();
   const phone   = document.getElementById('f-phone').value.trim();
@@ -221,40 +221,7 @@ async function initiatePayment() {
   }
 
   const amountKobo = cartTotal() * 100; // Paystack uses kobo/cents
-
-  // Disable button and show loading state
-  const payBtn = document.querySelector('.btn-pay');
-  const origText = payBtn.innerHTML;
-  payBtn.disabled = true;
-  payBtn.innerHTML = '<span>Processing…</span>';
-
-  let reference = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-
-  try {
-    // Create a pending order in the backend before opening the popup.
-    // Falls back gracefully if the backend is unavailable (e.g. local development).
-    const res = await fetch('/api/paystack/initialize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        amount: amountKobo,
-        customer: { name, phone, county, location: county, address, notes },
-        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.priceKES })),
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.reference) reference = data.reference;
-    }
-  } catch (err) {
-    // Backend unavailable — continue with client-generated reference
-    console.warn('[initiatePayment] Backend unreachable, using client reference:', err.message);
-  } finally {
-    payBtn.disabled = false;
-    payBtn.innerHTML = origText;
-  }
+  const reference = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
 
   const metadata = {
     custom_fields: [
@@ -267,8 +234,7 @@ async function initiatePayment() {
     ],
   };
 
-  const paystack = new PaystackPop();
-  paystack.newTransaction({
+  const handler = PaystackPop.setup({
     key:      AFAMS.paystackKey,
     email,
     amount:   amountKobo,
@@ -287,6 +253,8 @@ async function initiatePayment() {
       updateCartUI();
     },
   });
+
+  handler.openIframe();
 }
 
 // ── SUCCESS MODAL ─────────────────────────────────────────────────
