@@ -235,27 +235,12 @@
 <script>
 /* ── Products catalogue (shown when Supabase is not available) ── */
 const STATIC_PRODUCTS = [
-  { sku: 'FB-CLS-01', name: 'FarmBag Classic',        category: 'Flagship',         badge: 'flagship', emoji: '🌿',
+  { sku: 'FB-CLS-01', name: 'FarmBag Classic',   category: 'Flagship',   badge: 'flagship', emoji: '🌿',
     desc: '3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Passive wicking reservoir waters crops for 3–7 days per fill.',
     features: ['3 growing zones','Wicking reservoir','Folds flat','Coir kit included'], priceKES: 4200, image: 'assets/images/farmbag-classic.jpg' },
-  { sku: 'FB-HYD-01', name: 'FarmBag Hydro Pro',      category: 'NutriPort™ System', badge: 'premium',  emoji: '💧',
-    desc: 'Soil-free Kratky hydroponics with the NutriPort™ system. No soil, no pump, no electricity required.',
-    features: ['NutriPort™ ports','Zero soil','Ceramic diffusers','Visible bubbles'], priceKES: 10500, image: 'assets/images/farmbag-hydro.jpg' },
-  { sku: 'FB-GRW-01', name: 'FarmBag Grow Cube',      category: 'Grow Cube™',        badge: 'new',       emoji: '🌱',
-    desc: 'Classic upgraded with the patented Grow Cube™ inner basket. Plants grow in 5 directions — front, back, left, right, and upward.',
-    features: ['Grow Cube™ basket','5× yield','Indoor safe','No floor mess'], priceKES: 5000, image: 'assets/images/farmbag-vertical.jpg' },
-  { sku: 'FB-AQU-01', name: 'AquaFarmBag',            category: 'Aquaponics',        badge: 'preorder',  emoji: '🐟',
-    desc: 'Live fish + plants in a closed-loop ecosystem. Fish waste fertilises plants. Plants clean the water.',
-    features: ['Live fish inside','AquaPanel™','Closed loop','Transparent window'], priceKES: 14000, image: 'assets/images/aquafarmbag.jpg' },
-  { sku: 'FB-STR-01', name: 'FarmBag Starter Kit',    category: 'Bundle',            badge: 'new',       emoji: '🎁',
-    desc: 'Everything you need to start growing: FarmBag Classic + coir growing medium + NutriPort Starter Kit.',
-    features: ['All-in-one kit','Save 10%','Same-day dispatch','Perfect gift'], priceKES: 6500, image: '' },
-  { sku: 'FB-PRO-01', name: 'FarmBag Pro Bundle',     category: 'Bundle',            badge: 'premium',   emoji: '🌟',
-    desc: 'FarmBag Hydro Pro + NutriPort Starter Kit + ProSoil. Serious growing for serious growers. Save 15%.',
-    features: ['Hydro Pro included','NutriPort kit','ProSoil 10kg','Save 15%'], priceKES: 18000, image: '' },
-  { sku: 'FB-ENT-01', name: 'FarmBag Enterprise Kit', category: 'Institutional',     badge: 'flagship',  emoji: '🏢',
-    desc: 'Commercial-scale kit: 5× FarmBag units + full consumables supply for schools, offices and institutions.',
-    features: ['5× units','Bulk consumables','Installation guide','Invoice available'], priceKES: 35000, image: '' },
+  { sku: 'FB-GRW-01', name: 'FarmBag Vertical',  category: 'Grow Cube™', badge: 'new',      emoji: '🌱',
+    desc: 'Classic upgraded with the patented Grow Cube™ inner basket. Plants grow in 5 directions — front, back, left, right, and upward. Zero soil mess. Fully indoor-safe on any floor.',
+    features: ['Grow Cube™ basket','5× yield surface','Indoor safe','Patent pending'], priceKES: 5000, image: 'assets/images/farmbag-vertical.jpg' },
 ];
 
 function renderProducts(products) {
