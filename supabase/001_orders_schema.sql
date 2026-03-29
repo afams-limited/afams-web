@@ -1,6 +1,6 @@
--- ── AFAMS LTD · FarmBag Store · Supabase Schema v1 ──────────────────────────
+-- ── AFAMS LTD · FarmBag Store · Supabase Schema v2 ──────────────────────────
 -- Run this once in the Supabase SQL Editor for your project.
--- Project URL: https://wklhcmaodxatavuoduhd.supabase.co
+-- Project URL: https://dvquyzzqsnlcassvgdzz.supabase.co
 
 -- ── EXTENSIONS ───────────────────────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -31,13 +31,8 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Seed the product catalogue (idempotent — update on conflict)
 INSERT INTO public.products (sku, name, description, unit_price, active)
 VALUES
-  ('FB-CLS-01', 'FarmBag Classic',        '3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag.', 4200,  true),
-  ('FB-HYD-01', 'FarmBag Hydro Pro',      'Soil-free Kratky hydroponics with the NutriPort™ system. No soil, no pump, no electricity.',  10500, true),
-  ('FB-GRW-01', 'FarmBag Grow Cube',      'Classic upgraded with the patented Grow Cube™ inner basket for 5× yield indoors.',            5000,  true),
-  ('FB-AQU-01', 'AquaFarmBag',            'Live fish + plants in a closed-loop ecosystem. No electricity, no pumps.',                    14000, true),
-  ('FB-STR-01', 'FarmBag Starter Kit',    'Everything you need to get started: FarmBag Classic + coir + NutriPort kit.',                 6500,  true),
-  ('FB-PRO-01', 'FarmBag Pro Bundle',     'FarmBag Hydro Pro + NutriPort Starter Kit + ProSoil. Save 15%.',                              18000, true),
-  ('FB-ENT-01', 'FarmBag Enterprise Kit', 'Commercial-scale kit: 5× FarmBag units + full consumables for institutions.',                 35000, true)
+  ('FB-CLS-01', 'FarmBag Classic',  '3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag.', 7500, true),
+  ('FB-VRT-01', 'FarmBag Vertical', 'Space-saving vertical urban farming system. Grow more in less floor space.',                    8500, true)
 ON CONFLICT (sku) DO UPDATE
   SET name = EXCLUDED.name,
       description = EXCLUDED.description,
@@ -84,6 +79,29 @@ DROP TRIGGER IF EXISTS orders_updated_at ON public.orders;
 CREATE TRIGGER orders_updated_at
   BEFORE UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- ── ENFORCE total_amount = quantity × unit_price ──────────────────────────────
+CREATE OR REPLACE FUNCTION public.compute_order_total()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  -- On INSERT: only compute total when not explicitly provided by the caller
+  -- (webhook supplies Paystack-verified total_amount — don't overwrite it)
+  IF TG_OP = 'INSERT' AND NEW.total_amount IS NULL THEN
+    NEW.total_amount = NEW.quantity * NEW.unit_price;
+  END IF;
+  -- On UPDATE: recompute whenever quantity or unit_price is changed
+  IF TG_OP = 'UPDATE' AND (NEW.quantity IS DISTINCT FROM OLD.quantity
+                           OR NEW.unit_price IS DISTINCT FROM OLD.unit_price) THEN
+    NEW.total_amount = NEW.quantity * NEW.unit_price;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS orders_compute_total ON public.orders;
+CREATE TRIGGER orders_compute_total
+  BEFORE INSERT OR UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.compute_order_total();
 
 -- ── ORDER NUMBER GENERATOR (AFM-YYYY-00001) ───────────────────────────────────
 -- Note: sequence-based numbering may produce gaps when transactions are rolled
