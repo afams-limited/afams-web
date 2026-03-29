@@ -12,17 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server:     ${{ secrets.FTP_HOST }}
-          username:   ${{ secrets.FTP_USER }}
-          password:   ${{ secrets.FTP_PASS }}
-          local-dir:  ./
-          server-dir: /public_html/
-          exclude: |
-            **/.git*
-            **/.github*
-            **/supabase/**
-            **/COPILOT_PROMPT.md
-            **/node_modules/**
+          server:      ${{ secrets.FTP_HOST }}
+          username:    ${{ secrets.FTP_USER }}
+          password:    ${{ secrets.FTP_PASS }}
+          port:        22
+          local_path:  ./*
+          remote_path: /home/${{ secrets.FTP_USER }}/public_html
+          exclude:     '.git*,.github*,supabase/*,COPILOT_PROMPT.md'
