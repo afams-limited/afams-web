@@ -474,7 +474,9 @@ const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY
   || localStorage.getItem('afams_admin_supabase_key')
   || '';
 
-let sb         = null;
+let sb               = null;
+let realtimeChannel  = null;  // Supabase Realtime channel reference
+let realtimeDebounce = null;  // debounce timer for real-time refresh
 let allOrders  = [];      // full loaded dataset
 let filtered   = [];      // post-filter + search
 let currentPage = 1;
@@ -499,6 +501,7 @@ async function init() {
   setView('orders');
   loadStats();
   loadOrders();
+  subscribeRealtime();
 }
 
 async function signOut() {
@@ -954,6 +957,28 @@ function esc(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// ── REAL-TIME ─────────────────────────────────────────────────────────────────
+function subscribeRealtime() {
+  realtimeChannel = sb.channel('orders-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+      if (payload.eventType === 'INSERT') {
+        toast('🆕 New order received!');
+      }
+      // Debounce: coalesce rapid events into a single refresh after 800 ms
+      clearTimeout(realtimeDebounce);
+      realtimeDebounce = setTimeout(() => {
+        loadStats();
+        loadOrders();
+      }, 800);
+    })
+    .subscribe();
+
+  // Clean up the channel if the tab is closed / navigated away
+  window.addEventListener('beforeunload', () => {
+    if (realtimeChannel) realtimeChannel.unsubscribe();
+  });
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
