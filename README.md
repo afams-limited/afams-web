@@ -90,4 +90,4 @@ afams-web/
 - ✅ Security headers via netlify.toml
 
 ## Contact
-afamskenya@gmail.com · afams.co.ke · Nairobi, Kenya
+info@afams.co.ke · orders@afams.co.ke · afams.co.ke · Nairobi, Kenya
