@@ -4,7 +4,7 @@
 const AFAMS = {
   paystackKey: 'pk_live_f381ff48e30a32e169afcb9084e2e6664cb95876E', // ← Replace with your key
   whatsapp: '+254702359618', // ← Replace with your WhatsApp number
-  email: 'afamskenya@gmail.com',
+  email: 'info@afams.co.ke',
   currency: 'KES',
   deliveryDays: 3,
   fulfillmentNote: 'Pre-orders are fulfilled within 3 business days of campaign close.',
@@ -242,15 +242,16 @@ function initiatePayment() {
     ref:      reference,
     metadata,
     label: 'Afams FarmBag Pre-Order',
-    onCancel: () => {
+    onClose: () => {
       showToast('Payment cancelled — your cart is saved');
     },
-    onSuccess: (transaction) => {
-      closeCheckout();
-      showSuccessModal(transaction.reference || reference, name, email);
+    callback: (transaction) => {
       cart = [];
       saveCart();
       updateCartUI();
+      window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(transaction.reference || reference)
+        + '&name=' + encodeURIComponent(name)
+        + '&amount=' + cartTotal();
     },
   });
 
@@ -344,7 +345,7 @@ function submitInstitutional(e) {
       form.reset();
     })
     .catch(() => {
-      showToast('⚠️ Could not send — please email afamskenya@gmail.com directly');
+      showToast('⚠️ Could not send — please email info@afams.co.ke directly');
     });
 }
 

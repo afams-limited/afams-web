@@ -45,7 +45,7 @@ Service Role: Supabase Dashboard → Settings → API → service_role
 
 ### Admin Contact
 ```
-Email:   afamskenya@gmail.com  (personal)
+Email:   info@afams.co.ke  (public) · afamskenya@gmail.com (personal)
 Domain:  afams.co.ke
 ```
 
@@ -253,7 +253,7 @@ Every:   3 days
 ### Supabase
 ```
 □ Run 001_orders_schema.sql in SQL Editor
-□ Create admin user: Authentication → Users → Add User (afamskenya@gmail.com)
+□ Create admin user: Authentication → Users → Add User (ceo@afams.co.ke)
 □ Update product prices: Table Editor → products
 □ Confirm order_stats view returns data
 □ Install Supabase CLI and link project
