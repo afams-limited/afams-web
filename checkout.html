@@ -291,6 +291,8 @@
     <div class="card">
       <h2>Your details</h2>
 
+      <form id="checkout-form" autocomplete="on">
+
       <div id="form-error" class="error-msg"></div>
 
       <div class="form-row">
@@ -317,7 +319,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="f-county">County</label>
-          <select id="f-county">
+          <select id="f-county" autocomplete="address-level1">
             <option value="">Select county…</option>
             <option>Nairobi</option><option>Mombasa</option><option>Kisumu</option>
             <option>Nakuru</option><option>Eldoret</option><option>Thika</option>
@@ -333,7 +335,7 @@
         Free delivery within Nairobi · 3 business days
       </div>
 
-      <button class="btn-pay" id="pay-btn" onclick="launchPaystack()">
+      <button class="btn-pay" id="pay-btn" type="submit">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Pay with M-Pesa / Card
       </button>
@@ -342,6 +344,8 @@
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         Secured by Paystack · 256-bit SSL encryption
       </p>
+
+      </form>
     </div>
   </div>
 
@@ -352,7 +356,7 @@
 
       <div class="product-selector">
         <label for="s-product">Product</label>
-        <select id="s-product" onchange="updateSummary()">
+        <select id="s-product" autocomplete="off" onchange="updateSummary()">
           <!-- populated by JS -->
         </select>
       </div>
@@ -364,7 +368,7 @@
           <div class="product-info-sku" id="product-display-sku">SKU: FB-CLS-01</div>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
-            <input class="qty-val" id="qty" type="number" value="1" min="1" max="99" onchange="updateSummary()"/>
+            <input class="qty-val" id="qty" type="number" value="1" min="1" max="99" autocomplete="off" onchange="updateSummary()"/>
             <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
           </div>
         </div>
@@ -534,6 +538,11 @@ function launchPaystack() {
 
 // Initial render
 updateSummary();
+
+document.getElementById('checkout-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  launchPaystack();
+});
 </script>
 </body>
 </html>
