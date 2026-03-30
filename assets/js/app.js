@@ -2,7 +2,8 @@
 
 // ── CONFIG ───────────────────────────────────────────────────────
 const AFAMS = {
-  paystackKey: 'pk_live_f381ff48e30a32e169afcb9084e2e6664cb95876E', // ← Replace with your key
+  // Paystack public key is set by assets/js/paystack-config.js (loaded before this file).
+  paystackKey: window.__PAYSTACK_PUBLIC_KEY,
   whatsapp: '+254702359618', // ← Replace with your WhatsApp number
   email: 'info@afams.co.ke',
   currency: 'KES',
@@ -217,6 +218,11 @@ function initiatePayment() {
   }
   if (!email.includes('@')) {
     showToast('⚠️ Please enter a valid email address');
+    return;
+  }
+
+  if (!AFAMS.paystackKey) {
+    showToast('⚠️ Payment gateway is not configured. Please contact orders@afams.co.ke');
     return;
   }
 
