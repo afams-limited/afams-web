@@ -583,17 +583,29 @@
         <ul>
           <li><a href="#faq" onclick="scrollTo('faq')">FAQ</a></li>
           <li><a href="#" onclick="openSupportModal('track'); return false;">Track my order</a></li>
-          <li><a href="#" onclick="openSupportModal('returns'); return false;">Returns policy</a></li>
+          <li><a href="returns-policy.html">Returns policy</a></li>
           <li><a href="#" onclick="openSupportModal('general'); return false;">Contact us</a></li>
           <li><a href="#" onclick="openWhatsApp()">WhatsApp chat</a></li>
           <li><a href="#" onclick="openSupportModal('institutional'); return false;">Institutional sales</a></li>
         </ul>
       </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="cookie-policy.html">Cookie Policy</a></li>
+          <li><a href="terms.html">Terms &amp; Conditions</a></li>
+          <li><a href="returns-policy.html">Return &amp; Refund Policy</a></li>
+          <li><a href="partnership-guidelines.html">Partnership Guidelines</a></li>
+        </ul>
+      </div>
     </div>
     <div class="footer-bottom">
       <div class="footer-copy">
-        © 2026 Afams PLC. Registered in Kenya. All rights reserved. ·
-  
+        © 2026 Afams Ltd · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved ·
+        <a href="privacy-policy.html" style="color:rgba(255,255,255,0.45);text-decoration:none;margin:0 0.25rem">Privacy</a> ·
+        <a href="terms.html" style="color:rgba(255,255,255,0.45);text-decoration:none;margin:0 0.25rem">Terms</a> ·
+        <a href="cookie-policy.html" style="color:rgba(255,255,255,0.45);text-decoration:none;margin:0 0.25rem">Cookies</a>
       </div>
       <div class="footer-socials">
         <a href="https://instagram.com" target="_blank" class="social-btn" title="Instagram">📷</a>
@@ -698,6 +710,12 @@
       </button>
       <div class="payment-note">
         🔒 Secured by Paystack · 256-bit SSL encryption
+      </div>
+      <div style="text-align:center;font-size:0.72rem;color:var(--gray-mid);margin-top:0.5rem;line-height:1.5">
+        By placing this order you agree to our
+        <a href="terms.html" target="_blank" style="color:var(--green)">Terms &amp; Conditions</a>,
+        <a href="privacy-policy.html" target="_blank" style="color:var(--green)">Privacy Policy</a>,
+        and <a href="returns-policy.html" target="_blank" style="color:var(--green)">Return Policy</a>.
       </div>
       <div class="payment-icons">
         <span class="payment-icon">M-Pesa</span>
@@ -840,6 +858,41 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="assets/js/paystack-config.js"></script>
 <script src="assets/js/app.js"></script>
+
+<!-- COOKIE CONSENT BANNER -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0D3D1A;color:rgba(255,255,255,0.9);padding:1rem 1.5rem;font-family:'Inter',system-ui,sans-serif;font-size:0.82rem;box-shadow:0 -4px 20px rgba(0,0,0,0.25);">
+  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <p style="margin:0;line-height:1.6;flex:1;min-width:260px;">
+      🍪 We use cookies to operate the Platform, analyse usage, and (with your consent) for personalisation and marketing.
+      See our <a href="cookie-policy.html" style="color:#6FCF8A;text-decoration:underline">Cookie Policy</a> and
+      <a href="privacy-policy.html" style="color:#6FCF8A;text-decoration:underline">Privacy Policy</a> for details.
+    </p>
+    <div style="display:flex;gap:0.6rem;flex-shrink:0;flex-wrap:wrap;">
+      <button onclick="setCookieConsent('essential')" style="padding:0.5rem 1rem;border:1.5px solid rgba(255,255,255,0.4);background:transparent;color:rgba(255,255,255,0.85);border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">Essential only</button>
+      <button onclick="setCookieConsent('all')" style="padding:0.5rem 1.25rem;background:#1E7D34;color:#fff;border:none;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600;font-family:inherit;">Accept all cookies</button>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var CONSENT_KEY = 'afams_cookie_consent';
+  function setCookieConsent(level) {
+    try { localStorage.setItem(CONSENT_KEY, level + '|' + Date.now()); } catch(e) {}
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+  window.setCookieConsent = setCookieConsent;
+  try {
+    var stored = localStorage.getItem(CONSENT_KEY);
+    if (!stored) {
+      setTimeout(function() {
+        document.getElementById('cookie-banner').style.display = 'block';
+      }, 1200);
+    }
+  } catch(e) {
+    document.getElementById('cookie-banner').style.display = 'block';
+  }
+})();
+</script>
 
 </body>
 </html>
