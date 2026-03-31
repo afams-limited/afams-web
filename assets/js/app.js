@@ -1,4 +1,4 @@
-/* ── AFAMS LTD · Main Application JS · 2026 ── */
+/* ── AFAMS PLC · Main Application JS · 2026 ── */
 
 // ── CONFIG ───────────────────────────────────────────────────────
 const AFAMS = {
@@ -32,7 +32,7 @@ const PRODUCTS = [
     emoji: '🌿',
     desc: 'The original 3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Passive wicking reservoir waters your crops for 3–7 days per fill.',
     features: ['3 growing zones', 'Wicking reservoir', 'Folds flat', 'Coir kit included'],
-    priceKES: 4200,
+    priceKES: 10,
     priceGBP: 32,
     image: 'assets/images/farmbag-classic.jpg',
   },
@@ -45,7 +45,7 @@ const PRODUCTS = [
     emoji: '🌱',
     desc: 'The Classic upgraded with the patented Grow Cube™ inner basket. Plants grow in 5 directions inside the sealed canvas — front, back, left, right, and upward. Zero mess indoors.',
     features: ['Grow Cube™ basket', '5× yield', 'Indoor safe', 'No floor mess'],
-    priceKES: 5000,
+    priceKES: 15,
     priceGBP: 38,
     image: 'assets/images/farmbag-vertical.jpg',
   },
@@ -502,3 +502,239 @@ function handleScrollFloat() {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   }
 }
+
+// ============================================================
+// SUPPORT MODAL SYSTEM
+// ============================================================
+
+const SUPPORT_CONFIGS = {
+  track: {
+    title: '📦 Track My Order',
+    subtitle: 'Enter your order reference (found in your confirmation email) or the name used when ordering.',
+    fields: ['ref', 'email'],
+    recipient: 'orders@afams.co.ke',
+    subjectPrefix: '[ORDER TRACK]',
+    note: 'This will open your email app. Hit send to reach our orders team.',
+    submitLabel: 'Send Tracking Request',
+    buildBody: (f) =>
+      `Hello Afams Orders Team,\n\nI would like to track my order.\n\nOrder Reference / Name: ${f.ref}\nEmail: ${f.email}\n\nPlease advise on the status of my order.\n\nThank you.`
+  },
+  returns: {
+    title: '↩️ Return / Refund Request',
+    subtitle: 'Share your order details and describe your issue. We respond within 1 business day.',
+    fields: ['ref', 'email', 'message'],
+    recipient: 'support@afams.co.ke',
+    subjectPrefix: '[RETURN REQUEST]',
+    note: 'This will open your email app. Our support team responds within 1 business day.',
+    submitLabel: 'Send Return Request',
+    buildBody: (f) =>
+      `Hello Afams Support,\n\nI would like to request a return/refund.\n\nOrder Reference / Name: ${f.ref}\nEmail: ${f.email}\n\nIssue:\n${f.message}\n\nThank you.`
+  },
+  general: {
+    title: '💬 Get in Touch',
+    subtitle: 'Have a question or feedback? We read every message.',
+    fields: ['name', 'email', 'message'],
+    recipient: 'info@afams.co.ke',
+    subjectPrefix: '[ENQUIRY]',
+    note: 'This will open your email app.',
+    submitLabel: 'Send Message',
+    buildBody: (f) =>
+      `Hello Afams,\n\nName: ${f.name}\nEmail: ${f.email}\n\nMessage:\n${f.message}\n\nThank you.`
+  },
+  institutional: {
+    title: '🏫 Institutional Enquiry',
+    subtitle: 'For schools, restaurants, hotels, hospitals, and corporates. We\'ll get back to you within 48 hours.',
+    fields: ['institution', 'contact', 'email', 'message'],
+    recipient: 'partner@afams.co.ke',
+    subjectPrefix: '[INSTITUTIONAL]',
+    note: 'This will open your email app. Our partnerships team responds within 48 hours.',
+    submitLabel: 'Send Institutional Enquiry',
+    buildBody: (f) =>
+      `Hello Afams Partnerships,\n\nInstitution: ${f.institution}\nContact Person: ${f.contact}\nEmail: ${f.email}\n\nEnquiry:\n${f.message}\n\nThank you.`
+  }
+};
+
+let activeSupportType = null;
+
+function openSupportModal(type) {
+  activeSupportType = type;
+  const config = SUPPORT_CONFIGS[type];
+  if (!config) return;
+
+  document.getElementById('support-form').reset();
+
+  document.getElementById('support-modal-title').textContent = config.title;
+  document.getElementById('support-modal-subtitle').textContent = config.subtitle;
+  document.getElementById('support-submit-btn').textContent = config.submitLabel;
+  document.getElementById('support-note').textContent = config.note;
+
+  ['ref', 'institution', 'contact', 'name', 'message'].forEach(f => {
+    const el = document.getElementById(`support-field-${f}`);
+    if (el) el.style.display = 'none';
+  });
+
+  config.fields.forEach(f => {
+    const el = document.getElementById(`support-field-${f}`);
+    if (el) el.style.display = 'block';
+  });
+
+  const modal = document.getElementById('support-modal');
+  modal.style.display = 'flex';
+  modal.style.opacity = '1';
+  modal.style.pointerEvents = 'all';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSupportModal() {
+  const modal = document.getElementById('support-modal');
+  modal.style.display = 'none';
+  modal.style.opacity = '0';
+  modal.style.pointerEvents = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const supportModalClose = document.getElementById('support-modal-close');
+  if (supportModalClose) {
+    supportModalClose.addEventListener('click', closeSupportModal);
+  }
+
+  const supportModal = document.getElementById('support-modal');
+  if (supportModal) {
+    supportModal.addEventListener('click', function(e) {
+      if (e.target === this) closeSupportModal();
+    });
+  }
+
+  const supportForm = document.getElementById('support-form');
+  if (supportForm) {
+    supportForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const config = SUPPORT_CONFIGS[activeSupportType];
+      if (!config) return;
+
+      const fields = {
+        ref:         (document.getElementById('support-ref')?.value || '').trim(),
+        institution: (document.getElementById('support-institution')?.value || '').trim(),
+        contact:     (document.getElementById('support-contact')?.value || '').trim(),
+        name:        (document.getElementById('support-name')?.value || '').trim(),
+        email:       (document.getElementById('support-email')?.value || '').trim(),
+        message:     (document.getElementById('support-message')?.value || '').trim(),
+      };
+
+      for (const f of config.fields) {
+        if (!fields[f]) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const subject = encodeURIComponent(`${config.subjectPrefix} — ${fields.ref || fields.institution || fields.name || fields.email}`);
+      const body = encodeURIComponent(config.buildBody(fields));
+      const mailtoLink = `mailto:${config.recipient}?subject=${subject}&body=${body}`;
+
+      window.location.href = mailtoLink;
+      closeSupportModal();
+    });
+  }
+});
+
+// ============================================================
+// DRAGGABLE WHATSAPP FAB
+// ============================================================
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    const fab = document.getElementById('wa-fab');
+    if (!fab) return;
+
+    let isDragging = false;
+    let startX, startY, startRight, startBottom;
+    let hasMoved = false;
+
+    function getPos() {
+      const rect = fab.getBoundingClientRect();
+      return {
+        right:  window.innerWidth  - rect.right,
+        bottom: window.innerHeight - rect.bottom,
+      };
+    }
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    fab.addEventListener('mousedown', function(e) {
+      if (e.button !== 0) return;
+      isDragging = true;
+      hasMoved = false;
+      const pos = getPos();
+      startX = e.clientX;
+      startY = e.clientY;
+      startRight  = pos.right;
+      startBottom = pos.bottom;
+      fab.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+      const newRight  = clamp(startRight  - dx, 8, window.innerWidth  - 64);
+      const newBottom = clamp(startBottom + dy, 8, window.innerHeight - 64);
+
+      fab.style.right  = newRight  + 'px';
+      fab.style.bottom = newBottom + 'px';
+    });
+
+    document.addEventListener('mouseup', function(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      fab.classList.remove('dragging');
+      if (hasMoved) e.preventDefault();
+    });
+
+    fab.addEventListener('click', function(e) {
+      if (hasMoved) e.preventDefault();
+    });
+
+    fab.addEventListener('touchstart', function(e) {
+      const t = e.touches[0];
+      isDragging = true;
+      hasMoved = false;
+      const pos = getPos();
+      startX = t.clientX;
+      startY = t.clientY;
+      startRight  = pos.right;
+      startBottom = pos.bottom;
+      fab.classList.add('dragging');
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
+
+      const newRight  = clamp(startRight  - dx, 8, window.innerWidth  - 64);
+      const newBottom = clamp(startBottom + dy, 8, window.innerHeight - 64);
+
+      fab.style.right  = newRight  + 'px';
+      fab.style.bottom = newBottom + 'px';
+      if (hasMoved) e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchend', function() {
+      isDragging = false;
+      fab.classList.remove('dragging');
+    });
+  });
+})();
