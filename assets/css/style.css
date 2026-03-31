@@ -924,52 +924,6 @@ h1, h2, h3, h4 {
   letter-spacing: 0.1em;
 }
 .milestone-text { font-size: 0.88rem; color: var(--g-dark); font-weight: 600; }
-.founder-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid rgba(0,0,0,0.05);
-}
-.founder-img {
-  width: 100%;
-  aspect-ratio: 3/4;
-  background: linear-gradient(160deg, var(--g-darkest), var(--g-dark) 50%, var(--teal));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.founder-initials {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  border: 2px solid rgba(184,134,11,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 3rem;
-  font-weight: 800;
-  color: white;
-}
-.founder-bio { padding: 1.75rem; }
-.founder-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--g-dark);
-}
-.founder-role { font-size: 0.83rem; color: var(--gray-mid); margin-bottom: 0.85rem; }
-.founder-quote {
-  font-size: 0.88rem;
-  color: var(--gray-dark);
-  font-style: italic;
-  line-height: 1.7;
-  border-left: 3px solid var(--gold);
-  padding-left: 1rem;
-}
-
 /* ── TRUST ── */
 .trust-logos {
   display: flex;
@@ -1711,8 +1665,8 @@ h1, h2, h3, h4 {
   box-shadow: 0 6px 24px rgba(0,0,0,0.3);
 }
 .scroll-arrow { display: none; transition: opacity 0.2s; }
-.scroll-float.at-top .scroll-arrow-down { display: block; }
-.scroll-float:not(.at-top) .scroll-arrow-up { display: block; }
+.scroll-float.at-bottom .scroll-arrow-up { display: block; }
+.scroll-float:not(.at-bottom) .scroll-arrow-down { display: block; }
 
 /* ── WHATSAPP DRAGGABLE FAB ── */
 #wa-fab {
