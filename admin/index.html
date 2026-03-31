@@ -1,205 +1,1379 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <meta name="robots" content="noindex,nofollow"/>
-  <title>Afams Admin — Orders Dashboard</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../assets/css/admin.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Afams PLC — Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ======================== RESET & VARIABLES ======================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --bg2:      #161b27;
+      --bg3:      #1e2535;
+      --border:   #2a3245;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --green:    #2d7a3a;
+      --green-lt: #3d9e4e;
+      --amber:    #f59e0b;
+      --red:      #ef4444;
+      --blue:     #3b82f6;
+      --radius:   10px;
+      --font-ui:  'DM Sans', sans-serif;
+      --font-data:'IBM Plex Mono', monospace;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ======================== AUTH SCREEN ======================== */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .auth-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--green-lt);
+      margin-bottom: 0.25rem;
+    }
+
+    .auth-subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .auth-box label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .auth-box input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-family: var(--font-data);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .auth-box input:focus { border-color: var(--green); }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.8rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--green-lt); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .auth-msg {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .auth-msg.success { color: var(--green-lt); }
+    .auth-msg.error   { color: var(--red); }
+
+    /* ======================== MAIN APP ======================== */
+    #app-screen { display: none; min-height: 100vh; }
+
+    /* --- Topbar --- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-lt);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .topbar-brand span {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .admin-badge {
+      font-size: 0.75rem;
+      font-family: var(--font-data);
+      color: var(--muted);
+    }
+
+    .btn-sm {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .btn-sm:hover { background: var(--border); }
+
+    /* --- Layout --- */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 0;
+    }
+
+    .sidebar-section {
+      padding: 0 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 0 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .sidebar-item:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-item.active { background: rgba(45,122,58,0.15); color: var(--green-lt); }
+
+    .sidebar-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      border-radius: 20px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    /* --- Main Content --- */
+    .main-content {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+
+    /* --- Panels --- */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* --- Page header --- */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .page-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.15rem;
+    }
+
+    /* --- Stat cards --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: var(--font-data);
+      font-size: 1.8rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .stat-card.green  .stat-value { color: var(--green-lt); }
+    .stat-card.amber  .stat-value { color: var(--amber); }
+    .stat-card.blue   .stat-value { color: var(--blue); }
+    .stat-card.red    .stat-value { color: var(--red); }
+
+    .stat-change {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    /* --- Table --- */
+    .table-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.9rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--green); }
+    .search-input::placeholder { color: var(--muted); }
+
+    .filter-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.9rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: var(--bg3);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid rgba(42,50,69,0.6);
+      font-size: 0.87rem;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .mono { font-family: var(--font-data); }
+
+    /* --- Status badges --- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-pending       { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .badge-confirmed     { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .badge-in_production { background: rgba(139,92,246,0.15); color: #a78bfa; }
+    .badge-dispatched    { background: rgba(16,185,129,0.15); color: #34d399; }
+    .badge-delivered     { background: rgba(45,122,58,0.2);  color: var(--green-lt); }
+    .badge-cancelled     { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-refunded      { background: rgba(100,116,139,0.2); color: var(--muted); }
+    .badge-paid          { background: rgba(45,122,58,0.2);  color: var(--green-lt); }
+    .badge-failed        { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    /* --- Action buttons in table --- */
+    .action-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.65rem;
+      font-size: 0.78rem;
+      color: var(--text);
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .action-btn:hover { background: var(--border); }
+    .action-btn.danger:hover { background: rgba(239,68,68,0.2); border-color: var(--red); color: var(--red); }
+    .action-btn.success:hover { background: rgba(45,122,58,0.2); border-color: var(--green); color: var(--green-lt); }
+
+    /* --- Order detail modal --- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title { font-size: 1rem; font-weight: 700; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      padding: 0.2rem;
+      transition: color 0.15s;
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    .modal-body { padding: 1.5rem; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .detail-field .val {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .detail-field .val.mono { font-family: var(--font-data); }
+
+    .items-list {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .items-list-header {
+      padding: 0.6rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba(42,50,69,0.5);
+      font-size: 0.87rem;
+    }
+
+    .item-row:last-child { border-bottom: none; }
+
+    .status-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-size: 0.9rem;
+      width: 100%;
+      outline: none;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .notes-textarea {
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: var(--text);
+      font-size: 0.87rem;
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      font-family: var(--font-ui);
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .notes-textarea:focus { border-color: var(--green); }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-save {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover { background: var(--green-lt); }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-email {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-email:hover { background: var(--border); }
+
+    /* --- Toast --- */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1.25rem;
+      font-size: 0.87rem;
+      font-weight: 500;
+      z-index: 99999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      max-width: 320px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #toast.success { border-color: var(--green); color: var(--green-lt); }
+    #toast.error   { border-color: var(--red);   color: var(--red); }
+
+    /* --- Realtime indicator --- */
+    .realtime-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--green-lt);
+      border-radius: 50%;
+      margin-right: 0.4rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* --- Empty state --- */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-state p     { font-size: 0.9rem; }
+
+    /* --- Loading --- */
+    .loading-row td {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 600px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── CONFIG OVERLAY (first-time setup) ── -->
-<div class="overlay-backdrop" id="config-overlay" style="display:none">
-  <div class="auth-card">
-    <div class="auth-logo">🌿 Afams Admin</div>
-    <h2 class="auth-title">Connect to Supabase</h2>
-    <p class="auth-sub">Enter your Supabase project credentials. These are saved in your browser only.</p>
-    <div class="form-group">
-      <label class="form-label">Supabase Project URL</label>
-      <input type="url" id="cfg-url" placeholder="https://dvquyzzqsnlcassvgdzz.supabase.co" autocomplete="off"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Supabase Anon Key</label>
-      <input type="password" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA" autocomplete="off"/>
-    </div>
-    <button class="btn-primary" onclick="saveConfig()">Save &amp; Continue</button>
-    <p class="auth-hint">Find these in your Supabase dashboard → Project Settings → API</p>
-  </div>
-</div>
+<!-- ===================== AUTH SCREEN ===================== -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🌿 Afams PLC</div>
+    <div class="auth-subtitle">Admin Operations Dashboard</div>
 
-<!-- ── LOGIN OVERLAY ── -->
-<div class="overlay-backdrop" id="login-overlay">
-  <div class="auth-card">
-    <div class="auth-logo">🌿 Afams Admin</div>
-    <h2 class="auth-title">Sign in</h2>
-    <p class="auth-sub">Access is restricted to authorised Afams team members.</p>
-    <div class="form-group">
-      <label class="form-label">Email address</label>
-      <input type="email" id="login-email" placeholder="admin@afams.co.ke" autocomplete="email"/>
+    <div id="login-view">
+      <label for="auth-email">Admin Email</label>
+      <input type="email" id="auth-email" value="iammwombe@gmail.com" autocomplete="username" />
+
+      <label for="auth-password">Password</label>
+      <input type="password" id="auth-password" placeholder="Enter password" autocomplete="current-password" />
+
+      <button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign in</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+
+    <div id="magic-view" style="display:none;">
+      <p style="color:var(--muted);font-size:0.87rem;margin-bottom:1rem;">
+        A magic sign-in link has been sent to your email. Click it to access the dashboard.
+      </p>
+      <button class="btn-primary" onclick="document.getElementById('magic-view').style.display='none';document.getElementById('login-view').style.display='block';">
+        Back
+      </button>
     </div>
-    <div id="login-error" class="auth-error" style="display:none"></div>
-    <button class="btn-primary" id="login-btn" onclick="signIn()">Sign in</button>
-    <p class="auth-hint">
-      No account? Ask your Supabase admin to add you via Supabase Auth → Users.
-      <br/><a href="#" onclick="showConfig()">Change Supabase project ↗</a>
+
+    <p class="auth-msg" id="auth-msg"></p>
+
+    <p style="margin-top:1rem;text-align:center;">
+      <button onclick="handleMagicLink()" style="background:none;border:none;color:var(--muted);font-size:0.8rem;cursor:pointer;text-decoration:underline;">
+        Send magic link instead
+      </button>
     </p>
   </div>
 </div>
 
-<!-- ── MAIN LAYOUT ── -->
-<div class="admin-layout" id="admin-layout" style="display:none">
+<!-- ===================== APP SCREEN ===================== -->
+<div id="app-screen">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="sidebar-leaf">🌿</span>
-      <span>Afams<span class="sidebar-admin-label"> Admin</span></span>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      🌿 Afams PLC <span>/ Admin</span>
     </div>
-    <nav class="sidebar-nav">
-      <a class="sidebar-link active" onclick="setView('orders')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-        Orders
-      </a>
-      <a class="sidebar-link" onclick="setView('analytics')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Analytics
-      </a>
+    <div class="topbar-right">
+      <span class="admin-badge" id="admin-email-display"></span>
+      <span><span class="realtime-dot"></span><span style="font-size:0.75rem;color:var(--muted)">Live</span></span>
+      <button class="btn-sm" onclick="handleSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Operations</div>
+        <button class="sidebar-item active" onclick="showPanel('orders')" id="nav-orders">
+          <span class="icon">📦</span> Orders
+          <span class="sidebar-badge" id="pending-count" style="display:none">0</span>
+        </button>
+        <button class="sidebar-item" onclick="showPanel('customers')" id="nav-customers">
+          <span class="icon">👤</span> Customers
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Store</div>
+        <button class="sidebar-item" onclick="showPanel('products')" id="nav-products">
+          <span class="icon">🌱</span> Products
+        </button>
+        <button class="sidebar-item" onclick="showPanel('analytics')" id="nav-analytics">
+          <span class="icon">📈</span> Analytics
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Links</div>
+        <button class="sidebar-item" onclick="window.open('https://afams.co.ke','_blank')">
+          <span class="icon">🔗</span> Storefront ↗
+        </button>
+        <button class="sidebar-item" onclick="window.open('https://app.supabase.com','_blank')">
+          <span class="icon">🗄️</span> Supabase ↗
+        </button>
+        <button class="sidebar-item" onclick="window.open('https://dashboard.paystack.com','_blank')">
+          <span class="icon">💳</span> Paystack ↗
+        </button>
+      </div>
     </nav>
-    <div class="sidebar-footer">
-      <button class="btn-signout" onclick="signOut()">Sign out</button>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- ===== ORDERS PANEL ===== -->
+      <div class="panel active" id="panel-orders">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Orders</div>
+            <div class="page-subtitle">All pre-orders from afams.co.ke</div>
+          </div>
+          <button class="btn-sm" onclick="loadOrders()">↻ Refresh</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card amber">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value" id="stat-pending">—</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Confirmed</div>
+            <div class="stat-value" id="stat-confirmed">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Delivered</div>
+            <div class="stat-value" id="stat-delivered">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Revenue (KES)</div>
+            <div class="stat-value" id="stat-revenue">—</div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" id="order-search" placeholder="🔍 Search name, ref, email…" oninput="filterOrders()" />
+            <select class="filter-select" id="order-filter" onchange="filterOrders()">
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="in_production">In Production</option>
+              <option value="dispatched">Dispatched</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+            </select>
+            <select class="filter-select" id="payment-filter" onchange="filterOrders()">
+              <option value="">All payments</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Unpaid</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr class="loading-row"><td colspan="8">Loading orders…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS PANEL ===== -->
+      <div class="panel" id="panel-customers">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Customers</div>
+            <div class="page-subtitle">Everyone who has placed an order</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>County</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr class="loading-row"><td colspan="7">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== PRODUCTS PANEL ===== -->
+      <div class="panel" id="panel-products">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Products</div>
+            <div class="page-subtitle">Manage the FarmBag lineup</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div style="padding:2rem;color:var(--muted);font-size:0.9rem;">
+            Product management is currently done via <code>index.html</code> on Truehost.
+            Future version: DB-driven product catalogue via Supabase.
+            <br/><br/>
+            <strong style="color:var(--text)">Current products:</strong>
+            <ul style="margin-top:0.75rem;padding-left:1.5rem;line-height:2;">
+              <li>FarmBag Classic — KES 7,500</li>
+              <li>FarmBag Vertical — KES 8,500</li>
+            </ul>
+            <br/>
+            <a href="https://afams.co.ke" target="_blank" style="color:var(--green-lt);">→ Edit prices in index.html on Truehost ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ANALYTICS PANEL ===== -->
+      <div class="panel" id="panel-analytics">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Analytics</div>
+            <div class="page-subtitle">Order trends and revenue summary</div>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="analytics-stats">
+          <div class="stat-card green">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-value" id="an-total">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" id="an-revenue">—</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Avg Order Value</div>
+            <div class="stat-value" id="an-aov">—</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Paid Orders</div>
+            <div class="stat-value" id="an-paid">—</div>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="padding:1.5rem;">
+          <div style="color:var(--muted);font-size:0.85rem;">
+            📊 Full charting coming in v2 (Chart.js revenue over time, product split, county heatmap).
+            <br/><br/>
+            For now, export orders to CSV from Supabase Table Editor or via:
+            <br/>
+            <code style="background:var(--bg3);padding:0.3rem 0.6rem;border-radius:4px;font-size:0.8rem;display:inline-block;margin-top:0.5rem;">
+              SELECT * FROM orders ORDER BY created_at DESC;
+            </code>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===================== ORDER DETAIL MODAL ===================== -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-order-ref">Order Detail</div>
+      <button class="modal-close" onclick="closeOrderModal()">×</button>
     </div>
-  </aside>
+    <div class="modal-body">
 
-  <!-- Main content -->
-  <main class="main-content">
-
-    <!-- Header -->
-    <div class="main-header">
-      <div>
-        <h1 class="main-title" id="view-title">Orders</h1>
-        <p class="main-sub" id="view-sub">All customer pre-orders</p>
+      <div class="detail-grid" id="modal-detail-grid">
+        <!-- Filled by JS -->
       </div>
-      <button class="btn-refresh" onclick="loadOrders()" title="Refresh">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
-        Refresh
-      </button>
+
+      <div class="items-list" id="modal-items-list">
+        <div class="items-list-header">Items ordered</div>
+        <!-- Filled by JS -->
+      </div>
+
+      <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.5rem;">
+        Update Status
+      </label>
+      <select class="status-select" id="modal-status-select">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="in_production">In Production</option>
+        <option value="dispatched">Dispatched</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="refunded">Refunded</option>
+      </select>
+
+      <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.5rem;">
+        Admin Notes
+      </label>
+      <textarea class="notes-textarea" id="modal-admin-notes" placeholder="Internal notes about this order…"></textarea>
+
+      <div class="modal-actions">
+        <button class="btn-save" id="modal-save-btn" onclick="saveOrderUpdate()">Save Changes</button>
+        <button class="btn-email" onclick="emailCustomer()">📧 Email Customer</button>
+        <button class="btn-email" onclick="whatsappCustomer()">💬 WhatsApp</button>
+      </div>
     </div>
-
-    <!-- ── ORDERS VIEW ── -->
-    <div id="view-orders">
-
-      <!-- Stats row -->
-      <div class="stats-row" id="stats-row">
-        <div class="stat-card">
-          <div class="stat-val" id="stat-total-orders">—</div>
-          <div class="stat-label">Total Orders</div>
-        </div>
-        <div class="stat-card stat-card--green">
-          <div class="stat-val" id="stat-paid">—</div>
-          <div class="stat-label">Paid Orders</div>
-        </div>
-        <div class="stat-card stat-card--gold">
-          <div class="stat-val" id="stat-revenue">—</div>
-          <div class="stat-label">Total Revenue (KES)</div>
-        </div>
-        <div class="stat-card stat-card--amber">
-          <div class="stat-val" id="stat-pending">—</div>
-          <div class="stat-label">Pending Payment</div>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="filters-bar">
-        <div class="filter-group">
-          <label class="filter-label">Payment Status</label>
-          <select id="filter-payment" onchange="loadOrders()">
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="paid">Paid</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Order Status</label>
-          <select id="filter-order" onchange="loadOrders()">
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Search</label>
-          <input type="text" id="filter-search" placeholder="Name, phone, reference…" oninput="filterTable()"/>
-        </div>
-      </div>
-
-      <!-- Table -->
-      <div class="table-wrap">
-        <div id="table-loading" class="table-loading">Loading orders…</div>
-        <table class="orders-table" id="orders-table" style="display:none">
-          <thead>
-            <tr>
-              <th>Reference</th>
-              <th>Customer</th>
-              <th>Phone</th>
-              <th>Location</th>
-              <th>Amount</th>
-              <th>Payment</th>
-              <th>Order Status</th>
-              <th>Date</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="orders-body"></tbody>
-        </table>
-        <div id="table-empty" class="table-empty" style="display:none">No orders found.</div>
-      </div>
-
-    </div><!-- /view-orders -->
-
-    <!-- ── ANALYTICS VIEW ── -->
-    <div id="view-analytics" style="display:none">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-val" id="an-total">—</div>
-          <div class="stat-label">Total Orders</div>
-        </div>
-        <div class="stat-card stat-card--green">
-          <div class="stat-val" id="an-revenue">—</div>
-          <div class="stat-label">Total Revenue (KES)</div>
-        </div>
-        <div class="stat-card stat-card--gold">
-          <div class="stat-val" id="an-avg">—</div>
-          <div class="stat-label">Avg Order Value</div>
-        </div>
-        <div class="stat-card stat-card--amber">
-          <div class="stat-val" id="an-conversion">—</div>
-          <div class="stat-label">Paid Conversion</div>
-        </div>
-      </div>
-      <div class="analytics-breakdown" id="analytics-breakdown"></div>
-    </div>
-
-  </main>
+  </div>
 </div>
 
 <!-- Toast -->
-<div class="admin-toast" id="admin-toast"></div>
+<div id="toast"></div>
 
-<!-- Supabase JS SDK (UMD build) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="../assets/js/admin.js"></script>
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+// ============================================================
+// CONFIGURATION — update these values
+// ============================================================
+const SUPABASE_URL = 'https://wklhcmaodxatavuoduhd.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // ← REPLACE with your anon key
+const ADMIN_EMAIL = 'iammwombe@gmail.com';
+const WA_NUMBER = '254XXXXXXXXX'; // ← REPLACE with real WhatsApp number
+
+// ============================================================
+// SUPABASE INIT
+// ============================================================
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allOrders = [];
+let currentOrder = null;
+
+// ============================================================
+// AUTH
+// ============================================================
+async function handleLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('login-btn');
+
+  if (!email || !password) { setAuthMsg('Enter email and password.', 'error'); return; }
+  if (email !== ADMIN_EMAIL) { setAuthMsg('Unauthorised.', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    setAuthMsg(error.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+    return;
+  }
+
+  startApp(data.user);
+}
+
+async function handleMagicLink() {
+  const email = document.getElementById('auth-email').value.trim() || ADMIN_EMAIL;
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+
+  if (error) { setAuthMsg(error.message, 'error'); return; }
+
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('magic-view').style.display = 'block';
+  setAuthMsg('Check your inbox for the magic link.', 'success');
+}
+
+async function handleSignOut() {
+  await sb.auth.signOut();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function setAuthMsg(text, type = '') {
+  const el = document.getElementById('auth-msg');
+  el.textContent = text;
+  el.className = 'auth-msg ' + type;
+}
+
+// ============================================================
+// APP INIT
+// ============================================================
+async function startApp(user) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('admin-email-display').textContent = user.email;
+
+  await loadOrders();
+  setupRealtimeSubscription();
+  showPanel('orders');
+}
+
+// Check existing session on load
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user?.email === ADMIN_EMAIL) {
+    startApp(session.user);
+  }
+});
+
+// ============================================================
+// PANEL NAVIGATION
+// ============================================================
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + name)?.classList.add('active');
+  document.getElementById('nav-' + name)?.classList.add('active');
+
+  if (name === 'customers') loadCustomers();
+  if (name === 'analytics') loadAnalytics();
+}
+
+// ============================================================
+// ORDERS
+// ============================================================
+async function loadOrders() {
+  const tbody = document.getElementById('orders-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="8">Loading…</td></tr>';
+
+  const { data, error } = await sb
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="8" style="color:var(--red)">Error: ${error.message}</td></tr>`;
+    return;
+  }
+
+  allOrders = data || [];
+  updateStats();
+  renderOrders(allOrders);
+}
+
+function updateStats() {
+  const pending   = allOrders.filter(o => o.status === 'pending').length;
+  const confirmed = allOrders.filter(o => o.status === 'confirmed').length;
+  const delivered = allOrders.filter(o => o.status === 'delivered').length;
+  const revenue   = allOrders
+    .filter(o => o.payment_status === 'paid')
+    .reduce((s, o) => s + (o.total_amount || 0), 0);
+
+  document.getElementById('stat-pending').textContent   = pending;
+  document.getElementById('stat-confirmed').textContent = confirmed;
+  document.getElementById('stat-delivered').textContent = delivered;
+  document.getElementById('stat-revenue').textContent   = (revenue / 1000).toFixed(1) + 'K';
+
+  // Sidebar badge
+  const badge = document.getElementById('pending-count');
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+  else             { badge.style.display = 'none'; }
+}
+
+function renderOrders(orders) {
+  const tbody = document.getElementById('orders-tbody');
+  if (!orders.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="8">No orders found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = orders.map(o => {
+    const items   = Array.isArray(o.items) ? o.items : [];
+    const summary = items.map(i => `${i.name || i.product_id} ×${i.qty || 1}`).join(', ') || '—';
+    const date    = new Date(o.created_at).toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'2-digit' });
+
+    return `
+      <tr>
+        <td class="mono" style="font-size:0.8rem;">${o.reference || o.id?.slice(0,8)}</td>
+        <td>
+          <div style="font-weight:600">${o.full_name || '—'}</div>
+          <div style="color:var(--muted);font-size:0.78rem;">${o.email || ''}</div>
+        </td>
+        <td style="color:var(--muted);font-size:0.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${summary}</td>
+        <td class="mono">KES ${(o.total_amount || 0).toLocaleString()}</td>
+        <td><span class="badge badge-${o.payment_status || 'pending'}">${o.payment_status || 'pending'}</span></td>
+        <td><span class="badge badge-${o.status || 'pending'}">${(o.status || 'pending').replace('_',' ')}</span></td>
+        <td style="color:var(--muted);font-size:0.82rem;">${date}</td>
+        <td>
+          <button class="action-btn" onclick="openOrderModal('${o.id}')">View</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterOrders() {
+  const search  = document.getElementById('order-search').value.toLowerCase();
+  const status  = document.getElementById('order-filter').value;
+  const payment = document.getElementById('payment-filter').value;
+
+  const filtered = allOrders.filter(o => {
+    const matchSearch = !search ||
+      (o.full_name  || '').toLowerCase().includes(search) ||
+      (o.email      || '').toLowerCase().includes(search) ||
+      (o.reference  || '').toLowerCase().includes(search);
+    const matchStatus  = !status  || o.status         === status;
+    const matchPayment = !payment || o.payment_status === payment;
+    return matchSearch && matchStatus && matchPayment;
+  });
+
+  renderOrders(filtered);
+}
+
+// ============================================================
+// ORDER MODAL
+// ============================================================
+function openOrderModal(id) {
+  currentOrder = allOrders.find(o => o.id === id);
+  if (!currentOrder) return;
+
+  const o = currentOrder;
+
+  // Header ref
+  document.getElementById('modal-order-ref').textContent = o.reference || o.id?.slice(0,8);
+
+  // Detail grid
+  const date = new Date(o.created_at).toLocaleString('en-KE');
+  document.getElementById('modal-detail-grid').innerHTML = `
+    <div class="detail-field"><label>Customer</label><div class="val">${o.full_name || '—'}</div></div>
+    <div class="detail-field"><label>Email</label><div class="val">${o.email || '—'}</div></div>
+    <div class="detail-field"><label>Phone</label><div class="val">${o.phone || '—'}</div></div>
+    <div class="detail-field"><label>County</label><div class="val">${o.county || '—'}</div></div>
+    <div class="detail-field" style="grid-column:1/-1"><label>Address</label><div class="val">${o.address || '—'}</div></div>
+    <div class="detail-field"><label>Order Date</label><div class="val mono" style="font-size:0.82rem;">${date}</div></div>
+    <div class="detail-field"><label>Paystack Ref</label><div class="val mono" style="font-size:0.82rem;">${o.paystack_ref || '—'}</div></div>
+    ${o.notes ? `<div class="detail-field" style="grid-column:1/-1"><label>Customer Note</label><div class="val" style="color:var(--muted)">${o.notes}</div></div>` : ''}
+  `;
+
+  // Items list
+  const items = Array.isArray(o.items) ? o.items : [];
+  const itemsHtml = items.length
+    ? items.map(i => `
+        <div class="item-row">
+          <span>${i.name || i.product_id || '—'}</span>
+          <span style="color:var(--muted)">×${i.qty || 1}</span>
+          <span class="mono">KES ${((i.price || 0) * (i.qty || 1)).toLocaleString()}</span>
+        </div>
+      `).join('') + `
+        <div class="item-row" style="border-top:1px solid var(--border);font-weight:700;">
+          <span>Total</span><span></span>
+          <span class="mono">KES ${(o.total_amount || 0).toLocaleString()}</span>
+        </div>`
+    : '<div class="item-row" style="color:var(--muted)">No item details stored</div>';
+
+  document.getElementById('modal-items-list').innerHTML =
+    '<div class="items-list-header">Items ordered</div>' + itemsHtml;
+
+  // Status + notes
+  document.getElementById('modal-status-select').value = o.status || 'pending';
+  document.getElementById('modal-admin-notes').value   = o.admin_notes || '';
+
+  // Show modal
+  document.getElementById('order-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderModal() {
+  document.getElementById('order-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  currentOrder = null;
+}
+
+async function saveOrderUpdate() {
+  if (!currentOrder) return;
+
+  const newStatus = document.getElementById('modal-status-select').value;
+  const newNotes  = document.getElementById('modal-admin-notes').value.trim();
+  const btn       = document.getElementById('modal-save-btn');
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const { error } = await sb
+    .from('orders')
+    .update({ status: newStatus, admin_notes: newNotes })
+    .eq('id', currentOrder.id);
+
+  if (error) {
+    showToast('Error: ' + error.message, 'error');
+  } else {
+    // Update local cache
+    const idx = allOrders.findIndex(o => o.id === currentOrder.id);
+    if (idx !== -1) {
+      allOrders[idx].status      = newStatus;
+      allOrders[idx].admin_notes = newNotes;
+    }
+    updateStats();
+    renderOrders(allOrders);
+    showToast('✓ Order updated', 'success');
+    closeOrderModal();
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Changes';
+}
+
+function emailCustomer() {
+  if (!currentOrder) return;
+  const o   = currentOrder;
+  const sub = encodeURIComponent(`[Afams Order ${o.reference}] Update`);
+  const bod = encodeURIComponent(
+    `Dear ${o.full_name},\n\nThank you for your Afams FarmBag order.\n\n`+
+    `Order Reference: ${o.reference}\nStatus: ${o.status}\n\n`+
+    `If you have any questions, reply to this email.\n\nBest regards,\nAfams PLC Team`
+  );
+  window.open(`mailto:${o.email}?subject=${sub}&body=${bod}`);
+}
+
+function whatsappCustomer() {
+  if (!currentOrder) return;
+  const o    = currentOrder;
+  const phone = (o.phone || '').replace(/\D/g,'').replace(/^0/, '254');
+  const msg  = encodeURIComponent(
+    `Hello ${o.full_name}, this is Afams PLC. Your order ${o.reference} status is: ${o.status}. Reply here for any queries. Thank you! 🌿`
+  );
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
+// ============================================================
+// REALTIME SUBSCRIPTION
+// ============================================================
+function setupRealtimeSubscription() {
+  sb.channel('orders-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+      if (payload.eventType === 'INSERT') {
+        allOrders.unshift(payload.new);
+        updateStats();
+        filterOrders();
+        showToast('🔔 New order: ' + (payload.new.reference || payload.new.id?.slice(0,8)), 'success');
+      } else if (payload.eventType === 'UPDATE') {
+        const idx = allOrders.findIndex(o => o.id === payload.new.id);
+        if (idx !== -1) allOrders[idx] = payload.new;
+        updateStats();
+        filterOrders();
+      }
+    })
+    .subscribe();
+}
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
+async function loadCustomers() {
+  const tbody = document.getElementById('customers-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
+
+  // Derive from orders
+  const customerMap = {};
+  allOrders.forEach(o => {
+    const key = o.email || o.full_name;
+    if (!key) return;
+    if (!customerMap[key]) {
+      customerMap[key] = { name: o.full_name, email: o.email, phone: o.phone, county: o.county, orders: 0, spent: 0, last: o.created_at };
+    }
+    customerMap[key].orders++;
+    if (o.payment_status === 'paid') customerMap[key].spent += (o.total_amount || 0);
+    if (new Date(o.created_at) > new Date(customerMap[key].last)) customerMap[key].last = o.created_at;
+  });
+
+  const customers = Object.values(customerMap).sort((a,b) => b.spent - a.spent);
+
+  if (!customers.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="7">No customers yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = customers.map(c => `
+    <tr>
+      <td style="font-weight:600">${c.name || '—'}</td>
+      <td style="color:var(--muted);font-size:0.83rem;">${c.email || '—'}</td>
+      <td>${c.phone || '—'}</td>
+      <td>${c.county || '—'}</td>
+      <td class="mono">${c.orders}</td>
+      <td class="mono">KES ${c.spent.toLocaleString()}</td>
+      <td style="color:var(--muted);font-size:0.82rem;">${new Date(c.last).toLocaleDateString('en-KE')}</td>
+    </tr>
+  `).join('');
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function loadAnalytics() {
+  const paid    = allOrders.filter(o => o.payment_status === 'paid');
+  const revenue = paid.reduce((s, o) => s + (o.total_amount || 0), 0);
+  const aov     = paid.length ? Math.round(revenue / paid.length) : 0;
+
+  document.getElementById('an-total').textContent   = allOrders.length;
+  document.getElementById('an-revenue').textContent = (revenue/1000).toFixed(1)+'K';
+  document.getElementById('an-aov').textContent     = aov.toLocaleString();
+  document.getElementById('an-paid').textContent    = paid.length;
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => { t.className = ''; }, 3500);
+}
+
+// Close modals on overlay click
+document.getElementById('order-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeOrderModal();
+});
+</script>
 </body>
 </html>
