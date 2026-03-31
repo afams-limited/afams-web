@@ -1,0 +1,14 @@
+# Redirect all non-file, non-directory requests to index.html (SPA style)
+Options -Indexes
+RewriteEngine On
+RewriteBase /
+
+# Do NOT rewrite admin folder — let it serve normally
+RewriteRule ^admin(/.*)?$ - [L]
+
+# Do NOT rewrite real files / directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Everything else → index.html
+RewriteRule . /index.html [L]
