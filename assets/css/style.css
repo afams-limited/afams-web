@@ -1490,7 +1490,7 @@ h1, h2, h3, h4 {
 .whatsapp-float {
   position: fixed;
   bottom: 2rem; right: 2rem;
-  z-index: 900;
+  z-index: 9999;
   width: 58px; height: 58px;
   background: #25D366;
   border-radius: 50%;
@@ -1684,7 +1684,7 @@ h1, h2, h3, h4 {
   position: fixed;
   bottom: 6.5rem;
   right: 2rem;
-  z-index: 900;
+  z-index: 9000;
   width: 46px;
   height: 46px;
   background: var(--g-dark);
@@ -1713,3 +1713,142 @@ h1, h2, h3, h4 {
 .scroll-arrow { display: none; transition: opacity 0.2s; }
 .scroll-float.at-top .scroll-arrow-down { display: block; }
 .scroll-float:not(.at-top) .scroll-arrow-up { display: block; }
+
+/* ── WHATSAPP DRAGGABLE FAB ── */
+#wa-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.45);
+  cursor: grab;
+  transition: box-shadow 0.2s, transform 0.2s;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
+#wa-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.55);
+}
+#wa-fab.dragging {
+  cursor: grabbing;
+  transition: none;
+  box-shadow: 0 8px 24px rgba(37,211,102,0.5);
+}
+
+/* ── SUPPORT MODAL ── */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.modal-close:hover { background: #f0f0f0; color: #333; }
+#support-modal { z-index: 10002; }
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--g-dark, #1a5928);
+  color: white;
+  border: none;
+  border-radius: 100px;
+  padding: 0.85rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-primary:hover {
+  background: var(--g-mid, #2d7a3a);
+  transform: translateY(-1px);
+}
+.support-modal-box {
+  max-width: 480px;
+  width: 90%;
+  padding: 2rem;
+  border-radius: 12px;
+  background: #fff;
+  position: relative;
+}
+.support-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+.support-modal-box .form-row {
+  margin-bottom: 1rem;
+}
+.support-modal-box label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+.support-modal-box input,
+.support-modal-box textarea {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.support-modal-box input:focus,
+.support-modal-box textarea:focus {
+  outline: none;
+  border-color: var(--green, #2d7a3a);
+}
+.support-submit-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.support-note {
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ── FOUNDER QUOTE BLOCK ── */
+.founder-quote-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+}
+.founder-quote-block blockquote.founder-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--g-dark);
+  line-height: 1.75;
+  border-left: 4px solid var(--gold);
+  padding-left: 1.25rem;
+  margin: 0 0 1.25rem 0;
+}
+.founder-attribution {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-mid);
+  padding-left: 1.25rem;
+}
