@@ -32,8 +32,8 @@ const PRODUCTS = [
     emoji: '🌿',
     desc: 'The original 3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Passive wicking reservoir waters your crops for 3–7 days per fill.',
     features: ['3 growing zones', 'Wicking reservoir', 'Folds flat', 'Coir kit included'],
-    priceKES: 10,
-    priceGBP: 32,
+    priceKES: 7500,
+    priceGBP: 48,
     image: 'assets/images/farmbag-classic.jpg',
   },
   {
@@ -45,8 +45,8 @@ const PRODUCTS = [
     emoji: '🌱',
     desc: 'The Classic upgraded with the patented Grow Cube™ inner basket. Plants grow in 5 directions inside the sealed canvas — front, back, left, right, and upward. Zero mess indoors.',
     features: ['Grow Cube™ basket', '5× yield', 'Indoor safe', 'No floor mess'],
-    priceKES: 15,
-    priceGBP: 38,
+    priceKES: 8500,
+    priceGBP: 54,
     image: 'assets/images/farmbag-vertical.jpg',
   },
 ];
@@ -114,6 +114,21 @@ function updateCartUI() {
   });
 }
 
+function buildCartThumb(item) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cart-item-img';
+  if (item.image) {
+    const img = document.createElement('img');
+    img.src = item.image;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+    img.onerror = function() { this.style.display = 'none'; wrap.textContent = item.emoji; };
+    wrap.appendChild(img);
+  } else {
+    wrap.textContent = item.emoji;
+  }
+  return wrap;
+}
+
 function renderCartItems() {
   const container = document.getElementById('cart-items');
   if (!container) return;
@@ -131,8 +146,8 @@ function renderCartItems() {
   }
 
   container.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <div class="cart-item-img">${item.emoji}</div>
+    <div class="cart-item" data-id="${item.id}">
+      <div class="cart-item-img-slot"></div>
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">KES ${(item.priceKES).toLocaleString()} each</div>
@@ -145,6 +160,12 @@ function renderCartItems() {
       <button class="cart-item-del" onclick="removeFromCart('${item.id}')" title="Remove">×</button>
     </div>
   `).join('');
+
+  // Inject product thumbnails safely via DOM (avoids inline HTML injection)
+  cart.forEach(item => {
+    const row = container.querySelector(`[data-id="${item.id}"] .cart-item-img-slot`);
+    if (row) row.replaceWith(buildCartThumb(item));
+  });
 
   document.getElementById('checkout-btn').disabled = false;
   document.getElementById('cart-total').textContent = 'KES ' + cartTotal().toLocaleString();
