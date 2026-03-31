@@ -1,14 +1,14 @@
 Options -Indexes
 
+# Redirect login.html and dashboard.html to index.html (single entry point)
+RewriteEngine On
+RewriteBase /admin/
+RewriteRule ^(login|dashboard)\.html$ /admin/ [R=301,L]
+
 # Security headers
 Header always set X-Frame-Options "DENY"
 Header always set X-Content-Type-Options "nosniff"
 Header always set Referrer-Policy "no-referrer"
-
-# Block direct access to any file other than index.html
-<FilesMatch "^(?!index\.html$).*$">
-  # Allow assets — remove this block if admin has no local assets
-</FilesMatch>
 
 # No caching for admin HTML (always fresh)
 <FilesMatch "\.html$">
