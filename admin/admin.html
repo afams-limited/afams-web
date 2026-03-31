@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Afams Admin — Orders Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/admin.css"/>
+</head>
+<body>
+
+<!-- ── CONFIG OVERLAY (first-time setup) ── -->
+<div class="overlay-backdrop" id="config-overlay" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">🌿 Afams Admin</div>
+    <h2 class="auth-title">Connect to Supabase</h2>
+    <p class="auth-sub">Enter your Supabase project credentials. These are saved in your browser only.</p>
+    <div class="form-group">
+      <label class="form-label">Supabase Project URL</label>
+      <input type="url" id="cfg-url" placeholder="https://xxxx.supabase.co" autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Supabase Anon Key</label>
+      <input type="password" id="cfg-key" placeholder="eyJ…" autocomplete="off"/>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()">Save &amp; Continue</button>
+    <p class="auth-hint">Find these in your Supabase dashboard → Project Settings → API</p>
+  </div>
+</div>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div class="overlay-backdrop" id="login-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">🌿 Afams Admin</div>
+    <h2 class="auth-title">Sign in</h2>
+    <p class="auth-sub">Access is restricted to authorised Afams team members.</p>
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <input type="email" id="login-email" placeholder="admin@afams.co.ke" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <div id="login-error" class="auth-error" style="display:none"></div>
+    <button class="btn-primary" id="login-btn" onclick="signIn()">Sign in</button>
+    <p class="auth-hint">
+      No account? Ask your Supabase admin to add you via Supabase Auth → Users.
+      <br/><a href="#" onclick="showConfig()">Change Supabase project ↗</a>
+    </p>
+  </div>
+</div>
+
+<!-- ── MAIN LAYOUT ── -->
+<div class="admin-layout" id="admin-layout" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-leaf">🌿</span>
+      <span>Afams<span class="sidebar-admin-label"> Admin</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active" onclick="setView('orders')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Orders
+      </a>
+      <a class="sidebar-link" onclick="setView('analytics')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="main-header">
+      <div>
+        <h1 class="main-title" id="view-title">Orders</h1>
+        <p class="main-sub" id="view-sub">All customer pre-orders</p>
+      </div>
+      <button class="btn-refresh" onclick="loadOrders()" title="Refresh">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- ── ORDERS VIEW ── -->
+    <div id="view-orders">
+
+      <!-- Stats row -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-total-orders">—</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card stat-card--green">
+          <div class="stat-val" id="stat-paid">—</div>
+          <div class="stat-label">Paid Orders</div>
+        </div>
+        <div class="stat-card stat-card--gold">
+          <div class="stat-val" id="stat-revenue">—</div>
+          <div class="stat-label">Total Revenue (KES)</div>
+        </div>
+        <div class="stat-card stat-card--amber">
+          <div class="stat-val" id="stat-pending">—</div>
+          <div class="stat-label">Pending Payment</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label class="filter-label">Payment Status</label>
+          <select id="filter-payment" onchange="loadOrders()">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Order Status</label>
+          <select id="filter-order" onchange="loadOrders()">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Search</label>
+          <input type="text" id="filter-search" placeholder="Name, phone, reference…" oninput="filterTable()"/>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div id="table-loading" class="table-loading">Loading orders…</div>
+        <table class="orders-table" id="orders-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Order Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+        <div id="table-empty" class="table-empty" style="display:none">No orders found.</div>
+      </div>
+
+    </div><!-- /view-orders -->
+
+    <!-- ── ANALYTICS VIEW ── -->
+    <div id="view-analytics" style="display:none">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="an-total">—</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card stat-card--green">
+          <div class="stat-val" id="an-revenue">—</div>
+          <div class="stat-label">Total Revenue (KES)</div>
+        </div>
+        <div class="stat-card stat-card--gold">
+          <div class="stat-val" id="an-avg">—</div>
+          <div class="stat-label">Avg Order Value</div>
+        </div>
+        <div class="stat-card stat-card--amber">
+          <div class="stat-val" id="an-conversion">—</div>
+          <div class="stat-label">Paid Conversion</div>
+        </div>
+      </div>
+      <div class="analytics-breakdown" id="analytics-breakdown"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="admin-toast"></div>
+
+<!-- Supabase JS SDK (UMD build) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
