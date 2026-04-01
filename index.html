@@ -270,7 +270,15 @@
 </section>
 
 <!-- COUNTRIES -->
-<section class="section section--pale" id="global">
+<section class="accordion-section section--pale" id="global">
+  <button class="accordion-toggle" id="global-toggle" aria-expanded="false" aria-controls="global-body">
+    <span class="accordion-label">
+      <span class="accordion-icon">🌍</span>
+      Our Global Presence
+    </span>
+    <svg class="accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="accordion-body section section--pale" id="global-body" aria-labelledby="global-toggle" hidden>
   <div class="section-inner">
     <div class="section-center" style="margin-bottom:2rem">
       <div class="section-label">Our global presence</div>
@@ -347,10 +355,19 @@
       <p style="font-size:0.88rem;color:var(--gray-mid)">🌍 Interested in distributing Afams in your country? <a href="#contact" onclick="scrollTo('contact')" style="color:var(--g-mid);font-weight:600">Get in touch</a></p>
     </div>
   </div>
+  </div><!-- /.accordion-body -->
 </section>
 
 <!-- INSTITUTIONAL -->
-<section class="section" id="institutional">
+<section class="accordion-section" id="institutional">
+  <button class="accordion-toggle" id="institutional-toggle" aria-expanded="false" aria-controls="institutional-body">
+    <span class="accordion-label">
+      <span class="accordion-icon">🏫</span>
+      For Institutions
+    </span>
+    <svg class="accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="accordion-body section" id="institutional-body" aria-labelledby="institutional-toggle" hidden>
   <div class="section-inner">
     <div class="section-center" style="margin-bottom:2.5rem">
       <div class="section-label">For institutions</div>
@@ -414,6 +431,7 @@
       </form>
     </div>
   </div>
+  </div><!-- /.accordion-body -->
 </section>
 
 <!-- STORY -->
@@ -477,7 +495,15 @@
 </section>
 
 <!-- FAQ -->
-<section class="section section--pale" id="faq">
+<section class="accordion-section section--pale" id="faq">
+  <button class="accordion-toggle" id="faq-toggle" aria-expanded="false" aria-controls="faq-body">
+    <span class="accordion-label">
+      <span class="accordion-icon">❓</span>
+      FAQ
+    </span>
+    <svg class="accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="accordion-body section section--pale" id="faq-body" aria-labelledby="faq-toggle" hidden>
   <div class="section-inner" style="max-width:780px">
     <div class="section-center" style="margin-bottom:2.5rem">
       <div class="section-label">FAQ</div>
@@ -521,6 +547,7 @@
       </details>
     </div>
   </div>
+  </div><!-- /.accordion-body -->
 </section>
 
 <!-- NEWSLETTER -->
@@ -892,6 +919,60 @@
     document.getElementById('cookie-banner').style.display = 'block';
   }
 })();
+</script>
+<script>
+// Accordion sections
+document.querySelectorAll('.accordion-toggle').forEach(function(toggle) {
+  toggle.addEventListener('click', function() {
+    var body = document.getElementById(toggle.getAttribute('aria-controls'));
+    var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    var TRANSITION_MS = 380;
+
+    if (isOpen) {
+      body.style.height = body.scrollHeight + 'px';
+      requestAnimationFrame(function() {
+        body.style.height = '0';
+        body.style.overflow = 'hidden';
+      });
+      var collapseCleanup = function() {
+        body.setAttribute('hidden', '');
+        body.style.height = '';
+        body.style.overflow = '';
+      };
+      body.addEventListener('transitionend', collapseCleanup, { once: true });
+      setTimeout(collapseCleanup, TRANSITION_MS);
+      toggle.setAttribute('aria-expanded', 'false');
+    } else {
+      body.removeAttribute('hidden');
+      body.style.height = '0';
+      body.style.overflow = 'hidden';
+      requestAnimationFrame(function() {
+        body.style.height = body.scrollHeight + 'px';
+      });
+      var expandCleanup = function() {
+        body.style.height = '';
+        body.style.overflow = '';
+      };
+      body.addEventListener('transitionend', expandCleanup, { once: true });
+      setTimeout(expandCleanup, TRANSITION_MS);
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+  });
+});
+
+// Handle nav anchor clicks — auto-open if section is collapsed
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function() {
+    var href = a.getAttribute('href');
+    var target;
+    try { target = document.querySelector(href); } catch(e) { return; }
+    if (!target) return;
+    var toggle = target.querySelector('.accordion-toggle');
+    if (toggle && toggle.getAttribute('aria-expanded') === 'false') {
+      toggle.click();
+    }
+  });
+});
 </script>
 
 </body>
