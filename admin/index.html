@@ -601,6 +601,9 @@
     .badge-shipped       { background: #EDE9FE; color: #5B21B6; }
     .badge-failed        { background: #FEE2E2; color: #991B1B; }
 
+    .badge-active        { background: #D1FAE5; color: #065F46; }
+    .badge-unsubscribed  { background: #F3F4F6; color: #374151; }
+
     /* ══════════════════════════════════════════════════════════════
        ACTION BUTTONS (in table rows)
     ══════════════════════════════════════════════════════════════ */
@@ -1021,6 +1024,10 @@
         <button class="sidebar-item" onclick="showPanel('customers')" id="nav-customers">
           <span class="icon">👤</span> Customers
         </button>
+        <button class="sidebar-item" onclick="showPanel('subscribers')" id="nav-subscribers">
+          <span class="icon">🌱</span> Growers Club
+          <span class="sidebar-badge" id="subscribers-count" style="display:none">0</span>
+        </button>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-section-label">Store</div>
@@ -1141,6 +1148,53 @@
             </thead>
             <tbody id="customers-tbody">
               <tr class="loading-row"><td colspan="7">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════ GROWERS CLUB PANEL ═══════════ -->
+      <div class="panel" id="panel-subscribers">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Growers Club</div>
+            <div class="page-subtitle">Newsletter subscribers from afams.co.ke</div>
+          </div>
+          <button class="btn-util" onclick="loadSubscribers()">↻ Refresh</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">Total Subscribers</div>
+            <div class="stat-value" id="sub-total">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Active</div>
+            <div class="stat-value" id="sub-active">—</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Unsubscribed</div>
+            <div class="stat-value" id="sub-unsub">—</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" id="sub-search"
+              placeholder="🔍 Search email or name…" oninput="filterSubscribers()" />
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Subscribed</th>
+              </tr>
+            </thead>
+            <tbody id="subscribers-tbody">
+              <tr class="loading-row"><td colspan="5">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -1282,8 +1336,9 @@ const WA_NUMBER        = '254702359618';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let allOrders    = [];
-let currentOrder = null;
+let allOrders      = [];
+let allSubscribers = [];
+let currentOrder   = null;
 
 // ════════════════════════════════════════════════════
 // THEME TOGGLE  ☀️ / 🖥 / 🌙
@@ -1396,8 +1451,9 @@ function showPanel(name) {
   if (panel) panel.classList.add('active');
   if (nav)   nav.classList.add('active');
 
-  if (name === 'customers') loadCustomers();
-  if (name === 'analytics') loadAnalytics();
+  if (name === 'customers')    loadCustomers();
+  if (name === 'analytics')    loadAnalytics();
+  if (name === 'subscribers')  loadSubscribers();
 }
 
 // ════════════════════════════════════════════════════
@@ -1709,6 +1765,76 @@ function loadAnalytics() {
   document.getElementById('an-revenue').textContent = (revenue / 1000).toFixed(1) + 'K';
   document.getElementById('an-aov').textContent     = aov.toLocaleString();
   document.getElementById('an-paid').textContent    = paid.length;
+}
+
+// ════════════════════════════════════════════════════
+// GROWERS CLUB SUBSCRIBERS
+// ════════════════════════════════════════════════════
+async function loadSubscribers() {
+  var tbody = document.getElementById('subscribers-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Loading…</td></tr>';
+
+  var { data, error } = await sb
+    .from('subscribers')
+    .select('email, first_name, source, status, subscribed_at')
+    .order('subscribed_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5" style="color:#C0392B">Error: '
+      + escapeHtml(error.message) + '</td></tr>';
+    return;
+  }
+
+  allSubscribers = data || [];
+  updateSubscriberStats();
+  renderSubscribers(allSubscribers);
+}
+
+function updateSubscriberStats() {
+  var active = allSubscribers.filter(function (s) { return s.status === 'active'; }).length;
+  var unsub  = allSubscribers.filter(function (s) { return s.status === 'unsubscribed'; }).length;
+  document.getElementById('sub-total').textContent  = allSubscribers.length;
+  document.getElementById('sub-active').textContent = active;
+  document.getElementById('sub-unsub').textContent  = unsub;
+
+  var badge = document.getElementById('subscribers-count');
+  if (allSubscribers.length > 0) {
+    badge.textContent    = allSubscribers.length;
+    badge.style.display  = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderSubscribers(subscribers) {
+  var tbody = document.getElementById('subscribers-tbody');
+  if (!subscribers.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">No subscribers yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = subscribers.map(function (s) {
+    var date   = new Date(s.subscribed_at).toLocaleDateString('en-KE', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+    var status = s.status || 'active';
+    return '<tr>'
+      + '<td style="font-weight:600">'                      + escapeHtml(s.email      || '—') + '</td>'
+      + '<td>'                                              + escapeHtml(s.first_name || '—') + '</td>'
+      + '<td style="color:var(--text-muted);font-size:0.83rem;">' + escapeHtml(s.source || '—') + '</td>'
+      + '<td><span class="badge badge-' + escapeHtml(status) + '">' + escapeHtml(status) + '</span></td>'
+      + '<td style="color:var(--text-muted);font-size:0.82rem;">' + date + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function filterSubscribers() {
+  var search = (document.getElementById('sub-search').value || '').toLowerCase();
+  if (!search) { renderSubscribers(allSubscribers); return; }
+  var filtered = allSubscribers.filter(function (s) {
+    return (s.email      || '').toLowerCase().includes(search)
+        || (s.first_name || '').toLowerCase().includes(search);
+  });
+  renderSubscribers(filtered);
 }
 
 // ════════════════════════════════════════════════════

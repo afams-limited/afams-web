@@ -1,5 +1,11 @@
 /* ── AFAMS PLC · Main Application JS · 2026 ── */
 
+// ── SUPABASE CONFIG ───────────────────────────────────────────────
+// SUPABASE_ANON_KEY is the public anonymous key — safe for browser use.
+// It is already embedded in admin/index.html for the same project.
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+
 // ── CONFIG ───────────────────────────────────────────────────────
 const AFAMS = {
   // Paystack public key is set by assets/js/paystack-config.js (loaded before this file).
@@ -347,11 +353,16 @@ function subscribeNewsletter(e) {
     showToast('⚠️ Please enter a valid email');
     return;
   }
-  // Submit to Netlify Forms via AJAX (fire-and-forget)
-  fetch('/', {
+  // Save to Supabase subscribers table (fire-and-forget; ignore duplicate emails)
+  fetch(SUPABASE_URL + '/rest/v1/subscribers', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ 'form-name': 'newsletter', email }).toString(),
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Prefer': 'return=minimal,resolution=ignore-duplicates',
+    },
+    body: JSON.stringify({ email, source: 'website', status: 'active' }),
   }).catch(() => {}); // non-fatal — toast shows regardless
   showToast('✓ Subscribed! Welcome to the Afams Growers Club');
   document.getElementById('nl-email').value = '';
