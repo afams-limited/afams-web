@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateScrollFloat() {
     if (!scrollBtn) return;
     const { scrolled, atTop, atBottom } = getScrollState();
-    scrollBtn.classList.toggle('visible', scrolled >= 120);
+    scrollBtn.classList.toggle('visible', scrolled >= 300);
     scrollBtn.classList.toggle('at-top', atTop);
     scrollBtn.classList.toggle('at-bottom', atBottom);
   }
@@ -826,3 +826,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+// Keep footer Legal section expanded on desktop; collapsible on mobile
+(function () {
+  const legalDetails = document.querySelector('.footer-legal-details');
+  if (!legalDetails) return;
+  function syncLegal() {
+    if (window.innerWidth >= 769) {
+      legalDetails.setAttribute('open', '');
+    }
+  }
+  syncLegal();
+  window.addEventListener('resize', syncLegal, { passive: true });
+}());
