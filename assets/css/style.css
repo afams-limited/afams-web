@@ -1445,42 +1445,7 @@ h1, h2, h3, h4 {
 }
 
 /* ── WHATSAPP ── */
-.whatsapp-float {
-  position: fixed;
-  bottom: 2rem; right: 2rem;
-  z-index: 9999;
-  width: 58px; height: 58px;
-  background: #25D366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 24px rgba(37,211,102,0.45);
-  transition: all var(--transition);
-  cursor: pointer;
-}
-.whatsapp-float svg { display: block; }
-.whatsapp-float:hover {
-  transform: scale(1.1);
-  box-shadow: 0 10px 32px rgba(37,211,102,0.55);
-}
-.whatsapp-tooltip {
-  position: absolute;
-  right: 70px;
-  background: white;
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--g-dark);
-  white-space: nowrap;
-  box-shadow: var(--shadow-md);
-  opacity: 0;
-  transform: translateX(10px);
-  transition: all var(--transition);
-  pointer-events: none;
-}
-.whatsapp-float:hover .whatsapp-tooltip { opacity: 1; transform: translateX(0); }
+/* .whatsapp-float is no longer used (FAB removed) */
 
 /* ── MOBILE NAV ── */
 .mobile-menu {
@@ -1637,6 +1602,55 @@ h1, h2, h3, h4 {
   .batch-bar { gap: 0.5rem; }
 }
 
+/* ── CONTACT SECTION ── */
+.contact-section { background: var(--off-white); }
+.contact-emails-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+.contact-email-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.contact-email-card:hover {
+  border-color: var(--g-mid);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+.contact-email-icon { font-size: 1.75rem; margin-bottom: 0.25rem; }
+.contact-email-topic {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-rich);
+}
+.contact-email-addr {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--g-mid);
+}
+.contact-email-desc {
+  font-size: 0.84rem;
+  color: var(--gray-mid);
+  line-height: 1.55;
+  flex: 1;
+}
+.contact-email-cta {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--g-rich);
+  margin-top: 0.4rem;
+}
+
 /* ── SCROLL FLOAT BUTTON ── */
 .scroll-float {
   position: fixed;
@@ -1671,37 +1685,6 @@ h1, h2, h3, h4 {
 .scroll-arrow { display: none; transition: opacity 0.2s; }
 .scroll-float.at-bottom .scroll-arrow-up { display: block; }
 .scroll-float:not(.at-bottom) .scroll-arrow-down { display: block; }
-
-/* ── WHATSAPP DRAGGABLE FAB ── */
-#wa-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 20px;
-  z-index: 9999;
-  width: 56px;
-  height: 56px;
-  background: #25D366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.45);
-  cursor: grab;
-  transition: box-shadow 0.2s, transform 0.2s;
-  text-decoration: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  touch-action: none;
-}
-#wa-fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.55);
-}
-#wa-fab.dragging {
-  cursor: grabbing;
-  transition: none;
-  box-shadow: 0 8px 24px rgba(37,211,102,0.5);
-}
 
 /* ── SUPPORT MODAL ── */
 .modal-close {
