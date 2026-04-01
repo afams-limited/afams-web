@@ -141,7 +141,12 @@ CREATE TRIGGER orders_order_number
   FOR EACH ROW EXECUTE FUNCTION public.generate_order_number();
 
 -- ── ORDER STATS VIEW ──────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW public.order_stats AS
+-- SECURITY DEFINER view: runs as the view owner (postgres), bypassing RLS on
+-- the underlying orders table. Grants let the anon and authenticated roles
+-- read the aggregated totals via the REST API without exposing raw order data.
+CREATE OR REPLACE VIEW public.order_stats
+  WITH (security_invoker = false)
+AS
 SELECT
   COUNT(*)                                                                  AS total_orders,
   COUNT(*) FILTER (WHERE status = 'pending')                                AS pending,
@@ -187,6 +192,11 @@ CREATE POLICY "orders_admin_update" ON public.orders
 DROP POLICY IF EXISTS "orders_webhook_insert" ON public.orders;
 CREATE POLICY "orders_webhook_insert" ON public.orders
   FOR INSERT TO anon WITH CHECK (true);
+
+-- order_stats: SECURITY DEFINER view — grant SELECT so the anon and
+-- authenticated roles can read aggregated totals via the REST API.
+-- This does NOT expose individual order rows.
+GRANT SELECT ON public.order_stats TO anon, authenticated;
 
 -- ── INDEXES ───────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS orders_status_idx         ON public.orders (status);

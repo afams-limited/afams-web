@@ -256,14 +256,35 @@ function initiatePayment() {
   const amountKobo = cartTotal() * 100; // Paystack uses kobo/cents
   const reference = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
 
+  // Build product snapshot for webhook (schema stores one row per order)
+  const totalQty  = cart.reduce((s, i) => s + i.qty, 0);
+  const isSingle  = cart.length === 1;
+  const snapName  = isSingle
+    ? cart[0].name
+    : cart.map(i => `${i.name} ×${i.qty}`).join(', ');
+  const snapSku   = isSingle ? cart[0].id   : null;
+  const snapPrice = isSingle ? cart[0].priceKES : 0;
+  // For multi-item carts, unit_price is stored as 0 (NOT NULL constraint).
+  // The authoritative total is total_amount, set from Paystack's verified amount.
+
   const metadata = {
+    // ── Top-level keys read directly by the webhook ────────────────
+    customer_name:    name,
+    customer_phone:   phone,
+    delivery_address: address,
+    county:           county,
+    product_name:     snapName,
+    product_sku:      snapSku,
+    quantity:         totalQty,
+    unit_price:       snapPrice,
+    // ── Paystack dashboard display ─────────────────────────────────
     custom_fields: [
-      { display_name: 'Customer Name',    variable_name: 'customer_name', value: name    },
-      { display_name: 'Phone',            variable_name: 'phone',         value: phone   },
-      { display_name: 'Delivery County',  variable_name: 'county',        value: county  },
-      { display_name: 'Delivery Address', variable_name: 'address',       value: address },
-      { display_name: 'Order Items',      variable_name: 'items',         value: cart.map(i => `${i.name} x${i.qty}`).join(', ') },
-      { display_name: 'Order Type',       variable_name: 'order_type',    value: 'PRE-ORDER' },
+      { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
+      { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
+      { display_name: 'Delivery County',  variable_name: 'county',           value: county  },
+      { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
+      { display_name: 'Order Items',      variable_name: 'items',            value: cart.map(i => `${i.name} x${i.qty}`).join(', ') },
+      { display_name: 'Order Type',       variable_name: 'order_type',       value: 'PRE-ORDER' },
     ],
   };
 
@@ -368,7 +389,10 @@ async function handleSubscribe() {
       'https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({ email, source: 'website' })
       }
     );
@@ -696,96 +720,109 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// DRAGGABLE WHATSAPP FAB
+// FOOTER INFO PANELS (Careers, Press)
 // ============================================================
-(function() {
-  document.addEventListener('DOMContentLoaded', function() {
-    const fab = document.getElementById('wa-fab');
-    if (!fab) return;
 
-    let isDragging = false;
-    let startX, startY, startRight, startBottom;
-    let hasMoved = false;
+const FOOTER_PANELS = {
+  careers: {
+    title: '💼 Careers at Afams',
+    body: '<p style="color:#555;line-height:1.7">We are not currently advertising open roles. We are a lean, ambitious team and we hire when we find exceptional people.</p>'
+        + '<p style="margin-top:1rem;color:#555;line-height:1.7">If you believe you could add significant value to Afams, send a brief note and your profile to <a href="mailto:careers@afams.co.ke" style="color:#1E7D34;font-weight:600">careers@afams.co.ke</a>. We read every message.</p>',
+  },
+  press: {
+    title: '📰 Press & Media',
+    body: '<p style="color:#555;line-height:1.7">No media updates at this time. Afams is currently in pre-launch phase and we will be issuing press releases and media kits soon.</p>'
+        + '<p style="margin-top:1rem;color:#555;line-height:1.7">For press enquiries, interview requests, or media assets contact <a href="mailto:press@afams.co.ke" style="color:#1E7D34;font-weight:600">press@afams.co.ke</a>.</p>',
+  },
+};
 
-    function getPos() {
-      const rect = fab.getBoundingClientRect();
-      return {
-        right:  window.innerWidth  - rect.right,
-        bottom: window.innerHeight - rect.bottom,
-      };
-    }
+function showInfoPanel(type) {
+  const config = FOOTER_PANELS[type];
+  if (!config) return;
+  document.getElementById('info-panel-title').textContent = config.title;
+  document.getElementById('info-panel-body').innerHTML    = config.body;
+  const overlay = document.getElementById('info-panel-overlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
 
-    function clamp(val, min, max) {
-      return Math.max(min, Math.min(max, val));
-    }
+function closeInfoPanel() {
+  const overlay = document.getElementById('info-panel-overlay');
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
 
-    fab.addEventListener('mousedown', function(e) {
-      if (e.button !== 0) return;
-      isDragging = true;
-      hasMoved = false;
-      const pos = getPos();
-      startX = e.clientX;
-      startY = e.clientY;
-      startRight  = pos.right;
-      startBottom = pos.bottom;
-      fab.classList.add('dragging');
-      e.preventDefault();
+document.addEventListener('DOMContentLoaded', function () {
+  const overlay = document.getElementById('info-panel-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === this) closeInfoPanel();
     });
+  }
+});
 
-    document.addEventListener('mousemove', function(e) {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+// ============================================================
+// CONTACT DIALOG
+// ============================================================
 
-      const newRight  = clamp(startRight  - dx, 8, window.innerWidth  - 64);
-      const newBottom = clamp(startBottom + dy, 8, window.innerHeight - 64);
+function openContactForm(type) {
+  const configs = {
+    orders:       { label: 'Orders & Shopping',   recipient: 'orders@afams.co.ke',  subject: '[ORDER ENQUIRY]'   },
+    support:      { label: 'General Support',     recipient: 'support@afams.co.ke', subject: '[SUPPORT]'         },
+    partnerships: { label: 'Partnerships & B2B',  recipient: 'partner@afams.co.ke', subject: '[PARTNERSHIP]'     },
+    press:        { label: 'Press & Media',        recipient: 'press@afams.co.ke',   subject: '[PRESS]'           },
+  };
+  const cfg = configs[type];
+  if (!cfg) return;
 
-      fab.style.right  = newRight  + 'px';
-      fab.style.bottom = newBottom + 'px';
+  document.getElementById('contact-dialog-to').textContent     = cfg.recipient;
+  document.getElementById('contact-dialog-label').textContent  = cfg.label;
+  document.getElementById('contact-dialog-msg').value          = '';
+  document.getElementById('contact-dialog-name').value         = '';
+  document.getElementById('contact-dialog-email').value        = '';
+  document.getElementById('contact-dialog-overlay').style.display = 'flex';
+  document.getElementById('contact-dialog-overlay').dataset.type   = type;
+  document.getElementById('contact-dialog-overlay').dataset.recipient = cfg.recipient;
+  document.getElementById('contact-dialog-overlay').dataset.subject   = cfg.subject;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeContactDialog() {
+  document.getElementById('contact-dialog-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function sendContactViaMailto() {
+  const overlay   = document.getElementById('contact-dialog-overlay');
+  const recipient = overlay.dataset.recipient;
+  const subPrefix = overlay.dataset.subject;
+  const name      = document.getElementById('contact-dialog-name').value.trim();
+  const email     = document.getElementById('contact-dialog-email').value.trim();
+  const msg       = document.getElementById('contact-dialog-msg').value.trim();
+  if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
+  const body    = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
+  window.location.href = 'mailto:' + recipient + '?subject=' + subject + '&body=' + body;
+  closeContactDialog();
+}
+
+function sendContactViaGmail() {
+  const overlay   = document.getElementById('contact-dialog-overlay');
+  const recipient = overlay.dataset.recipient;
+  const subPrefix = overlay.dataset.subject;
+  const name      = document.getElementById('contact-dialog-name').value.trim();
+  const email     = document.getElementById('contact-dialog-email').value.trim();
+  const msg       = document.getElementById('contact-dialog-msg').value.trim();
+  if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
+  const body = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
+  window.open('https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(recipient) + '&su=' + su + '&body=' + body, '_blank');
+  closeContactDialog();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const dlg = document.getElementById('contact-dialog-overlay');
+  if (dlg) {
+    dlg.addEventListener('click', function (e) {
+      if (e.target === this) closeContactDialog();
     });
-
-    document.addEventListener('mouseup', function(e) {
-      if (!isDragging) return;
-      isDragging = false;
-      fab.classList.remove('dragging');
-      if (hasMoved) e.preventDefault();
-    });
-
-    fab.addEventListener('click', function(e) {
-      if (hasMoved) e.preventDefault();
-    });
-
-    fab.addEventListener('touchstart', function(e) {
-      const t = e.touches[0];
-      isDragging = true;
-      hasMoved = false;
-      const pos = getPos();
-      startX = t.clientX;
-      startY = t.clientY;
-      startRight  = pos.right;
-      startBottom = pos.bottom;
-      fab.classList.add('dragging');
-    }, { passive: true });
-
-    document.addEventListener('touchmove', function(e) {
-      if (!isDragging) return;
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
-
-      const newRight  = clamp(startRight  - dx, 8, window.innerWidth  - 64);
-      const newBottom = clamp(startBottom + dy, 8, window.innerHeight - 64);
-
-      fab.style.right  = newRight  + 'px';
-      fab.style.bottom = newBottom + 'px';
-      if (hasMoved) e.preventDefault();
-    }, { passive: false });
-
-    document.addEventListener('touchend', function() {
-      isDragging = false;
-      fab.classList.remove('dragging');
-    });
-  });
-})();
+  }
+});
