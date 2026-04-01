@@ -534,6 +534,7 @@ function launchPaystack() {
       // Payment complete — DO NOT write to Supabase here; webhook handles that.
       window.location.href = '/order-confirm.html?ref=' + encodeURIComponent(response.reference)
         + '&name=' + encodeURIComponent(name)
+        + '&email=' + encodeURIComponent(email)
         + '&amount=' + total;
     },
     onClose: function() {

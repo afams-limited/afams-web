@@ -326,6 +326,7 @@
 const params  = new URLSearchParams(window.location.search);
 const ref     = params.get('ref')    || '';
 const name    = params.get('name')   || '';
+const email   = params.get('email')  || '';
 const amount  = params.get('amount') || '';
 
 // Display reference
@@ -358,6 +359,20 @@ document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLoca
 
 // Clear cart if using the localStorage cart from index.html
 try { localStorage.removeItem('afams_cart'); } catch(_) {}
+
+// After successful order, silently add to subscribers list
+const orderData = { email: email, full_name: name };
+if (orderData.email) {
+  fetch('https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: orderData.email,
+      first_name: orderData.full_name?.split(' ')[0],
+      source: 'checkout'
+    })
+  }).catch(() => {}); // Silent fail — don't block order confirmation UX
+}
 </script>
 
 <footer style="background:#0D3D1A;color:rgba(255,255,255,0.55);text-align:center;padding:1.5rem 1rem;font-size:0.78rem;">

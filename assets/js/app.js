@@ -284,6 +284,7 @@ function initiatePayment() {
       updateCartUI();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(transaction.reference || reference)
         + '&name=' + encodeURIComponent(name)
+        + '&email=' + encodeURIComponent(email)
         + '&amount=' + cartTotal();
     },
   });
@@ -346,26 +347,44 @@ function initAnimations() {
 }
 
 // ── NEWSLETTER ────────────────────────────────────────────────────
-function subscribeNewsletter(e) {
-  e.preventDefault();
-  const email = document.getElementById('nl-email').value.trim();
+async function handleSubscribe() {
+  const emailInput = document.getElementById('subscribe-email');
+  const btn = document.getElementById('subscribe-btn');
+  const msg = document.getElementById('subscribe-msg');
+  const email = emailInput.value.trim();
+
   if (!email || !email.includes('@')) {
-    showToast('⚠️ Please enter a valid email');
+    msg.textContent = 'Please enter a valid email address.';
+    msg.style.color = '#FCA5A5';
     return;
   }
-  // Save to Supabase subscribers table (fire-and-forget; ignore duplicate emails)
-  fetch(SUPABASE_URL + '/rest/v1/subscribers', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Prefer': 'return=minimal,resolution=ignore-duplicates',
-    },
-    body: JSON.stringify({ email, source: 'website', status: 'active' }),
-  }).catch(() => {}); // non-fatal — toast shows regardless
-  showToast('✓ Subscribed! Welcome to the Afams Growers Club');
-  document.getElementById('nl-email').value = '';
+
+  btn.textContent = '⏳ Subscribing...';
+  btn.disabled = true;
+  msg.textContent = '';
+
+  try {
+    const res = await fetch(
+      'https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'website' })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Subscription failed');
+
+    btn.textContent = '✓ Subscribed!';
+    msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
+    msg.style.color = '#A7F3D0';
+    emailInput.value = '';
+  } catch (err) {
+    btn.textContent = 'Subscribe';
+    btn.disabled = false;
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.color = '#FCA5A5';
+  }
 }
 
 // ── INSTITUTIONAL ENQUIRY ─────────────────────────────────────────
