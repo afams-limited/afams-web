@@ -216,6 +216,24 @@
     .auth-msg.success { color: #27AE60; }
     .auth-msg.error   { color: #C0392B; }
 
+    .auth-magic-msg {
+      color: var(--text-muted);
+      font-size: 0.87rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-link:hover { color: var(--accent); }
+
     /* ══════════════════════════════════════════════════════════════
        APP SCREEN WRAPPER
     ══════════════════════════════════════════════════════════════ */
@@ -793,6 +811,14 @@
 
     .btn-outlined:hover { background: var(--accent); color: #fff; }
 
+    .modal-field-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
     /* ══════════════════════════════════════════════════════════════
        TOAST
     ══════════════════════════════════════════════════════════════ */
@@ -943,7 +969,7 @@
     </div>
 
     <div id="magic-view" style="display:none;">
-      <p style="color:var(--text-muted);font-size:0.87rem;margin-bottom:1rem;">
+      <p class="auth-magic-msg">
         A magic sign-in link has been sent to your email. Click it to access the dashboard.
       </p>
       <button class="btn-primary" onclick="document.getElementById('magic-view').style.display='none';document.getElementById('login-view').style.display='block';">
@@ -954,7 +980,7 @@
     <p class="auth-msg" id="auth-msg"></p>
 
     <p style="margin-top:1rem;text-align:center;">
-      <button onclick="handleMagicLink()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;text-decoration:underline;">
+      <button onclick="handleMagicLink()" class="btn-link">
         Send magic link instead
       </button>
     </p>
@@ -1211,9 +1237,7 @@
       </div>
 
       <div class="modal-section-title">Status &amp; Notes</div>
-      <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--text-muted);margin-bottom:0.4rem;">
-        Order Status
-      </label>
+      <label class="modal-field-label">Order Status</label>
       <select class="status-select" id="modal-status-select">
         <option value="pending">Pending</option>
         <option value="confirmed">Confirmed</option>
@@ -1224,9 +1248,7 @@
         <option value="refunded">Refunded</option>
       </select>
 
-      <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--text-muted);margin-bottom:0.4rem;">
-        Admin Notes
-      </label>
+      <label class="modal-field-label">Admin Notes</label>
       <textarea class="notes-textarea" id="modal-admin-notes" placeholder="Internal notes about this order…"></textarea>
 
       <div class="modal-section-title">Actions</div>
