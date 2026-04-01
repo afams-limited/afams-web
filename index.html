@@ -556,12 +556,11 @@
     <div class="section-label" style="color:#A5D6A7;text-align:center">Stay connected</div>
     <h2>Join the Afams Growers Club</h2>
     <p>Growing guides, product launches, harvest challenges, and exclusive member discounts. We send one email per week. Always worth opening.</p>
-    <form class="newsletter-form" name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" onsubmit="subscribeNewsletter(event)">
-      <input type="hidden" name="form-name" value="newsletter"/>
-      <input type="hidden" name="bot-field"/>
-      <input type="email" id="nl-email" name="email" class="newsletter-input" placeholder="your@email.com" required/>
-      <button type="submit" class="newsletter-btn">Subscribe</button>
-    </form>
+    <div class="newsletter-form">
+      <input type="email" id="subscribe-email" class="newsletter-input" placeholder="your@email.com" required aria-label="Email address"/>
+      <button id="subscribe-btn" type="button" class="newsletter-btn" onclick="handleSubscribe()">Subscribe</button>
+    </div>
+    <p id="subscribe-msg" style="font-size:0.85rem;margin-top:0.75rem;text-align:center;min-height:1.2em"></p>
     <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:1rem;text-align:center">
       Or email us directly: <a href="mailto:info@afams.co.ke" style="color:#A5D6A7">info@afams.co.ke</a> ·
       WhatsApp: <a href="#" onclick="openWhatsApp()" style="color:#A5D6A7">Chat with us</a>
