@@ -37,7 +37,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const email = (body.email || "").trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // Require at least one dot in the domain part (e.g. reject 'user@localhost')
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return new Response(JSON.stringify({ error: "A valid email address is required" }), {
       status: 422,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },

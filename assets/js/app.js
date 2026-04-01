@@ -264,6 +264,8 @@ function initiatePayment() {
     : cart.map(i => `${i.name} ×${i.qty}`).join(', ');
   const snapSku   = isSingle ? cart[0].id   : null;
   const snapPrice = isSingle ? cart[0].priceKES : 0;
+  // For multi-item carts, unit_price is stored as 0 (NOT NULL constraint).
+  // The authoritative total is total_amount, set from Paystack's verified amount.
 
   const metadata = {
     // ── Top-level keys read directly by the webhook ────────────────
@@ -797,8 +799,7 @@ function sendContactViaMailto() {
   const name      = document.getElementById('contact-dialog-name').value.trim();
   const email     = document.getElementById('contact-dialog-email').value.trim();
   const msg       = document.getElementById('contact-dialog-msg').value.trim();
-  if (!name || !email || !msg) { alert('Please fill in all fields.'); return; }
-  const subject = encodeURIComponent(subPrefix + ' — ' + name);
+  if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
   const body    = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
   window.location.href = 'mailto:' + recipient + '?subject=' + subject + '&body=' + body;
   closeContactDialog();
@@ -811,8 +812,7 @@ function sendContactViaGmail() {
   const name      = document.getElementById('contact-dialog-name').value.trim();
   const email     = document.getElementById('contact-dialog-email').value.trim();
   const msg       = document.getElementById('contact-dialog-msg').value.trim();
-  if (!name || !email || !msg) { alert('Please fill in all fields.'); return; }
-  const su   = encodeURIComponent(subPrefix + ' — ' + name);
+  if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
   const body = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
   window.open('https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(recipient) + '&su=' + su + '&body=' + body, '_blank');
   closeContactDialog();
