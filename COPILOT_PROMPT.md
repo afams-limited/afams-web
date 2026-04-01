@@ -284,7 +284,38 @@ Every:   3 days
 □ Repo: MonarCat/afams-web
 □ supabase/ folder committed with edge function
 □ Admin HTML files committed
+□ GitHub Secrets set (see GitHub Actions / Deploy section below)
 ```
+
+---
+
+## GITHUB ACTIONS — DEPLOY TO TRUEHOST
+
+The workflow at `.github/workflows/deploy.yml` pushes static files to
+`public_html/` on Truehost via FTPS on every push to `main`, and can also be
+triggered manually from the Actions tab (workflow_dispatch).
+
+### Required Secrets (Settings → Secrets and variables → Actions → New secret)
+
+| Secret name    | Where to find the value |
+|----------------|-------------------------|
+| `FTP_SERVER`   | cPanel → General Information → **Shared IP Address** (bare IP) **or** the server hostname shown there (e.g. `server42.truehost.co.ke`). Do **not** use `ftp://` or a trailing slash. Your domain `afams.co.ke` also works once DNS propagates. |
+| `FTP_USERNAME` | cPanel → FTP Accounts — the full username shown, e.g. `afamsco@afams.co.ke` |
+| `FTP_PASSWORD` | The password you set when creating that FTP account |
+
+> ⚠️  **Root cause of all past deploy failures:** `FTP_SERVER` was set to a
+> hostname that could not be resolved via DNS (`ENOTFOUND`). Fix: set
+> `FTP_SERVER` to the exact server hostname **or** Shared IP Address shown in
+> cPanel → General Information (both are valid values for `FTP_SERVER`).
+
+### Protocol note
+The workflow uses **FTPS** (FTP over explicit TLS, port 21) — the default for
+Truehost cPanel. If Truehost support confirms your account only uses plain FTP,
+change `protocol: ftps` → `protocol: ftp` in the workflow file.
+
+### Manual deploy
+Go to Actions → "Deploy to Truehost" → **Run workflow** to trigger a deploy
+without pushing code.
 
 ---
 
@@ -292,6 +323,10 @@ Every:   3 days
 
 | Issue | Check |
 |-------|-------|
+| Deploy fails `ENOTFOUND` | `FTP_SERVER` secret is wrong/empty — fix per table above |
+| Deploy fails `530 Login incorrect` | `FTP_USERNAME` or `FTP_PASSWORD` wrong — reset in cPanel → FTP Accounts |
+| Deploy fails `530 SSL required` | Change protocol to `ftps` in deploy.yml (already the default) |
+| Deploy pre-flight DNS error | Hostname typo in `FTP_SERVER`; or domain DNS not yet propagated |
 | Webhook 401 | `PAYSTACK_SECRET_KEY` not set — run: `supabase secrets set ...` |
 | Webhook not firing | Paystack webhook URL not updated to Supabase edge function URL |
 | Orders not appearing | Check Supabase → Edge Functions → Logs |
