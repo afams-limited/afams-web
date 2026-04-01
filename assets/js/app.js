@@ -278,6 +278,7 @@ function initiatePayment() {
       updateCartUI();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(transaction.reference || reference)
         + '&name=' + encodeURIComponent(name)
+        + '&email=' + encodeURIComponent(email)
         + '&amount=' + cartTotal();
     },
   });
@@ -340,21 +341,44 @@ function initAnimations() {
 }
 
 // ── NEWSLETTER ────────────────────────────────────────────────────
-function subscribeNewsletter(e) {
-  e.preventDefault();
-  const email = document.getElementById('nl-email').value.trim();
+async function handleSubscribe() {
+  const emailInput = document.getElementById('subscribe-email');
+  const btn = document.getElementById('subscribe-btn');
+  const msg = document.getElementById('subscribe-msg');
+  const email = emailInput.value.trim();
+
   if (!email || !email.includes('@')) {
-    showToast('⚠️ Please enter a valid email');
+    msg.textContent = 'Please enter a valid email address.';
+    msg.style.color = '#FCA5A5';
     return;
   }
-  // Submit to Netlify Forms via AJAX (fire-and-forget)
-  fetch('/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ 'form-name': 'newsletter', email }).toString(),
-  }).catch(() => {}); // non-fatal — toast shows regardless
-  showToast('✓ Subscribed! Welcome to the Afams Growers Club');
-  document.getElementById('nl-email').value = '';
+
+  btn.textContent = '⏳ Subscribing...';
+  btn.disabled = true;
+  msg.textContent = '';
+
+  try {
+    const res = await fetch(
+      'https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'website' })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Subscription failed');
+
+    btn.textContent = '✓ Subscribed!';
+    msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
+    msg.style.color = '#A7F3D0';
+    emailInput.value = '';
+  } catch (err) {
+    btn.textContent = 'Subscribe';
+    btn.disabled = false;
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.color = '#FCA5A5';
+  }
 }
 
 // ── INSTITUTIONAL ENQUIRY ─────────────────────────────────────────
