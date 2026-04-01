@@ -40,10 +40,7 @@ Replace with your actual WhatsApp business number including country code.
 Place your product images in `assets/images/` with these exact filenames:
 - `farmbag-classic.jpg` — FarmBag Classic rooftop photo
 - `farmbag-vertical.jpg` — FarmBag Vertical with Grow Cube photo
-- `farmbag-hydro.jpg` — FarmBag Hydro Pro with NutriPort photo
-- `aquafarmbag.jpg` — AquaFarmBag with fish photo
-- `nutriport-kit.jpg` — NutriPort cartridge kit photo
-- `prosoil.jpg` — Afams ProSoil bag photo
+
 
 Images gracefully fallback to emoji placeholders if not found.
 
