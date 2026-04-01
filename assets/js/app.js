@@ -1,5 +1,11 @@
 /* ── AFAMS PLC · Main Application JS · 2026 ── */
 
+// ── SUPABASE CONFIG ───────────────────────────────────────────────
+// SUPABASE_ANON_KEY is the public anonymous key — safe for browser use.
+// It is already embedded in admin/index.html for the same project.
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+
 // ── CONFIG ───────────────────────────────────────────────────────
 const AFAMS = {
   // Paystack public key is set by assets/js/paystack-config.js (loaded before this file).
