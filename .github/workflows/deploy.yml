@@ -1,33 +1,113 @@
 name: Deploy to Truehost
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#
+#   FTP_SERVER    – Truehost FTP hostname.
+#                   In cPanel → FTP Accounts the host shown is your domain
+#                   (e.g. afams.co.ke) or the server hostname Truehost assigns
+#                   (visible under cPanel → General Information, e.g.
+#                   server42.truehost.co.ke).  Do NOT include ftp:// or a
+#                   trailing slash.
+#
+#   FTP_USERNAME  – Full cPanel FTP username, e.g. afamsco@afams.co.ke
+#                   (Truehost shows this in cPanel → FTP Accounts).
+#
+#   FTP_PASSWORD  – The password for that FTP account.
+# ─────────────────────────────────────────────────────────────────────────────
+
 on:
   push:
     branches:
       - main
+  # Allow triggering a deploy manually from the Actions tab without a push.
+  workflow_dispatch:
+
+env:
+  # Opt in to Node.js 24 now to avoid deprecation warnings from actions.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Truehost via FTP
+      # ── Pre-flight: verify secrets are present and the host resolves ────────
+      - name: Pre-flight connectivity check
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        run: |
+          set -e
+
+          # 1. Check that the required secrets are actually set.
+          if [ -z "$FTP_SERVER" ]; then
+            echo "::error::FTP_SERVER secret is empty or not set."
+            echo "::error::Go to Settings → Secrets → Actions and add FTP_SERVER"
+            echo "::error::with your Truehost hostname (e.g. afams.co.ke or"
+            echo "::error::server42.truehost.co.ke — shown in cPanel → General"
+            echo "::error::Information)."
+            exit 1
+          fi
+
+          if [ -z "$FTP_USERNAME" ]; then
+            echo "::error::FTP_USERNAME secret is empty or not set."
+            exit 1
+          fi
+
+          # 2. Confirm the hostname resolves before wasting time on a deploy.
+          echo "Resolving host: $FTP_SERVER …"
+          if ! getent hosts "$FTP_SERVER" > /dev/null 2>&1; then
+            echo "::error::DNS lookup failed for '$FTP_SERVER'."
+            echo "::error::Possible causes:"
+            echo "::error::  • Typo in the FTP_SERVER secret"
+            echo "::error::  • Domain DNS not yet propagated"
+            echo "::error::  • Truehost server hostname has changed"
+            echo "::error::Run: nslookup \$FTP_SERVER  to verify from your machine."
+            exit 1
+          fi
+
+          RESOLVED=$(getent hosts "$FTP_SERVER" | awk '{ print $1 }')
+          echo "✅  $FTP_SERVER resolved to $RESOLVED"
+
+          # 3. Confirm port 21 is reachable (5-second timeout).
+          echo "Testing FTP port 21 on $FTP_SERVER …"
+          if ! nc -z -w 5 "$FTP_SERVER" 21 2>/dev/null; then
+            echo "::warning::Port 21 is not reachable on $FTP_SERVER."
+            echo "::warning::Truehost may require FTPS (still port 21 but with TLS)"
+            echo "::warning::or SFTP (port 22).  The deploy will proceed; if it"
+            echo "::warning::fails, contact Truehost support to confirm which"
+            echo "::warning::protocol and port your account uses."
+          else
+            echo "✅  Port 21 is open on $FTP_SERVER"
+          fi
+
+      # ── Deploy ──────────────────────────────────────────────────────────────
+      - name: Deploy to Truehost via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
+          # Truehost cPanel uses FTPS (explicit TLS on port 21) by default.
+          # If your account only supports plain FTP, change protocol to: ftp
           server:     ${{ secrets.FTP_SERVER }}
           username:   ${{ secrets.FTP_USERNAME }}
           password:   ${{ secrets.FTP_PASSWORD }}
           port:       21
-          protocol:   ftp
+          protocol:   ftps
           local-dir:  ./
           server-dir: public_html/
+          # Retry up to 3 times on transient network failures.
+          retry-delay-ms: 10000
+          retries:    3
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             .github/**
             supabase/**
+            Legal Documentation/**
             COPILOT_PROMPT.md
             README.md
             package.json
