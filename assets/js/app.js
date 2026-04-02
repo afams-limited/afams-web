@@ -1,4 +1,4 @@
-/* ── AFAMS PLC · Main Application JS · 2026 ── */
+/* ── Afams · Main Application JS · 2026 ── */
 
 // ── SUPABASE CONFIG ───────────────────────────────────────────────
 // SUPABASE_ANON_KEY is the public anonymous key — safe for browser use.
@@ -36,8 +36,8 @@ const PRODUCTS = [
     badge: 'flagship',
     badgeText: 'Flagship',
     emoji: '🌿',
-    desc: 'The original 3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Passive wicking reservoir waters your crops for 3–7 days per fill.',
-    features: ['3 growing zones', 'Wicking reservoir', 'Folds flat', 'Coir kit included'],
+    desc: 'The original 3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Zero soil mess.',
+    features: ['3 growing zones', 'Indoor safe'],
     priceKES: 7500,
     priceGBP: 48,
     image: 'assets/images/farmbag-classic.jpg',
@@ -49,7 +49,7 @@ const PRODUCTS = [
     badge: 'new',
     badgeText: 'New',
     emoji: '🌱',
-    desc: 'The Classic upgraded with the patented Grow Cube™ inner basket. Plants grow in 5 directions inside the sealed canvas — front, back, left, right, and upward. Zero mess indoors.',
+    desc: 'The Classic upgraded with the Grow Cube™ inner basket. Plants grow in 5 directions inside the sealed canvas — front, back, left, right, and upward. Zero mess indoors.',
     features: ['Grow Cube™ basket', '5× yield', 'Indoor safe', 'No floor mess'],
     priceKES: 8500,
     priceGBP: 54,
@@ -545,37 +545,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const hero = document.querySelector('.hero');
   if (hero) heroObserver.observe(hero);
 
-  // Scroll float button
-  const scrollBtn = document.getElementById('scroll-float');
-  function getScrollState() {
-    const scrolled = window.scrollY;
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    return {
-      scrolled,
-      atTop: scrolled < 120,
-      atBottom: maxScroll > 0 && scrolled >= maxScroll - 60
-    };
+  // Scroll-to-top button
+  const scrollTopBtn = document.getElementById('scroll-top-btn');
+  function updateScrollTop() {
+    if (!scrollTopBtn) return;
+    scrollTopBtn.classList.toggle('visible', window.scrollY >= 300);
   }
-  function updateScrollFloat() {
-    if (!scrollBtn) return;
-    const { scrolled, atTop, atBottom } = getScrollState();
-    scrollBtn.classList.toggle('visible', scrolled >= 300);
-    scrollBtn.classList.toggle('at-top', atTop);
-    scrollBtn.classList.toggle('at-bottom', atBottom);
-  }
-  window.addEventListener('scroll', updateScrollFloat, { passive: true });
-  updateScrollFloat();
+  window.addEventListener('scroll', updateScrollTop, { passive: true });
+  updateScrollTop();
 });
 
-function handleScrollFloat() {
-  const scrolled = window.scrollY;
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  const atBottom = maxScroll > 0 && scrolled >= maxScroll - 60;
-  if (atBottom) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } else {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-  }
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================================

@@ -658,7 +658,7 @@ h1, h2, h3, h4 {
 .badge-new        { background: var(--gold); color: white; }
 .badge-preorder   { background: var(--g-mid); color: white; }
 .badge-premium    { background: var(--g-dark); color: white; border: 1px solid rgba(184,134,11,0.4); }
-.badge-flagship   { background: linear-gradient(135deg, var(--g-dark), var(--teal)); color: white; }
+.badge-flagship   { background: linear-gradient(135deg, var(--gold-deep), var(--gold)); color: white; }
 .badge-indoor-safe { background: #1E7D34; color: white; left: auto; right: 0.85rem; }
 .product-body {
   padding: 1.6rem;
@@ -1678,10 +1678,10 @@ h1, h2, h3, h4 {
   margin-top: 0.4rem;
 }
 
-/* ── SCROLL FLOAT BUTTON ── */
-.scroll-float {
+/* ── SCROLL TO TOP BUTTON ── */
+.scroll-top-btn {
   position: fixed;
-  bottom: 6.5rem;
+  bottom: 2rem;
   right: 2rem;
   z-index: 9000;
   width: 46px;
@@ -1696,22 +1696,80 @@ h1, h2, h3, h4 {
   cursor: pointer;
   color: white;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(16px);
   transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
   pointer-events: none;
 }
-.scroll-float.visible {
+.scroll-top-btn.visible {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
-.scroll-float:hover {
-  background: var(--g-light);
+.scroll-top-btn:hover {
+  background: var(--g-rich);
   box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
-.scroll-arrow { display: none; transition: opacity 0.2s; }
-.scroll-float.at-bottom .scroll-arrow-up { display: block; }
-.scroll-float:not(.at-bottom) .scroll-arrow-down { display: block; }
+
+/* ── PRODUCT HIGHLIGHT SLIDER (hero) ── */
+.hero-product-slider { margin-top: 2rem; width: 100%; }
+.hero-product-slider-track { display: flex; gap: 1rem; }
+.hero-product-slide {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+  flex: 1;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(16px);
+  animation: slideInProduct 0.55s ease forwards;
+}
+.hero-product-slide:nth-child(2) { animation-delay: 0.15s; }
+.hero-product-slide:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
+.hero-product-slide.hl-active {
+  border-color: var(--gold-light);
+  background: rgba(240,192,64,0.1);
+}
+@keyframes slideInProduct {
+  to { opacity: 1; transform: translateX(0); }
+}
+.hero-product-slide-img {
+  width: 54px; height: 54px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+}
+.hero-product-slide-img img { width: 100%; height: 100%; object-fit: cover; }
+.hero-product-slide-info { min-width: 0; }
+.hero-product-slide-name {
+  font-size: 0.88rem; font-weight: 700; color: #fff; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-product-slide-price { font-size: 0.77rem; color: rgba(255,255,255,0.65); margin-top: 0.1rem; }
+.hero-product-slide-cta { font-size: 0.7rem; font-weight: 700; color: var(--gold-light); margin-top: 0.2rem; }
+@media (max-width: 440px) {
+  .hero-product-slider-track { flex-direction: column; }
+}
+
+/* ── COLLAPSED SECTIONS GROUP (near footer) ── */
+.accordion-group {
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
 
 /* ── SUPPORT MODAL ── */
 .modal-close {
