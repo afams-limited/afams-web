@@ -13,7 +13,7 @@ const AFAMS = {
   whatsapp: '+254702359618', // ← Replace with your WhatsApp number
   email: 'info@afams.co.ke',
   currency: 'KES',
-  deliveryDays: 3,
+  deliveryDays: 5,
   fulfillmentNote: 'Pre-orders are fulfilled within 3–5 business days.',
   // Preorder batch settings — update these per batch
   batchStock: 25,        // Total units available this batch
