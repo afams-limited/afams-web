@@ -143,10 +143,6 @@ jobs:
           # Files land in public_html/ on Truehost (the web root).
           server-dir: public_html/
 
-          # Retry up to 3 times on transient network failures.
-          retry-delay-ms: 10000
-          retries:    3
-
           # Files/folders to keep out of public_html — never expose these.
           # *.md excludes all Markdown files (README, COPILOT docs, etc.) —
           # these are repo documentation, not web content.
