@@ -1,26 +1,50 @@
 name: Deploy to Truehost
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Required GitHub Secrets (Settings → Secrets → Actions):
+# SETUP — do this once before your first deploy
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 1. Create a dedicated FTP account in cPanel
+#    cPanel → FTP Accounts → Add FTP Account
+#      • Directory: set to /public_html  (root of your website)
+#      • Note the username shown (e.g. afamsco@afams.co.ke)
+#
+# 2. Add three secrets in GitHub
+#    Settings → Secrets and variables → Actions → New repository secret
 #
 #   FTP_SERVER    – Truehost FTP hostname.
-#                   In cPanel → FTP Accounts the host shown is your domain
-#                   (e.g. afams.co.ke) or the server hostname Truehost assigns
-#                   (visible under cPanel → General Information, e.g.
-#                   server42.truehost.co.ke).  Do NOT include ftp:// or a
-#                   trailing slash.
+#                   Best value: the server hostname or Shared IP Address shown
+#                   in cPanel → General Information
+#                   (e.g. server42.truehost.co.ke or the bare IP).
+#                   Do NOT prefix with ftp:// or add a trailing slash.
+#                   ⚠ Using an unresolvable hostname is the #1 cause of
+#                     deploy failures ("ENOTFOUND").
 #
 #   FTP_USERNAME  – Full cPanel FTP username, e.g. afamsco@afams.co.ke
-#                   (Truehost shows this in cPanel → FTP Accounts).
 #
 #   FTP_PASSWORD  – The password for that FTP account.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# TROUBLESHOOTING
+# ─────────────────────────────────────────────────────────────────────────────
+#
+#   ENOTFOUND          → FTP_SERVER is wrong; use server hostname / Shared IP
+#   530 Login          → FTP_USERNAME or FTP_PASSWORD is wrong
+#   530 SSL required   → protocol must be ftps (already the default here)
+#   Workflow not fired → check that you pushed to the branch listed below
+#   Wrong files live   → check local-dir / server-dir / exclude list
+#   Build folder wrong → update local-dir to match your framework output
+#                        (dist/ for Vite/Vue, build/ for CRA, out/ for Next.js)
+#
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
     branches:
       - main
-  # Allow triggering a deploy manually from the Actions tab without a push.
+      # Uncomment the next line if your default branch is master instead:
+      # - master
+  # Trigger a deploy manually from Actions → Run workflow (no push needed).
   workflow_dispatch:
 
 env:
@@ -32,10 +56,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── Pre-flight: verify secrets are present and the host resolves ────────
+      # ── 2. (Optional) Build step for JS frameworks ───────────────────────
+      #    Uncomment this block if your site uses React, Next.js, Vue, etc.
+      #    Adjust "build" script and local-dir in the deploy step to match
+      #    your framework output folder (dist/, build/, out/, etc.).
+      #
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #     cache: 'npm'
+      #
+      # - name: Install dependencies
+      #   run: npm ci
+      #
+      # - name: Build
+      #   run: npm run build
+      #   # For Next.js static export, use: npm run build && npm run export
+      #   # The output folder will be: out/ (Next.js), dist/ (Vite/Vue), build/ (CRA)
+      #   # Update local-dir in the deploy step below to match.
+
+      # ── 3. Pre-flight: verify secrets and connectivity ───────────────────
       - name: Pre-flight connectivity check
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -43,64 +88,68 @@ jobs:
         run: |
           set -e
 
-          # 1. Check that the required secrets are actually set.
+          # Verify required secrets are set.
           if [ -z "$FTP_SERVER" ]; then
             echo "::error::FTP_SERVER secret is empty or not set."
             echo "::error::Go to Settings → Secrets → Actions and add FTP_SERVER"
-            echo "::error::with your Truehost hostname (e.g. afams.co.ke or"
-            echo "::error::server42.truehost.co.ke — shown in cPanel → General"
-            echo "::error::Information)."
+            echo "::error::with the server hostname or Shared IP from cPanel → General Information."
             exit 1
           fi
-
           if [ -z "$FTP_USERNAME" ]; then
             echo "::error::FTP_USERNAME secret is empty or not set."
             exit 1
           fi
 
-          # 2. Confirm the hostname resolves before wasting time on a deploy.
+          # Confirm the hostname resolves before attempting to connect.
           echo "Resolving host: $FTP_SERVER …"
           if ! getent hosts "$FTP_SERVER" > /dev/null 2>&1; then
             echo "::error::DNS lookup failed for '$FTP_SERVER'."
             echo "::error::Possible causes:"
             echo "::error::  • Typo in the FTP_SERVER secret"
             echo "::error::  • Domain DNS not yet propagated"
-            echo "::error::  • Truehost server hostname has changed"
-            echo "::error::Run: nslookup \$FTP_SERVER  to verify from your machine."
+            echo "::error::  • Use the bare server hostname or Shared IP from cPanel instead"
             exit 1
           fi
-
           RESOLVED=$(getent hosts "$FTP_SERVER" | awk '{ print $1 }')
           echo "✅  $FTP_SERVER resolved to $RESOLVED"
 
-          # 3. Confirm port 21 is reachable (5-second timeout).
+          # Confirm port 21 is reachable (5-second timeout).
           echo "Testing FTP port 21 on $FTP_SERVER …"
           if ! nc -z -w 5 "$FTP_SERVER" 21 2>/dev/null; then
             echo "::warning::Port 21 is not reachable on $FTP_SERVER."
-            echo "::warning::Truehost may require FTPS (still port 21 but with TLS)"
-            echo "::warning::or SFTP (port 22).  The deploy will proceed; if it"
-            echo "::warning::fails, contact Truehost support to confirm which"
-            echo "::warning::protocol and port your account uses."
+            echo "::warning::The deploy will still proceed — if it fails, contact"
+            echo "::warning::Truehost support to confirm your protocol and port."
           else
             echo "✅  Port 21 is open on $FTP_SERVER"
           fi
 
-      # ── Deploy ──────────────────────────────────────────────────────────────
+      # ── 4. Deploy ────────────────────────────────────────────────────────
       - name: Deploy to Truehost via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          # Truehost cPanel uses FTPS (explicit TLS on port 21) by default.
-          # If your account only supports plain FTP, change protocol to: ftp
+          # Protocol: ftps = FTP over explicit TLS (Truehost default, port 21).
+          # Change to "ftp" only if Truehost support confirms plain FTP.
           server:     ${{ secrets.FTP_SERVER }}
           username:   ${{ secrets.FTP_USERNAME }}
           password:   ${{ secrets.FTP_PASSWORD }}
           port:       21
           protocol:   ftps
+
+          # For a plain HTML/CSS/JS site, deploy from the repo root.
+          # If you have a build step above, change local-dir to your framework
+          # output folder, e.g.:  ./dist/  or  ./build/  or  ./out/
           local-dir:  ./
+
+          # Files land in public_html/ on Truehost (the web root).
           server-dir: public_html/
+
           # Retry up to 3 times on transient network failures.
           retry-delay-ms: 10000
           retries:    3
+
+          # Files/folders to keep out of public_html — never expose these.
+          # *.md excludes all Markdown files (README, COPILOT docs, etc.) —
+          # these are repo documentation, not web content.
           exclude: |
             **/.git*
             **/.git*/**
@@ -108,8 +157,24 @@ jobs:
             .github/**
             supabase/**
             Legal Documentation/**
-            COPILOT_PROMPT.md
-            README.md
+            COPILOT*.md
+            *.md
+            supabase-schema-*.svg
             package.json
             package-lock.json
             .env.example
+
+      # ── 5. Summary ───────────────────────────────────────────────────────
+      - name: Deploy summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅  Deployment complete — your site is live."
+            echo "    Only changed files were uploaded (incremental deploy)."
+          else
+            echo "❌  Deployment failed. Check the steps above for details."
+            echo "    Common fixes:"
+            echo "      • ENOTFOUND   → update FTP_SERVER secret (use server hostname or Shared IP)"
+            echo "      • 530 Login   → check FTP_USERNAME / FTP_PASSWORD secrets"
+            echo "      • 530 SSL     → ensure protocol is set to ftps"
+          fi
