@@ -1752,7 +1752,7 @@ function buildReceiptHTML(order) {
   var payRef      = escapeHtml(o.paystack_ref || '—');
   var payMethod   = escapeHtml(o.payment_method || 'Paystack');
   var now         = formatReceiptDateTime(new Date().toISOString());
-  var receiptNo   = 'RCP-' + ref + '-' + Date.now().toString(36).toUpperCase();
+  var receiptNo   = 'RCP-' + ref + '-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
 
   var deliveredRow  = o.delivered_at
     ? '<tr><td class="label">Delivered</td><td class="value">' + formatReceiptDate(o.delivered_at) + '</td></tr>'
@@ -1763,9 +1763,8 @@ function buildReceiptHTML(order) {
   var notesBlock    = o.notes
     ? '<div class="delivery-notes">Customer note: ' + escapeHtml(o.notes) + '</div>'
     : '';
-  var deliveryLabel = (o.county === 'Nairobi (Free delivery)' || o.county === 'Nairobi')
-    ? 'FREE (Nairobi)'
-    : 'As quoted';
+  var FREE_DELIVERY_COUNTIES = ['Nairobi', 'Nairobi (Free delivery)'];
+  var deliveryLabel = FREE_DELIVERY_COUNTIES.indexOf(o.county) !== -1 ? 'FREE (Nairobi)' : 'As quoted';
 
   return '<!DOCTYPE html>\n'
     + '<html lang="en">\n'
