@@ -1319,6 +1319,7 @@
         <button class="btn-save" id="modal-save-btn" onclick="saveOrderUpdate()">Save Changes</button>
         <button class="btn-outlined" onclick="emailCustomer()">📧 Email Customer</button>
         <button class="btn-outlined" onclick="whatsappCustomer()">💬 WhatsApp</button>
+        <button class="btn-outlined" onclick="generateAndPrintReceipt(currentOrder)">🖨️ Generate Receipt</button>
       </div>
     </div>
   </div>
@@ -1708,6 +1709,249 @@ function whatsappCustomer() {
     + 'Reply here for any queries. Thank you! 🌿'
   );
   window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
+}
+
+// ════════════════════════════════════════════════════
+// GENERATE RECEIPT
+// ════════════════════════════════════════════════════
+function generateAndPrintReceipt(order) {
+  if (!order) return;
+  var html = buildReceiptHTML(order);
+  var win  = window.open('', '_blank', 'width=794,height=1123');
+  if (!win) {
+    alert('Please allow pop-ups for this site to generate receipts.');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+
+function formatReceiptKES(amount) {
+  return 'KES ' + Number(amount || 0).toLocaleString('en-KE');
+}
+
+function formatReceiptDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatReceiptDateTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-KE', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function buildReceiptHTML(order) {
+  var o           = order;
+  var ref         = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
+  var total       = o.total_amount || ((o.unit_price || 0) * (o.quantity || 1));
+  var unitPrice   = o.unit_price   || 0;
+  var qty         = o.quantity     || 1;
+  var subtotal    = unitPrice * qty;
+  var productName = escapeHtml(o.product_name || o.product_sku || '—');
+  var payRef      = escapeHtml(o.paystack_ref || '—');
+  var payMethod   = escapeHtml(o.payment_method || 'Paystack');
+  var now         = formatReceiptDateTime(new Date().toISOString());
+  var receiptNo   = 'RCP-' + ref + '-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+
+  var deliveredRow  = o.delivered_at
+    ? '<tr><td class="label">Delivered</td><td class="value">' + formatReceiptDate(o.delivered_at) + '</td></tr>'
+    : '';
+  var trackingRow   = o.tracking_number
+    ? '<tr><td class="label">Tracking No.</td><td class="value">' + escapeHtml(o.tracking_number) + '</td></tr>'
+    : '';
+  var notesBlock    = o.notes
+    ? '<div class="delivery-notes">Customer note: ' + escapeHtml(o.notes) + '</div>'
+    : '';
+  var FREE_DELIVERY_COUNTIES = ['Nairobi', 'Nairobi (Free delivery)'];
+  var deliveryLabel = FREE_DELIVERY_COUNTIES.indexOf(o.county) !== -1 ? 'FREE (Nairobi)' : 'As quoted';
+
+  return '<!DOCTYPE html>\n'
+    + '<html lang="en">\n'
+    + '<head>\n'
+    + '<meta charset="UTF-8">\n'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+    + '<title>Afams Receipt \u2014 ' + ref + '</title>\n'
+    + '<style>\n'
+    + '*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n'
+    + 'html, body {\n'
+    + '  width: 210mm; min-height: 297mm; background: #ffffff;\n'
+    + '  font-family: \'Segoe UI\', system-ui, -apple-system, sans-serif;\n'
+    + '  font-size: 13px; color: #1a1a1a;\n'
+    + '  -webkit-print-color-adjust: exact; print-color-adjust: exact;\n'
+    + '}\n'
+    + '.print-bar {\n'
+    + '  background: #1b4332; color: #ffffff; padding: 10px 24px;\n'
+    + '  display: flex; align-items: center; justify-content: space-between;\n'
+    + '  font-size: 12px; position: sticky; top: 0; z-index: 100;\n'
+    + '}\n'
+    + '.print-bar p { margin: 0; opacity: 0.8; }\n'
+    + '.btn-print {\n'
+    + '  background: #52b788; color: #ffffff; border: none; border-radius: 6px;\n'
+    + '  padding: 8px 20px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px;\n'
+    + '}\n'
+    + '.btn-print:hover { background: #2d6a4f; }\n'
+    + '.receipt { width: 210mm; min-height: 250mm; padding: 14mm 16mm 16mm; margin: 0 auto; background: #ffffff; }\n'
+    + '.receipt-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 3px solid #2d6a4f; margin-bottom: 18px; }\n'
+    + '.brand-block .brand-name { font-size: 22px; font-weight: 800; color: #2d6a4f; letter-spacing: -0.5px; }\n'
+    + '.brand-block .brand-tagline { font-size: 10px; color: #52b788; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }\n'
+    + '.brand-block .brand-contact { font-size: 11px; color: #6b7280; margin-top: 8px; line-height: 1.7; }\n'
+    + '.brand-block .brand-contact a { color: #2d6a4f; text-decoration: none; }\n'
+    + '.receipt-meta { text-align: right; }\n'
+    + '.receipt-meta .doc-type { font-size: 18px; font-weight: 800; color: #1b4332; text-transform: uppercase; letter-spacing: 1px; }\n'
+    + '.receipt-meta .meta-row { font-size: 11px; color: #6b7280; margin-top: 4px; line-height: 1.8; }\n'
+    + '.receipt-meta .meta-row strong { color: #1b4332; }\n'
+    + '.status-badge { display: inline-block; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }\n'
+    + '.section-heading { font-size: 10px; font-weight: 700; color: #2d6a4f; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }\n'
+    + '.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }\n'
+    + '.info-block { margin-bottom: 0; }\n'
+    + '.info-table { width: 100%; border-collapse: collapse; }\n'
+    + '.info-table td { padding: 5px 0; vertical-align: top; font-size: 12px; }\n'
+    + '.info-table .label { color: #9ca3af; width: 130px; font-size: 11px; }\n'
+    + '.info-table .value { color: #1b4332; font-weight: 600; }\n'
+    + '.delivery-block { background: #f0faf4; border: 1px solid #b7e4c7; border-left: 4px solid #2d6a4f; border-radius: 0 6px 6px 0; padding: 12px 14px; margin-bottom: 20px; }\n'
+    + '.delivery-block .delivery-label { font-size: 10px; font-weight: 700; color: #2d6a4f; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }\n'
+    + '.delivery-block .delivery-address { font-size: 13px; color: #1b4332; font-weight: 700; line-height: 1.6; }\n'
+    + '.delivery-block .delivery-notes { font-size: 11px; color: #6b7280; margin-top: 6px; font-style: italic; }\n'
+    + '.items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }\n'
+    + '.items-table thead tr { background: #2d6a4f; color: #ffffff; }\n'
+    + '.items-table thead th { padding: 9px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }\n'
+    + '.items-table th:first-child, .items-table td.td-product { text-align: left; }\n'
+    + '.items-table .td-center { text-align: center; }\n'
+    + '.items-table .td-right { text-align: right; }\n'
+    + '.items-table .td-bold { font-weight: 700; }\n'
+    + '.items-table tbody tr:nth-child(even) { background: #f9fafb; }\n'
+    + '.items-table tbody tr { border-bottom: 1px solid #e5e7eb; }\n'
+    + '.items-table td { padding: 9px 10px; font-size: 12px; color: #374151; }\n'
+    + '.items-table tfoot tr { background: #1b4332; }\n'
+    + '.items-table tfoot td { padding: 11px 10px; font-size: 13px; color: #ffffff; font-weight: 700; }\n'
+    + '.total-label { text-align: right; font-size: 12px; font-weight: 600; }\n'
+    + '.total-amount { text-align: right; font-size: 16px; font-weight: 800; }\n'
+    + '.payment-row { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px; gap: 20px; }\n'
+    + '.payment-info { font-size: 11px; color: #6b7280; line-height: 1.8; }\n'
+    + '.payment-info strong { color: #1b4332; }\n'
+    + '.receipt-footer { margin-top: 24px; padding-top: 14px; border-top: 2px solid #2d6a4f; text-align: center; font-size: 11px; color: #9ca3af; line-height: 1.8; }\n'
+    + '.receipt-footer strong { color: #2d6a4f; }\n'
+    + '.receipt-footer .guarantee { display: inline-block; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }\n'
+    + '.courier-strip { border: 2px dashed #2d6a4f; border-radius: 8px; padding: 12px 16px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; }\n'
+    + '.courier-strip .strip-label { font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }\n'
+    + '.courier-strip .strip-value { font-size: 14px; font-weight: 800; color: #1b4332; }\n'
+    + '.courier-strip .strip-address { font-size: 11px; color: #374151; line-height: 1.5; }\n'
+    + '.divider { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }\n'
+    + '@media print {\n'
+    + '  @page { size: A4; margin: 0; }\n'
+    + '  html, body { width: 100%; }\n'
+    + '  .print-bar { display: none !important; }\n'
+    + '  .receipt { padding: 12mm 14mm; }\n'
+    + '}\n'
+    + '</style>\n'
+    + '</head>\n'
+    + '<body>\n'
+    + '<div class="print-bar" id="printBar">\n'
+    + '  <p>\uD83C\uDF3F Afams PLC \u2014 Delivery Receipt \u00B7 ' + ref + '</p>\n'
+    + '  <button class="btn-print" onclick="window.print()">\uD83D\uDDA8\uFE0F Print / Save PDF</button>\n'
+    + '</div>\n'
+    + '<div class="receipt">\n'
+    + '  <div class="receipt-header">\n'
+    + '    <div class="brand-block">\n'
+    + '      <div class="brand-name">\uD83C\uDF3F Afams PLC</div>\n'
+    + '      <div class="brand-tagline">Farming into the future</div>\n'
+    + '      <div class="brand-contact">afams.co.ke<br><a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a><br>+254 702 359 618<br>Nairobi, Kenya</div>\n'
+    + '    </div>\n'
+    + '    <div class="receipt-meta">\n'
+    + '      <div class="doc-type">Delivery Receipt</div>\n'
+    + '      <div class="meta-row"><strong>Receipt No:</strong> ' + receiptNo + '</div>\n'
+    + '      <div class="meta-row"><strong>Order Ref:</strong> ' + escapeHtml(ref) + '</div>\n'
+    + '      <div class="meta-row"><strong>Order Date:</strong> ' + formatReceiptDate(o.created_at) + '</div>\n'
+    + '      <div class="meta-row"><strong>Generated:</strong> ' + now + '</div>\n'
+    + '      <div class="status-badge">\u2713 ' + escapeHtml((o.status || 'pending').toUpperCase()) + '</div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '  <div class="courier-strip">\n'
+    + '    <div>\n'
+    + '      <div class="strip-label">Deliver To</div>\n'
+    + '      <div class="strip-value">' + escapeHtml(o.customer_name || '—') + '</div>\n'
+    + '      <div class="strip-address">' + escapeHtml(o.delivery_address || '—') + ', ' + escapeHtml(o.county || '—') + '</div>\n'
+    + '    </div>\n'
+    + '    <div style="text-align:right;">\n'
+    + '      <div class="strip-label">Phone / WhatsApp</div>\n'
+    + '      <div class="strip-value">' + escapeHtml(o.customer_phone || '—') + '</div>\n'
+    + '      <div class="strip-label" style="margin-top:8px;">Order Reference</div>\n'
+    + '      <div class="strip-value" style="font-size:16px;">' + escapeHtml(ref) + '</div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '  <hr class="divider" style="margin-top:18px;">\n'
+    + '  <div class="info-grid">\n'
+    + '    <div class="info-block">\n'
+    + '      <p class="section-heading">Customer Details</p>\n'
+    + '      <table class="info-table">\n'
+    + '        <tr><td class="label">Full Name</td><td class="value">' + escapeHtml(o.customer_name || '—') + '</td></tr>\n'
+    + '        <tr><td class="label">Email</td><td class="value">' + escapeHtml(o.customer_email || '—') + '</td></tr>\n'
+    + '        <tr><td class="label">Phone / WhatsApp</td><td class="value">' + escapeHtml(o.customer_phone || '—') + '</td></tr>\n'
+    + '        <tr><td class="label">County / City</td><td class="value">' + escapeHtml(o.county || '—') + '</td></tr>\n'
+    + '      </table>\n'
+    + '    </div>\n'
+    + '    <div class="info-block">\n'
+    + '      <p class="section-heading">Order Details</p>\n'
+    + '      <table class="info-table">\n'
+    + '        <tr><td class="label">Order Reference</td><td class="value">' + escapeHtml(ref) + '</td></tr>\n'
+    + '        <tr><td class="label">Order Date</td><td class="value">' + formatReceiptDate(o.created_at) + '</td></tr>\n'
+    + '        <tr><td class="label">Payment Method</td><td class="value">' + payMethod + '</td></tr>\n'
+    + '        <tr><td class="label">Payment Ref</td><td class="value">' + payRef + '</td></tr>\n'
+    + deliveredRow
+    + trackingRow
+    + '      </table>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '  <div class="delivery-block">\n'
+    + '    <div class="delivery-label">\uD83D\uDCE6 Delivery Address</div>\n'
+    + '    <div class="delivery-address">' + escapeHtml(o.delivery_address || '—') + '<br>' + escapeHtml(o.county || '—') + '</div>\n'
+    + notesBlock
+    + '  </div>\n'
+    + '  <p class="section-heading">Items Ordered</p>\n'
+    + '  <table class="items-table">\n'
+    + '    <thead><tr>'
+    + '<th style="text-align:left;">Product</th>'
+    + '<th style="text-align:center;">Qty</th>'
+    + '<th style="text-align:right;">Unit Price</th>'
+    + '<th style="text-align:right;">Subtotal</th>'
+    + '</tr></thead>\n'
+    + '    <tbody>\n'
+    + '      <tr>'
+    + '<td class="td-product">' + productName + '</td>'
+    + '<td class="td-center">' + qty + '</td>'
+    + '<td class="td-right">' + formatReceiptKES(unitPrice) + '</td>'
+    + '<td class="td-right td-bold">' + formatReceiptKES(subtotal) + '</td>'
+    + '</tr>\n'
+    + '    </tbody>\n'
+    + '    <tfoot><tr>'
+    + '<td colspan="3" class="total-label">TOTAL PAID</td>'
+    + '<td class="total-amount">' + formatReceiptKES(total) + '</td>'
+    + '</tr></tfoot>\n'
+    + '  </table>\n'
+    + '  <div class="payment-row">\n'
+    + '    <div class="payment-info">\n'
+    + '      <strong>Payment Method:</strong> ' + payMethod + '<br>\n'
+    + '      <strong>Payment Reference:</strong> ' + payRef + '<br>\n'
+    + '      <strong>Amount Paid:</strong> ' + formatReceiptKES(total) + '\n'
+    + '    </div>\n'
+    + '    <div class="payment-info" style="text-align:right;">\n'
+    + '      <strong>Delivery:</strong> ' + deliveryLabel + '<br>\n'
+    + '      <strong>Status:</strong> ' + escapeHtml((o.status || 'pending').toUpperCase()) + '\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '  <div class="receipt-footer">\n'
+    + '    This is an official delivery receipt issued by <strong>Afams PLC</strong>, incorporated in Kenya.<br>\n'
+    + '    For enquiries: <strong>orders@afams.co.ke</strong> \u00B7 WhatsApp: <strong>+254 702 359 618</strong> \u00B7 <strong>afams.co.ke</strong>\n'
+    + '    <br><span class="guarantee">\uD83D\uDEE1\uFE0F 14-day satisfaction guarantee on all FarmBag hardware</span>\n'
+    + '    <br><br><span style="font-size:10px;">Afams PLC \u00B7 Nairobi, Kenya \u00B7 afams.co.ke<br>Receipt generated: ' + now + ' \u00B7 Receipt No: ' + receiptNo + '</span>\n'
+    + '  </div>\n'
+    + '</div>\n'
+    + '<script>\n'
+    + '  window.onload = function() {};\n'
+    + '<\/script>\n'
+    + '</body>\n'
+    + '</html>';
 }
 
 // ════════════════════════════════════════════════════
