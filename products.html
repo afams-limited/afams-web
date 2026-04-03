@@ -176,7 +176,7 @@
 
 <!-- ANNOUNCE BAR -->
 <div class="announce">
-  🌿 Pre-orders now open — ships within 3 days · Free delivery in Nairobi ·
+  🌿 Pre-orders now open — ships within 3–5 days · Free delivery in Nairobi ·
   <a href="checkout.html">Order yours →</a>
 </div>
 
@@ -215,7 +215,7 @@
 <!-- HERO -->
 <div class="products-hero">
   <h1>FarmBag Products</h1>
-  <p>Choose your urban farming system. Pre-order today — ships within 3 business days.</p>
+  <p>Choose your urban farming system. Pre-order today — ships within 3–5 business days.</p>
 </div>
 
 <!-- PRODUCTS GRID -->
@@ -283,7 +283,7 @@ function renderProducts(products) {
           <div class="product-footer">
             <div>
               <div class="product-price">KES ${(p.priceKES || p.unit_price || 0).toLocaleString()}</div>
-              <div class="product-price-sub">Pre-order · Ships in 3 days</div>
+              <div class="product-price-sub">Pre-order · Ships in 3–5 days</div>
             </div>
             <a href="checkout.html?sku=${encodeURIComponent(p.sku)}&name=${encodeURIComponent(p.name)}&price=${p.priceKES || p.unit_price || 0}"
                class="btn-order">Order Now</a>
