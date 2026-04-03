@@ -370,6 +370,7 @@ function initAnimations() {
 // ── NEWSLETTER ────────────────────────────────────────────────────
 async function handleSubscribe() {
   const emailInput = document.getElementById('subscribe-email');
+  const nameInput  = document.getElementById('subscribe-name');
   const btn = document.getElementById('subscribe-btn');
   const msg = document.getElementById('subscribe-msg');
   const email = emailInput.value.trim();
@@ -379,6 +380,13 @@ async function handleSubscribe() {
     msg.style.color = '#FCA5A5';
     return;
   }
+
+  // Collect opted-in preference tags
+  const prefIds = ['pref-product-updates', 'pref-promotions', 'pref-growing-tips', 'pref-harvest-challenges'];
+  const tags = prefIds
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.checked)
+    .map(el => el.value);
 
   btn.textContent = '⏳ Subscribing...';
   btn.disabled = true;
@@ -393,7 +401,12 @@ async function handleSubscribe() {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ email, source: 'website' })
+        body: JSON.stringify({
+          email,
+          first_name: nameInput ? nameInput.value.trim() : '',
+          source: 'website',
+          tags,
+        })
       }
     );
     const data = await res.json();
@@ -403,6 +416,7 @@ async function handleSubscribe() {
     msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
     msg.style.color = '#A7F3D0';
     emailInput.value = '';
+    if (nameInput) nameInput.value = '';
   } catch (err) {
     btn.textContent = 'Subscribe';
     btn.disabled = false;
