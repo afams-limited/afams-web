@@ -26,7 +26,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let body: { email?: string; first_name?: string; source?: string };
+  let body: { email?: string; first_name?: string; source?: string; tags?: string[] };
   try {
     body = await req.json();
   } catch {
@@ -45,6 +45,12 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Sanitise tags: only allow known values, max 10
+  const ALLOWED_TAGS = new Set(["product_updates", "promotions", "growing_tips", "harvest_challenges"]);
+  const tags = Array.isArray(body.tags)
+    ? body.tags.filter((t): t is string => typeof t === "string" && ALLOWED_TAGS.has(t)).slice(0, 10)
+    : [];
+
   // Use service-role client to bypass RLS for upsert (handles duplicates gracefully)
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -59,6 +65,7 @@ Deno.serve(async (req: Request) => {
         first_name: (body.first_name || "").trim() || null,
         source:     (body.source || "website").trim(),
         status:     "active",
+        tags,
       },
       { onConflict: "email", ignoreDuplicates: false },
     );

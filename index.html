@@ -3,18 +3,76 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <meta name="description" content="Afams — Farming into the future. Revolutionary FarmBag urban farming systems. Pre-order now. Shipping across Kenya, UK, and UAE."/>
-  <meta name="keywords" content="urban farming Kenya, FarmBag, urban garden Nairobi, indoor garden, FarmBag Classic, FarmBag Vertical"/>
-  <meta property="og:title" content="Afams FarmBag — Farming into the future"/>
-  <meta property="og:description" content="The world's most innovative urban farming bag. Grow food anywhere — apartment, rooftop, office, school. Pre-order yours today."/>
+  <meta name="description" content="Afams FarmBag — Kenya's #1 urban farming system. Grow vegetables at home with our innovative grow bags in Nairobi. Perfect for vertical gardening, indoor gardening, rooftop & balcony gardens. Pre-order now, shipping across Kenya."/>
+  <meta name="keywords" content="urban farming Kenya, grow bags Nairobi, vertical gardening Kenya, indoor gardening Nairobi, FarmBag, urban garden Kenya, grow bag Nairobi, home vegetable garden Kenya, balcony farming Kenya, rooftop garden Nairobi, container gardening Kenya, hydroponic grow bag, kitchen garden Kenya, urban agriculture Nairobi, FarmBag Classic, FarmBag Vertical, Afams"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="Afams Ltd"/>
+  <link rel="canonical" href="https://afams.co.ke/"/>
+  <!-- Open Graph -->
+  <meta property="og:title" content="Afams FarmBag — Urban Farming &amp; Grow Bags in Nairobi, Kenya"/>
+  <meta property="og:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony, office or school. Vertical gardening &amp; indoor gardening made easy. Pre-order yours today."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://afams.co.ke"/>
-  <title>Afams — Farming into the future</title>
+  <meta property="og:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <meta property="og:image:alt" content="Afams FarmBag — Urban Farming Grow Bags Kenya"/>
+  <meta property="og:site_name" content="Afams"/>
+  <meta property="og:locale" content="en_KE"/>
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:site" content="@afams"/>
+  <meta name="twitter:title" content="Afams FarmBag — Urban Farming &amp; Grow Bags in Nairobi, Kenya"/>
+  <meta name="twitter:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony or school. Pre-order today."/>
+  <meta name="twitter:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <title>Afams FarmBag — Urban Farming &amp; Grow Bags Nairobi, Kenya</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+  <!-- Structured Data: Organisation + Product -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "Afams Ltd",
+        "url": "https://afams.co.ke",
+        "logo": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "description": "Afams is an urban AgriTech company registered in Kenya in 2021, building innovative grow bag systems for cities, homes, schools and institutions.",
+        "foundingDate": "2021",
+        "foundingLocation": "Nairobi, Kenya",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "info@afams.co.ke",
+          "contactType": "customer service",
+          "areaServed": ["KE", "GB", "AE"],
+          "availableLanguage": "English"
+        },
+        "sameAs": [
+          "https://www.facebook.com/AfamsLimited",
+          "https://x.com/afams"
+        ]
+      },
+      {
+        "@type": "Product",
+        "name": "Afams FarmBag",
+        "brand": { "@type": "Brand", "name": "Afams" },
+        "description": "Innovative urban farming grow bag for vertical gardening, indoor gardening, rooftop and balcony gardens in Nairobi, Kenya.",
+        "category": "Urban Farming / Grow Bags",
+        "url": "https://afams.co.ke/#products",
+        "image": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "KES",
+          "availability": "https://schema.org/PreOrder",
+          "seller": { "@type": "Organization", "name": "Afams Ltd" }
+        },
+        "keywords": "urban farming Kenya, grow bags Nairobi, vertical gardening, indoor gardening, FarmBag"
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
@@ -635,13 +693,40 @@
   <div style="max-width:600px;margin:0 auto">
     <div class="section-label" style="color:#A5D6A7;text-align:center">Stay connected</div>
     <h2>Join the Afams Growers Club</h2>
-    <p>Growing guides, product launches, harvest challenges, and exclusive member discounts. We send one email per week. Always worth opening.</p>
-    <div class="newsletter-form">
-      <input type="email" id="subscribe-email" class="newsletter-input" placeholder="your@email.com" required aria-label="Email address"/>
-      <button id="subscribe-btn" type="button" class="newsletter-btn" onclick="handleSubscribe()">Subscribe</button>
+    <p>Get exclusive growing guides, product launches, harvest challenges, and member-only discounts — delivered to your inbox.</p>
+    <div class="newsletter-form" style="flex-direction:column;gap:0.75rem;align-items:stretch">
+      <input type="text" id="subscribe-name" class="newsletter-input" placeholder="First name (optional)" autocomplete="given-name" aria-label="First name" style="flex:none"/>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <input type="email" id="subscribe-email" class="newsletter-input" placeholder="your@email.com" required aria-label="Email address" style="flex:1;min-width:0"/>
+        <button id="subscribe-btn" type="button" class="newsletter-btn" onclick="handleSubscribe()">Subscribe</button>
+      </div>
+    </div>
+    <div style="margin-top:1rem;text-align:left">
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.65);margin-bottom:0.5rem">What would you like to receive? <span style="color:rgba(255,255,255,0.35)">(optional)</span></p>
+      <div style="display:flex;flex-direction:column;gap:0.4rem">
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:rgba(255,255,255,0.8);cursor:pointer">
+          <input type="checkbox" id="pref-product-updates" value="product_updates" checked style="accent-color:#4CAF50;width:15px;height:15px"/>
+          Product updates &amp; new launches
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:rgba(255,255,255,0.8);cursor:pointer">
+          <input type="checkbox" id="pref-promotions" value="promotions" checked style="accent-color:#4CAF50;width:15px;height:15px"/>
+          Promotions &amp; exclusive discounts
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:rgba(255,255,255,0.8);cursor:pointer">
+          <input type="checkbox" id="pref-growing-tips" value="growing_tips" checked style="accent-color:#4CAF50;width:15px;height:15px"/>
+          Growing tips &amp; urban farming guides
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:rgba(255,255,255,0.8);cursor:pointer">
+          <input type="checkbox" id="pref-harvest-challenges" value="harvest_challenges" style="accent-color:#4CAF50;width:15px;height:15px"/>
+          Harvest challenges &amp; community events
+        </label>
+      </div>
     </div>
     <p id="subscribe-msg" style="font-size:0.85rem;margin-top:0.75rem;text-align:center;min-height:1.2em"></p>
-    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:1rem;text-align:center">
+    <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:0.75rem;text-align:center;line-height:1.5">
+      By subscribing you agree to our <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7)">Privacy Policy</a>. You can unsubscribe at any time.
+    </p>
+    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:0.5rem;text-align:center">
       Or email us directly: <a href="mailto:info@afams.co.ke" style="color:#A5D6A7">info@afams.co.ke</a> ·
       WhatsApp: <a href="#" onclick="openWhatsApp()" style="color:#A5D6A7">Chat with us</a>
     </p>

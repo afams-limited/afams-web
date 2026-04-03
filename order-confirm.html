@@ -360,7 +360,7 @@ document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLoca
 // Clear cart if using the localStorage cart from index.html
 try { localStorage.removeItem('afams_cart'); } catch(_) {}
 
-// After successful order, silently add to subscribers list
+// After successful order, silently add to subscribers list (buyer auto-enrolment)
 const orderData = { email: email, full_name: name };
 if (orderData.email) {
   fetch('https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe', {
@@ -369,7 +369,8 @@ if (orderData.email) {
     body: JSON.stringify({
       email: orderData.email,
       first_name: orderData.full_name?.split(' ')[0],
-      source: 'checkout'
+      source: 'checkout',
+      tags: ['product_updates', 'promotions', 'growing_tips']
     })
   }).catch(() => {}); // Silent fail — don't block order confirmation UX
 }
