@@ -13,8 +13,8 @@ const AFAMS = {
   whatsapp: '+254702359618', // ← Replace with your WhatsApp number
   email: 'info@afams.co.ke',
   currency: 'KES',
-  deliveryDays: 3,
-  fulfillmentNote: 'Pre-orders are fulfilled within 3 business days of campaign close.',
+  deliveryDays: 5,
+  fulfillmentNote: 'Pre-orders are fulfilled within 3–5 business days.',
   // Preorder batch settings — update these per batch
   batchStock: 25,        // Total units available this batch
   batchEndDate: (() => {
@@ -375,7 +375,7 @@ async function handleSubscribe() {
   const msg = document.getElementById('subscribe-msg');
   const email = emailInput.value.trim();
 
-  if (!email || !email.includes('@')) {
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     msg.textContent = 'Please enter a valid email address.';
     msg.style.color = '#FCA5A5';
     return;
@@ -393,30 +393,39 @@ async function handleSubscribe() {
   msg.textContent = '';
 
   try {
+    // Insert directly via Supabase REST API (anon INSERT allowed by RLS policy).
+    // A 409 Conflict means the email is already subscribed — treat as success.
     const res = await fetch(
-      'https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe',
+      SUPABASE_URL + '/rest/v1/subscribers',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Prefer': 'return=minimal',
         },
         body: JSON.stringify({
           email,
-          first_name: nameInput ? nameInput.value.trim() : '',
+          first_name: nameInput ? (nameInput.value.trim() || null) : null,
           source: 'website',
+          status: 'active',
           tags,
         })
       }
     );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Subscription failed');
 
-    btn.textContent = '✓ Subscribed!';
-    msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
-    msg.style.color = '#A7F3D0';
-    emailInput.value = '';
-    if (nameInput) nameInput.value = '';
+    if (res.status === 201 || res.status === 409) {
+      // 201 = new subscriber, 409 = duplicate email (already subscribed)
+      btn.textContent = '✓ Subscribed!';
+      msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
+      msg.style.color = '#A7F3D0';
+      emailInput.value = '';
+      if (nameInput) nameInput.value = '';
+    } else {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Subscription failed');
+    }
   } catch (err) {
     btn.textContent = 'Subscribe';
     btn.disabled = false;
@@ -708,7 +717,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const body = encodeURIComponent(config.buildBody(fields));
       const mailtoLink = `mailto:${config.recipient}?subject=${subject}&body=${body}`;
 
-      window.location.href = mailtoLink;
+      // Use an invisible anchor click for reliable cross-browser mailto: handling
+      const a = document.createElement('a');
+      a.href = mailtoLink;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       closeSupportModal();
     });
   }
@@ -795,8 +810,14 @@ function sendContactViaMailto() {
   const email     = document.getElementById('contact-dialog-email').value.trim();
   const msg       = document.getElementById('contact-dialog-msg').value.trim();
   if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
+  const subject = encodeURIComponent(subPrefix + ' from ' + name);
   const body    = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
-  window.location.href = 'mailto:' + recipient + '?subject=' + subject + '&body=' + body;
+  const a = document.createElement('a');
+  a.href = 'mailto:' + recipient + '?subject=' + subject + '&body=' + body;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   closeContactDialog();
 }
 
@@ -808,6 +829,7 @@ function sendContactViaGmail() {
   const email     = document.getElementById('contact-dialog-email').value.trim();
   const msg       = document.getElementById('contact-dialog-msg').value.trim();
   if (!name || !email || !msg) { showToast('Please fill in all fields.'); return; }
+  const su   = encodeURIComponent(subPrefix + ' from ' + name);
   const body = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + msg);
   window.open('https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(recipient) + '&su=' + su + '&body=' + body, '_blank');
   closeContactDialog();

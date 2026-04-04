@@ -297,7 +297,7 @@
         <div class="timeline-dot dot-later">🏡</div>
         <div class="timeline-body">
           <div class="timeline-title">Delivered to you</div>
-          <div class="timeline-sub" id="ts-delivery">Within 3 business days</div>
+          <div class="timeline-sub" id="ts-delivery">Within 3–5 business days</div>
         </div>
       </div>
     </div>
@@ -350,7 +350,7 @@ function addBusinessDays(date, days) {
   return d;
 }
 
-const deliveryDate = addBusinessDays(now, 3);
+const deliveryDate = addBusinessDays(now, 5);
 const dispatchDate = addBusinessDays(now, 2);
 
 const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
@@ -363,14 +363,22 @@ try { localStorage.removeItem('afams_cart'); } catch(_) {}
 // After successful order, silently add to subscribers list (buyer auto-enrolment)
 const orderData = { email: email, full_name: name };
 if (orderData.email) {
-  fetch('https://dvquyzzqsnlcassvgdzz.supabase.co/functions/v1/subscribe', {
+  const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+  fetch(SUPABASE_URL + '/rest/v1/subscribers', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Prefer': 'return=minimal',
+    },
     body: JSON.stringify({
       email: orderData.email,
-      first_name: orderData.full_name?.split(' ')[0],
+      first_name: orderData.full_name ? orderData.full_name.split(' ')[0] : null,
       source: 'checkout',
-      tags: ['product_updates', 'promotions', 'growing_tips']
+      status: 'active',
+      tags: ['product_updates', 'promotions', 'growing_tips'],
     })
   }).catch(() => {}); // Silent fail — don't block order confirmation UX
 }
