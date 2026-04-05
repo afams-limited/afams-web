@@ -931,7 +931,6 @@ function updateOrderTotals() {
     .reduce(function(s, i) { return s + i.unit_price * i.qty; }, 0);
   var prosoilItem = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   var prosoilCostAmt = prosoilItem ? prosoilItem.unit_price * prosoilItem.qty : 0;
-
   if (prosoilLine) prosoilLine.style.display = prosoilCostAmt > 0 ? '' : 'none';
   if (prosoilCost) prosoilCost.textContent   = 'KES ' + prosoilCostAmt.toLocaleString();
 
@@ -1002,7 +1001,7 @@ function launchPaystack() {
   const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []) : [];
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
-  const prosoilTotal   = prosoilQty * 399;
+  const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
   const prosoilPromoQty = totals.promoQty || 0;
   const prosoilPromo   = prosoilPromoQty > 0;
   const addonTotal     = seedsTotal + prosoilTotal;

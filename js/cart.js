@@ -129,7 +129,7 @@ function showCartToast(productName) {
     document.body.appendChild(toast);
   }
   toast.innerHTML = '✓ <strong>' + productName + '</strong> added&nbsp;·&nbsp;'
-    + '<a href="/checkout.html" style="color:#fff;text-decoration:underline;">Checkout</a>';
+    + '<a href="checkout.html" style="color:#fff;text-decoration:underline;">Checkout</a>';
   requestAnimationFrame(function() { toast.style.transform = 'translateY(0)'; });
   clearTimeout(toast._hideTimer);
   toast._hideTimer = setTimeout(function() { toast.style.transform = 'translateY(80px)'; }, 3500);

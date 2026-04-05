@@ -293,16 +293,10 @@ function renderProducts(products) {
       : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
 
     // ProSoil links to its product page; FarmBags use add-to-cart
+    const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.priceKES || p.unit_price || 0, qty: 1, image: p.image || '', type: p.type || 'product' });
     const actionHtml = p.link
       ? `<a href="${p.link}" class="btn-order">View &amp; Order</a>`
-      : `<button class="btn-order" onclick="addToCart({
-            sku: '${p.sku}',
-            name: '${p.name.replace(/'/g, "\\'")}',
-            unit_price: ${p.priceKES || p.unit_price || 0},
-            qty: 1,
-            image: '${p.image || ''}',
-            type: '${p.type || 'product'}'
-          })">Add to Cart</button>`;
+      : `<button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}'>Add to Cart</button>`;
 
     return `
       <div class="product-card">
@@ -358,6 +352,16 @@ async function loadProducts() {
   // Fallback: render the static catalogue
   renderProducts(STATIC_PRODUCTS);
 }
+
+// Add-to-cart via event delegation (avoids inline onclick with user data)
+document.getElementById('products-grid').addEventListener('click', function(e) {
+  var btn = e.target.closest('.btn-add-to-cart');
+  if (!btn) return;
+  try {
+    var item = JSON.parse(btn.dataset.cart);
+    addToCart(item);
+  } catch (_) { /* ignore */ }
+});
 
 // Nav hamburger
 document.getElementById('hamburger').addEventListener('click', () => {
