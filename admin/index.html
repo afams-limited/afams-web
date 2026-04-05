@@ -754,6 +754,46 @@
       border-top: 2px solid var(--border);
     }
 
+    /* Add-ons section in modal */
+    .addons-section {
+      margin-bottom: 1rem;
+    }
+    .addons-subsection {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+    .addons-subsection-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .seed-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .seed-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .seed-chip.free { background: rgba(45,106,79,0.12); color: #2D6A4F; border: 1px solid rgba(45,106,79,0.25); }
+    .seed-chip.extra { background: rgba(224,123,57,0.1); color: #c0611f; border: 1px solid rgba(224,123,57,0.3); }
+    .prosoil-dispatch-notice {
+      background: #fff3f3;
+      border: 1.5px solid #e53935;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #b71c1c;
+      margin-top: 8px;
+    }
+
     /* Status & Notes section */
     .status-select, .notes-textarea {
       background: var(--input-bg);
@@ -1295,6 +1335,8 @@
         <!-- Filled by JS -->
       </div>
 
+      <div id="modal-addons-wrap"></div>
+
       <div class="modal-section-title">Status &amp; Notes</div>
       <label class="modal-field-label">Order Status</label>
       <select class="status-select" id="modal-status-select">
@@ -1629,6 +1671,60 @@ function openOrderModal(id) {
     + '<tr class="total-row"><td colspan="3" style="text-align:right;font-weight:700">Total</td>'
     + '<td>KES ' + total.toLocaleString() + '</td></tr>'
     + '</tbody></table>';
+
+  // Add-ons section
+  var addonsWrap = document.getElementById('modal-addons-wrap');
+  var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
+  var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
+  var prosoilQty  = o.prosoil_qty  || 0;
+  var prosoilTot  = o.prosoil_total || 0;
+  var hasSeeds    = freeSeeds.length > 0 || extraSeeds.length > 0;
+  var hasProsoil  = prosoilQty > 0;
+
+  if (hasSeeds || hasProsoil) {
+    var addonsHtml = '<div class="modal-section-title">Add-ons</div><div class="addons-section">';
+
+    if (hasSeeds) {
+      addonsHtml += '<div class="addons-subsection">'
+        + '<div class="addons-subsection-title">🌱 Certified Seeds</div>'
+        + '<div class="seed-chips">';
+      freeSeeds.forEach(function(s) {
+        addonsHtml += '<span class="seed-chip free">' + escapeHtml(s.name || s.slug || '?') + ' ✓ Free</span>';
+      });
+      extraSeeds.forEach(function(s) {
+        addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES 150</span>';
+      });
+      addonsHtml += '</div>';
+      if (extraSeeds.length > 0) {
+        addonsHtml += '<div style="margin-top:8px;font-size:0.82rem;color:var(--text-muted)">'
+          + extraSeeds.length + ' extra packet' + (extraSeeds.length > 1 ? 's' : '') + ' — KES '
+          + (o.extra_seeds_total || extraSeeds.length * 150).toLocaleString() + '</div>';
+      }
+      addonsHtml += '</div>';
+    }
+
+    if (hasProsoil) {
+      var dispatchQty = prosoilQty + 1;
+      addonsHtml += '<div class="addons-subsection">'
+        + '<div class="addons-subsection-title">🪴 Afams ProSoil 25kg</div>'
+        + '<div style="font-size:0.88rem;color:var(--text-primary)">'
+        + prosoilQty + ' bag' + (prosoilQty > 1 ? 's' : '') + ' ordered × KES 399 = <strong>KES '
+        + prosoilTot.toLocaleString() + '</strong>'
+        + '</div>';
+      if (o.prosoil_promo_bag) {
+        addonsHtml += '<div class="prosoil-dispatch-notice">'
+          + '⚠️ PROMO: Pack <strong>' + dispatchQty + ' ProSoil bags</strong>'
+          + ' (' + prosoilQty + ' paid + 1 bonus free bag)'
+          + '</div>';
+      }
+      addonsHtml += '</div>';
+    }
+
+    addonsHtml += '</div>';
+    addonsWrap.innerHTML = addonsHtml;
+  } else {
+    addonsWrap.innerHTML = '';
+  }
 
   document.getElementById('modal-status-select').value  = o.status || 'pending';
   document.getElementById('modal-admin-notes').value    = o.admin_notes || '';

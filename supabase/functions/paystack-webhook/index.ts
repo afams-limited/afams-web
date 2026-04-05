@@ -110,6 +110,21 @@ Deno.serve(async (req: Request) => {
     const delivery_address = metadata.delivery_address as string | undefined;
     const county = metadata.county as string | undefined;
 
+    // Add-on fields (set by checkout.html for FarmBag orders)
+    const rawFreeSeeds   = metadata.free_seeds   as string | undefined;
+    const rawExtraSeeds  = metadata.extra_seeds  as string | undefined;
+    const extra_seeds_count = parseInt(String(metadata.extra_seeds_count  ?? "0"), 10) || 0;
+    const extra_seeds_total = parseInt(String(metadata.extra_seeds_total  ?? "0"), 10) || 0;
+    const prosoil_qty       = parseInt(String(metadata.prosoil_qty        ?? "0"), 10) || 0;
+    const prosoil_total     = parseInt(String(metadata.prosoil_total      ?? "0"), 10) || 0;
+    const prosoil_promo_bag = metadata.prosoil_promo_bag === true || metadata.prosoil_promo_bag === "true";
+    const addons_total      = parseInt(String(metadata.addons_total       ?? "0"), 10) || 0;
+
+    let free_seeds: unknown[] = [];
+    let extra_seeds: unknown[] = [];
+    try { free_seeds  = rawFreeSeeds  ? JSON.parse(rawFreeSeeds)  : []; } catch { free_seeds  = []; }
+    try { extra_seeds = rawExtraSeeds ? JSON.parse(rawExtraSeeds) : []; } catch { extra_seeds = []; }
+
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -152,6 +167,14 @@ Deno.serve(async (req: Request) => {
       payment_method:   "paystack",
       status:           "paid",
       paid_at:          paid_at || new Date().toISOString(),
+      free_seeds:       free_seeds,
+      extra_seeds:      extra_seeds,
+      extra_seeds_count: extra_seeds_count,
+      extra_seeds_total: extra_seeds_total,
+      prosoil_qty:      prosoil_qty,
+      prosoil_total:    prosoil_total,
+      prosoil_promo_bag: prosoil_promo_bag,
+      addons_total:     addons_total,
     });
 
     if (error) {
