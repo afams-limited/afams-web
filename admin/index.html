@@ -1704,7 +1704,8 @@ function openOrderModal(id) {
     }
 
     if (hasProsoil) {
-      var dispatchQty = prosoilQty + 1;
+      var prosoilPromoQty = o.prosoil_promo_qty || 0;
+      var dispatchQty     = prosoilQty + prosoilPromoQty;
       addonsHtml += '<div class="addons-subsection">'
         + '<div class="addons-subsection-title">🪴 Afams ProSoil 25kg</div>'
         + '<div style="font-size:0.88rem;color:var(--text-primary)">'
@@ -1713,8 +1714,8 @@ function openOrderModal(id) {
         + '</div>';
       if (o.prosoil_promo_bag) {
         addonsHtml += '<div class="prosoil-dispatch-notice">'
-          + '⚠️ PROMO: Pack <strong>' + dispatchQty + ' ProSoil bags</strong>'
-          + ' (' + prosoilQty + ' paid + 1 bonus free bag)'
+          + '⚠️ DISPATCH NOTE: Pack <strong>' + dispatchQty + ' ProSoil bag' + (dispatchQty > 1 ? 's' : '') + '</strong> total'
+          + ' — ' + prosoilQty + ' purchased + ' + prosoilPromoQty + ' FREE (every 3 bags, 1 free promo)'
           + '</div>';
       }
       addonsHtml += '</div>';

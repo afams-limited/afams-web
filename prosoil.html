@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <meta name="description" content="Afams ProSoil 25kg — Pre-mixed, pH-balanced, sterilised growing medium. Pour. Water. Plant. Done."/>
   <meta property="og:title" content="Afams ProSoil 25kg — Premium Growing Medium"/>
-  <meta property="og:description" content="Pre-mixed, pH-balanced, sterilised growing medium. Ready to use straight from the bag. Buy 1, get 1 FREE."/>
+  <meta property="og:description" content="Pre-mixed, pH-balanced, sterilised growing medium. Ready to use straight from the bag. Every 3 bags, get 1 free — for FarmBag customers."/>
   <meta property="og:type" content="product"/>
   <title>Afams ProSoil 25kg — Premium Growing Medium</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪴</text></svg>"/>
@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+  <script src="js/cart.js"></script>
   <style>
     :root {
       --green:      #2D6A4F;
@@ -117,9 +118,36 @@
       gap: 12px;
       margin-bottom: 1.5rem;
     }
+    .promo-strip.muted {
+      background: #f5f5f5;
+      border-color: #ccc;
+    }
     .promo-strip-icon { font-size: 1.6rem; flex-shrink: 0; }
     .promo-strip-text { font-size: 0.9rem; color: #5a3000; }
+    .promo-strip.muted .promo-strip-text { color: #666; }
     .promo-strip-text strong { color: var(--amber); font-size: 1rem; display: block; margin-bottom: 2px; }
+    .promo-strip.muted .promo-strip-text strong { color: #555; }
+    .btn-browse-farmbag {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 5px 12px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-browse-farmbag:hover { background: #245a42; }
+    .promo-nudge {
+      font-size: 0.8rem;
+      font-style: italic;
+      color: #E07B39;
+      margin-top: 6px;
+    }
 
     /* ── SHORT DESC ── */
     .short-desc { font-size: 0.95rem; color: #555; line-height: 1.65; margin-bottom: 1.5rem; }
@@ -223,6 +251,49 @@
     }
     .cross-sell-link:hover { background: var(--green); color: #fff; }
 
+    /* ── CROSS-SELL CARDS ── */
+    .crosssell-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--green-pale);
+      border: 1.5px solid rgba(45,106,79,0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+    .crosssell-card img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .crosssell-info { flex: 1; min-width: 100px; }
+    .crosssell-info strong { display: block; color: var(--slate); font-size: 0.9rem; }
+    .crosssell-info span   { color: var(--green); font-weight: 700; font-size: 0.85rem; }
+    .crosssell-info p      { color: #666; font-size: 0.78rem; margin: 2px 0 0; }
+    .btn-crosssell-add {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .btn-crosssell-add:hover { background: var(--green-dark); }
+    .crosssell-details-link {
+      font-size: 0.78rem;
+      color: var(--green);
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+
     /* ── BATCH FOOTER ── */
     .batch-footer {
       font-size: 0.75rem;
@@ -243,7 +314,7 @@
 <!-- ANNOUNCE BAR -->
 <div class="announce">
   🪴 ProSoil now available — free delivery in Nairobi ·
-  <a href="checkout.html?sku=PS-25KG">Order now →</a>
+  <a href="prosoil.html">View ProSoil →</a>
 </div>
 
 <!-- NAV -->
@@ -252,7 +323,13 @@
     <img src="assets/images/afams-logo.jpg" alt="Afams Logo"/>
     Afams
   </a>
-  <a href="products.html" class="nav-back">← Back to Products</a>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <a href="checkout.html" style="position:relative;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:4px;text-decoration:none;font-size:0.9rem;" aria-label="View Cart">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="cart-badge" style="display:none;background:#E07B39;color:#fff;border-radius:99px;padding:1px 7px;font-size:0.75rem;font-weight:700;">0</span>
+    </a>
+    <a href="products.html" class="nav-back">← Back to Products</a>
+  </div>
 </nav>
 
 <!-- BREADCRUMB -->
@@ -305,11 +382,12 @@
     <span class="badge-made-in">🇰🇪 Made in Kenya — Packed in Kiambu</span>
 
     <!-- Promo Strip -->
-    <div class="promo-strip">
+    <div class="promo-strip" id="promo-strip">
       <span class="promo-strip-icon">🎁</span>
-      <div class="promo-strip-text">
-        <strong>Buy 1 bag, get 1 FREE</strong>
-        One bonus bag per order, always. Limited ongoing offer.
+      <div class="promo-strip-text" id="promo-strip-text">
+        <strong id="promo-strip-headline">Add a FarmBag to unlock: every 3 bags, 1 free</strong>
+        <span id="promo-strip-body">Add a FarmBag to your cart to unlock the promo.</span>
+        <a href="products.html" class="btn-browse-farmbag" id="promo-browse-btn">Browse FarmBags →</a>
       </div>
     </div>
 
@@ -353,22 +431,26 @@
           <span id="calc-bags-label">1 bag × KES 399</span>
           <span id="calc-bags-cost">KES 399</span>
         </div>
-        <div class="calc-row promo">
-          <span>🎁 Bonus bag (free promo)</span>
-          <span>+1 bag FREE</span>
+        <div class="calc-row promo" id="calc-promo-row" style="display:none">
+          <span id="calc-promo-label">🎁 Every 3 bags, 1 free → +1 free bag</span>
+          <span id="calc-promo-val">FREE</span>
+        </div>
+        <div class="calc-row" id="calc-nudge-row" style="display:none">
+          <span id="calc-nudge-text" class="promo-nudge"></span>
+          <span></span>
         </div>
         <div class="calc-row total">
           <span>You receive</span>
-          <span id="calc-total-bags">2 bags total</span>
+          <span id="calc-total-bags">1 bag total</span>
         </div>
       </div>
     </div>
 
-    <!-- Buy Button -->
-    <a id="btn-buy" href="checkout.html?sku=PS-25KG&qty=1" class="btn-buy">
-      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      <span id="btn-buy-text">Order ProSoil — KES 399</span>
-    </a>
+    <!-- Add to Cart Button -->
+    <button id="btn-buy" class="btn-buy" onclick="handleAddToCart()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span id="btn-buy-text">Add to Cart — KES 399</span>
+    </button>
     <p class="secure-note">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       Secured by Paystack · Free delivery in Nairobi
@@ -377,16 +459,44 @@
     <!-- Cross-sell -->
     <div class="cross-sell">
       <h4>🌱 Pair with a FarmBag for the complete growing setup</h4>
-      <div class="cross-sell-links">
-        <a href="checkout.html?sku=FB-CLS-01&name=FarmBag+Classic&price=7500" class="cross-sell-link">🌿 FarmBag Classic — KES 7,500</a>
-        <a href="checkout.html?sku=FB-GRW-01&name=FarmBag+Vertical&price=8500" class="cross-sell-link">🌱 FarmBag Vertical — KES 8,500</a>
-      </div>
-    </div>
 
-    <!-- Batch & Compliance -->
-    <div class="batch-footer">
-      Packed &amp; Processed by Afams Limited, Thika Road, Kiambu.<br>
-      Batch: AF31032026/100 &nbsp;|&nbsp; Mf: March 2026 &nbsp;|&nbsp; Ex: April 2036
+      <div class="crosssell-card">
+        <img src="assets/images/farmbag-classic.jpg" alt="FarmBag Classic"
+             onerror="this.style.display='none'"/>
+        <div class="crosssell-info">
+          <strong>FarmBag Classic</strong>
+          <span>KES 7,500</span>
+          <p>Our original urban grow bag. 3-zone system for any home.</p>
+        </div>
+        <button class="btn-crosssell-add" onclick="addToCart({
+          sku: 'FB-CLS-01',
+          name: 'FarmBag Classic',
+          unit_price: 7500,
+          qty: 1,
+          image: 'assets/images/farmbag-classic.jpg',
+          type: 'farmbag'
+        })">+ Add to Cart</button>
+        <a href="products.html" class="crosssell-details-link">View details →</a>
+      </div>
+
+      <div class="crosssell-card">
+        <img src="assets/images/farmbag-vertical.jpg" alt="FarmBag Vertical"
+             onerror="this.style.display='none'"/>
+        <div class="crosssell-info">
+          <strong>FarmBag Vertical</strong>
+          <span>KES 8,500</span>
+          <p>Grow Cube™ basket — plants grow in 5 directions.</p>
+        </div>
+        <button class="btn-crosssell-add" onclick="addToCart({
+          sku: 'FB-GRW-01',
+          name: 'FarmBag Vertical',
+          unit_price: 8500,
+          qty: 1,
+          image: 'assets/images/farmbag-vertical.jpg',
+          type: 'farmbag'
+        })">+ Add to Cart</button>
+        <a href="products.html" class="crosssell-details-link">View details →</a>
+      </div>
     </div>
 
   </div><!-- /product-detail -->
@@ -405,17 +515,61 @@
 </footer>
 
 <script>
-var qty = 1;
+var qty   = 1;
 var PRICE = 399;
 
+// ── Promo state — updated from cart ──────────────────────────────────────────
+var hasFarmBagInCart = false;
+
+function renderProsoilPromo(hasFarmBag) {
+  hasFarmBagInCart = hasFarmBag;
+  var strip     = document.getElementById('promo-strip');
+  var headline  = document.getElementById('promo-strip-headline');
+  var body      = document.getElementById('promo-strip-body');
+  var browseBtn = document.getElementById('promo-browse-btn');
+  if (!strip) return;
+
+  if (hasFarmBag) {
+    strip.classList.remove('muted');
+    headline.textContent  = 'Every 3 bags, get 1 FREE — FarmBag customers only';
+    body.textContent      = 'FarmBag is in your cart. Add 3+ ProSoil bags to unlock a free bag!';
+    browseBtn.style.display = 'none';
+  } else {
+    strip.classList.add('muted');
+    headline.textContent  = 'Add a FarmBag to unlock: every 3 bags, 1 free';
+    body.textContent      = 'Exclusive promo for FarmBag customers.';
+    browseBtn.style.display = 'inline-block';
+  }
+  updateCalc();
+}
+
 function updateCalc() {
-  var total = qty * PRICE;
-  document.getElementById('calc-bags-label').textContent = qty + ' bag' + (qty > 1 ? 's' : '') + ' × KES ' + PRICE;
-  document.getElementById('calc-bags-cost').textContent  = 'KES ' + total.toLocaleString();
-  document.getElementById('calc-total-bags').textContent = (qty + 1) + ' bag' + ((qty + 1) > 1 ? 's' : '') + ' total';
-  document.getElementById('qty-display').textContent     = qty;
-  document.getElementById('btn-buy-text').textContent    = 'Order ProSoil — KES ' + total.toLocaleString();
-  document.getElementById('btn-buy').href = 'checkout.html?sku=PS-25KG&qty=' + qty;
+  var promoBags  = hasFarmBagInCart ? Math.floor(qty / 3) : 0;
+  var totalBags  = qty + promoBags;
+  var totalCost  = qty * PRICE;
+
+  document.getElementById('calc-bags-label').textContent  = qty + ' bag' + (qty > 1 ? 's' : '') + ' × KES ' + PRICE;
+  document.getElementById('calc-bags-cost').textContent   = 'KES ' + totalCost.toLocaleString();
+  document.getElementById('calc-total-bags').textContent  = totalBags + ' bag' + (totalBags > 1 ? 's' : '') + ' total';
+  document.getElementById('qty-display').textContent      = qty;
+  document.getElementById('btn-buy-text').textContent     = 'Add to Cart — KES ' + totalCost.toLocaleString();
+
+  var promoRow  = document.getElementById('calc-promo-row');
+  var nudgeRow  = document.getElementById('calc-nudge-row');
+  var nudgeText = document.getElementById('calc-nudge-text');
+
+  if (promoBags > 0) {
+    promoRow.style.display = '';
+    document.getElementById('calc-promo-label').textContent = '🎁 Every 3 bags, 1 free → +' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '');
+    nudgeRow.style.display = 'none';
+  } else if (hasFarmBagInCart && qty < 3) {
+    promoRow.style.display = 'none';
+    nudgeRow.style.display = '';
+    nudgeText.textContent  = 'Add ' + (3 - qty) + ' more bag' + ((3 - qty) > 1 ? 's' : '') + ' to unlock your free bag 🎁';
+  } else {
+    promoRow.style.display = 'none';
+    nudgeRow.style.display = 'none';
+  }
 }
 
 function changeQty(delta) {
@@ -423,22 +577,41 @@ function changeQty(delta) {
   updateCalc();
 }
 
+function handleAddToCart() {
+  addToCart({
+    sku:        PROSOIL_SKU,
+    name:       'Afams ProSoil 25kg',
+    unit_price: PRICE,
+    qty:        qty,
+    image:      'assets/images/prosoil-front.jpg',
+    type:       'prosoil'
+  });
+}
+
 function switchImage(src, alt, thumb) {
-  var mainImg  = document.getElementById('main-img');
+  var mainImg   = document.getElementById('main-img');
   var mainEmoji = document.getElementById('main-emoji');
-  mainImg.alt  = alt;
+  mainImg.alt   = alt;
   mainImg.classList.remove('loaded');
-  mainImg.src  = src;
-  mainImg.onload = function() { this.classList.add('loaded'); mainEmoji.style.opacity = '0'; };
+  mainImg.src   = src;
+  mainImg.onload  = function() { this.classList.add('loaded'); mainEmoji.style.opacity = '0'; };
   mainImg.onerror = function() { this.style.display = 'none'; mainEmoji.style.opacity = '1'; };
   document.querySelectorAll('.gallery-thumb').forEach(function(t) { t.classList.remove('active'); });
   thumb.classList.add('active');
 }
 
-// Handle ?qty= param from cross-page navigation
-var urlQty = parseInt(new URLSearchParams(window.location.search).get('qty') || '1', 10);
-if (urlQty > 1) { qty = urlQty; }
-updateCalc();
+// ── Initialise promo from cart on load ───────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var cart        = getCart();
+  var hasFarmBag  = cart.items.some(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); });
+  renderProsoilPromo(hasFarmBag);
+});
+
+// Re-render whenever cart changes (e.g. cross-sell add)
+window.addEventListener('afams:cart-updated', function(e) {
+  var hasFarmBag = e.detail.items.some(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); });
+  renderProsoilPromo(hasFarmBag);
+});
 </script>
 
 </body>
