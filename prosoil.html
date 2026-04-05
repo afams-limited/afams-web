@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="description" content="Afams ProSoil 25kg — Pre-mixed, pH-balanced, sterilised growing medium. Pour. Water. Plant. Done."/>
+  <meta property="og:title" content="Afams ProSoil 25kg — Premium Growing Medium"/>
+  <meta property="og:description" content="Pre-mixed, pH-balanced, sterilised growing medium. Ready to use straight from the bag. Buy 1, get 1 FREE."/>
+  <meta property="og:type" content="product"/>
+  <title>Afams ProSoil 25kg — Premium Growing Medium</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪴</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <style>
+    :root {
+      --green:      #2D6A4F;
+      --green-dark: #0D3D1A;
+      --green-pale: #f0f7f4;
+      --linen:      #F5F0E8;
+      --amber:      #E07B39;
+      --slate:      #1A2028;
+      --gray-mid:   #718096;
+      --white:      #FFFFFF;
+      --radius:     14px;
+      --shadow:     0 4px 28px rgba(0,0,0,0.09);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--linen); color: var(--slate); min-height: 100vh; }
+    h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; }
+
+    /* ── NAV ── */
+    .nav { background: var(--green-dark); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; color: #fff; text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; }
+    .nav-logo img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .nav-back { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.35rem; transition: color 0.2s; }
+    .nav-back:hover { color: #fff; }
+
+    /* ── ANNOUNCE BAR ── */
+    .announce { background: var(--green); color: #fff; text-align: center; padding: 0.5rem 1rem; font-size: 0.82rem; }
+    .announce a { color: #fff; font-weight: 700; }
+
+    /* ── BREADCRUMB ── */
+    .breadcrumb { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 0; font-size: 0.8rem; color: var(--gray-mid); }
+    .breadcrumb a { color: var(--green); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { margin: 0 0.4rem; }
+
+    /* ── MAIN LAYOUT ── */
+    .product-wrap {
+      max-width: 1100px;
+      margin: 1.5rem auto 4rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (max-width: 760px) { .product-wrap { grid-template-columns: 1fr; gap: 2rem; } }
+
+    /* ── GALLERY ── */
+    .gallery { display: flex; flex-direction: column; gap: 10px; }
+    .gallery-main {
+      aspect-ratio: 1;
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+    }
+    .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .gallery-main img.loaded { display: block; }
+    .gallery-main .placeholder-emoji { transition: opacity 0.3s; }
+    .gallery-thumbs { display: flex; gap: 8px; }
+    .gallery-thumb {
+      flex: 1;
+      aspect-ratio: 1;
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .gallery-thumb img.loaded { display: block; }
+    .gallery-thumb.active { border-color: var(--green); }
+    .gallery-thumb:hover { border-color: var(--green); }
+
+    /* ── PRODUCT DETAIL ── */
+    .product-detail { display: flex; flex-direction: column; gap: 0; }
+    .product-category { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); margin-bottom: 0.5rem; }
+    .product-name { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; color: var(--slate); line-height: 1.15; margin-bottom: 0.35rem; }
+    .product-tagline { font-size: 1.05rem; color: var(--gray-mid); margin-bottom: 1rem; font-style: italic; }
+    .price-row { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.5rem; }
+    .price-main { font-size: 2rem; font-weight: 800; color: var(--green); }
+    .price-sub { font-size: 0.9rem; color: var(--gray-mid); }
+    .badge-made-in { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--green-pale); color: var(--green); border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+    /* ── PROMO STRIP ── */
+    .promo-strip {
+      background: linear-gradient(135deg,#fff8e7,#fff3d6);
+      border: 1.5px solid var(--amber);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .promo-strip-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .promo-strip-text { font-size: 0.9rem; color: #5a3000; }
+    .promo-strip-text strong { color: var(--amber); font-size: 1rem; display: block; margin-bottom: 2px; }
+
+    /* ── SHORT DESC ── */
+    .short-desc { font-size: 0.95rem; color: #555; line-height: 1.65; margin-bottom: 1.5rem; }
+
+    /* ── FEATURE CHECKLIST ── */
+    .feature-list { list-style: none; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 8px; }
+    .feature-list li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--slate); }
+    .feature-list li::before { content: '✓'; color: var(--white); background: var(--green); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; }
+
+    /* ── INGREDIENTS ── */
+    .ingredients-row { font-size: 0.82rem; color: var(--gray-mid); margin-bottom: 0.5rem; }
+    .usage-note { font-size: 0.85rem; color: var(--slate); background: var(--green-pale); border-left: 3px solid var(--green); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; }
+
+    /* ── QTY SELECTOR ── */
+    .qty-section { margin-bottom: 1.5rem; }
+    .qty-label { font-weight: 700; font-size: 0.9rem; color: var(--slate); margin-bottom: 10px; display: block; }
+    .qty-row-main { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--green);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .qty-controls button {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .qty-controls button:hover { background: #245a42; }
+    .qty-val-display { padding: 8px 20px; font-weight: 800; font-size: 1.05rem; }
+    .unit-badge { color: var(--green); font-weight: 600; font-size: 0.9rem; }
+    .prosoil-calc {
+      background: var(--white);
+      border: 1.5px solid rgba(45,106,79,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .prosoil-calc.hidden { display: none; }
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 16px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #f0f0f0;
+      color: #444;
+    }
+    .calc-row.promo { background: #fff8e7; color: var(--amber); font-weight: 600; }
+    .calc-row.total { background: var(--green-pale); font-weight: 800; color: var(--green); border-bottom: none; font-size: 0.95rem; }
+
+    /* ── BUY BUTTON ── */
+    .btn-buy {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      text-decoration: none;
+      margin-bottom: 0.75rem;
+    }
+    .btn-buy:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .secure-note { text-align: center; font-size: 0.75rem; color: var(--gray-mid); display: flex; align-items: center; justify-content: center; gap: 0.35rem; margin-bottom: 1.5rem; }
+
+    /* ── CROSS-SELL ── */
+    .cross-sell {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 1.5rem;
+    }
+    .cross-sell h4 { font-size: 0.9rem; font-weight: 700; color: var(--slate); margin-bottom: 0.85rem; }
+    .cross-sell-links { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .cross-sell-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border: 1.5px solid var(--green);
+      color: var(--green);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cross-sell-link:hover { background: var(--green); color: #fff; }
+
+    /* ── BATCH FOOTER ── */
+    .batch-footer {
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+      line-height: 1.7;
+      border-top: 1px solid rgba(45,106,79,0.1);
+      padding-top: 1rem;
+    }
+
+    /* ── PAGE FOOTER ── */
+    footer { background: var(--green-dark); color: rgba(255,255,255,0.6); text-align: center; padding: 2rem 1rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.55); margin: 0 0.5rem; text-decoration: none; }
+    footer a:hover { color: rgba(255,255,255,0.85); }
+  </style>
+</head>
+<body>
+
+<!-- ANNOUNCE BAR -->
+<div class="announce">
+  🪴 ProSoil now available — free delivery in Nairobi ·
+  <a href="checkout.html?sku=PS-25KG">Order now →</a>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/images/afams-logo.jpg" alt="Afams Logo"/>
+    Afams
+  </a>
+  <a href="products.html" class="nav-back">← Back to Products</a>
+</nav>
+
+<!-- BREADCRUMB -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="index.html">Home</a>
+  <span>›</span>
+  <a href="products.html">Products</a>
+  <span>›</span>
+  ProSoil 25kg
+</nav>
+
+<!-- PRODUCT LAYOUT -->
+<div class="product-wrap">
+
+  <!-- LEFT: Gallery -->
+  <div class="gallery">
+    <div class="gallery-main" id="gallery-main">
+      <span class="placeholder-emoji" id="main-emoji">🪴</span>
+      <img id="main-img" src="assets/images/prosoil-both.jpg" alt="Afams ProSoil 25kg"
+           onload="this.classList.add('loaded');document.getElementById('main-emoji').style.opacity='0'"
+           onerror="this.style.display='none'"/>
+    </div>
+    <div class="gallery-thumbs">
+      <div class="gallery-thumb active" onclick="switchImage('assets/images/prosoil-both.jpg','ProSoil Front &amp; Back',this)">
+        <img src="assets/images/prosoil-both.jpg" alt="ProSoil Both Sides"
+             onload="this.classList.add('loaded')" onerror="this.parentElement.textContent='🪴'"/>
+      </div>
+      <div class="gallery-thumb" onclick="switchImage('assets/images/prosoil-front.jpg','ProSoil Front',this)">
+        <img src="assets/images/prosoil-front.jpg" alt="ProSoil Front"
+             onload="this.classList.add('loaded')" onerror="this.parentElement.textContent='🪴'"/>
+      </div>
+      <div class="gallery-thumb" onclick="switchImage('assets/images/prosoil-back.jpg','ProSoil Back',this)">
+        <img src="assets/images/prosoil-back.jpg" alt="ProSoil Back"
+             onload="this.classList.add('loaded')" onerror="this.parentElement.textContent='🪴'"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Product Detail -->
+  <div class="product-detail">
+
+    <div class="product-category">Growing Medium · Made in Kenya</div>
+    <h1 class="product-name">Afams ProSoil 25kg</h1>
+    <p class="product-tagline">"Pour. Water. Plant. Done."</p>
+
+    <div class="price-row">
+      <span class="price-main">KES 399</span>
+      <span class="price-sub">/ bag</span>
+    </div>
+    <span class="badge-made-in">🇰🇪 Made in Kenya — Packed in Kiambu</span>
+
+    <!-- Promo Strip -->
+    <div class="promo-strip">
+      <span class="promo-strip-icon">🎁</span>
+      <div class="promo-strip-text">
+        <strong>Buy 1 bag, get 1 FREE</strong>
+        One bonus bag per order, always. Limited ongoing offer.
+      </div>
+    </div>
+
+    <!-- Short Description -->
+    <p class="short-desc">
+      Pre-mixed, pH-balanced, sterilised growing medium.
+      No soil sourcing. No mixing. No weed seeds.
+      Compatible with both FarmBag Classic and FarmBag Vertical.
+    </p>
+
+    <!-- Feature Checklist -->
+    <ul class="feature-list">
+      <li>pH Balanced 6.2–6.8</li>
+      <li>Sterilised — zero weed seeds</li>
+      <li>Slow-Release Fertiliser included</li>
+      <li>Ready to plant immediately</li>
+      <li>Compatible with FarmBag Classic &amp; Vertical</li>
+      <li>25kg per bag</li>
+    </ul>
+
+    <p class="ingredients-row">
+      <strong>Ingredients:</strong> Topsoil · Compost · Perlite · Slow-Release Fertiliser
+    </p>
+    <div class="usage-note">
+      💡 We recommend <strong>2 bags</strong> to fully fill one FarmBag Classic or Vertical.
+    </div>
+
+    <!-- Quantity Selector -->
+    <div class="qty-section">
+      <span class="qty-label">How many bags?</span>
+      <div class="qty-row-main">
+        <div class="qty-controls">
+          <button type="button" onclick="changeQty(-1)" aria-label="Decrease quantity">−</button>
+          <span class="qty-val-display" id="qty-display">1</span>
+          <button type="button" onclick="changeQty(1)" aria-label="Increase quantity">+</button>
+        </div>
+        <span class="unit-badge">KES 399 / bag</span>
+      </div>
+      <div id="prosoil-calc" class="prosoil-calc">
+        <div class="calc-row">
+          <span id="calc-bags-label">1 bag × KES 399</span>
+          <span id="calc-bags-cost">KES 399</span>
+        </div>
+        <div class="calc-row promo">
+          <span>🎁 Bonus bag (free promo)</span>
+          <span>+1 bag FREE</span>
+        </div>
+        <div class="calc-row total">
+          <span>You receive</span>
+          <span id="calc-total-bags">2 bags total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buy Button -->
+    <a id="btn-buy" href="checkout.html?sku=PS-25KG&qty=1" class="btn-buy">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span id="btn-buy-text">Order ProSoil — KES 399</span>
+    </a>
+    <p class="secure-note">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Secured by Paystack · Free delivery in Nairobi
+    </p>
+
+    <!-- Cross-sell -->
+    <div class="cross-sell">
+      <h4>🌱 Pair with a FarmBag for the complete growing setup</h4>
+      <div class="cross-sell-links">
+        <a href="checkout.html?sku=FB-CLS-01&name=FarmBag+Classic&price=7500" class="cross-sell-link">🌿 FarmBag Classic — KES 7,500</a>
+        <a href="checkout.html?sku=FB-GRW-01&name=FarmBag+Vertical&price=8500" class="cross-sell-link">🌱 FarmBag Vertical — KES 8,500</a>
+      </div>
+    </div>
+
+    <!-- Batch & Compliance -->
+    <div class="batch-footer">
+      Packed &amp; Processed by Afams Limited, Thika Road, Kiambu.<br>
+      Batch: AF31032026/100 &nbsp;|&nbsp; Mf: March 2026 &nbsp;|&nbsp; Ex: April 2036
+    </div>
+
+  </div><!-- /product-detail -->
+
+</div><!-- /product-wrap -->
+
+<footer>
+  <div style="margin-bottom:0.6rem;">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="cookie-policy.html">Cookie Policy</a>
+    <a href="terms.html">Terms &amp; Conditions</a>
+    <a href="returns-policy.html">Returns Policy</a>
+    <a href="partnership-guidelines.html">Partnership Guidelines</a>
+  </div>
+  <p>© 2026 Afams Ltd · Incorporated in Kenya · afams.co.ke · info@afams.co.ke</p>
+</footer>
+
+<script>
+var qty = 1;
+var PRICE = 399;
+
+function updateCalc() {
+  var total = qty * PRICE;
+  document.getElementById('calc-bags-label').textContent = qty + ' bag' + (qty > 1 ? 's' : '') + ' × KES ' + PRICE;
+  document.getElementById('calc-bags-cost').textContent  = 'KES ' + total.toLocaleString();
+  document.getElementById('calc-total-bags').textContent = (qty + 1) + ' bag' + ((qty + 1) > 1 ? 's' : '') + ' total';
+  document.getElementById('qty-display').textContent     = qty;
+  document.getElementById('btn-buy-text').textContent    = 'Order ProSoil — KES ' + total.toLocaleString();
+  document.getElementById('btn-buy').href = 'checkout.html?sku=PS-25KG&qty=' + qty;
+}
+
+function changeQty(delta) {
+  qty = Math.max(1, qty + delta);
+  updateCalc();
+}
+
+function switchImage(src, alt, thumb) {
+  var mainImg  = document.getElementById('main-img');
+  var mainEmoji = document.getElementById('main-emoji');
+  mainImg.alt  = alt;
+  mainImg.classList.remove('loaded');
+  mainImg.src  = src;
+  mainImg.onload = function() { this.classList.add('loaded'); mainEmoji.style.opacity = '0'; };
+  mainImg.onerror = function() { this.style.display = 'none'; mainEmoji.style.opacity = '1'; };
+  document.querySelectorAll('.gallery-thumb').forEach(function(t) { t.classList.remove('active'); });
+  thumb.classList.add('active');
+}
+
+// Handle ?qty= param from cross-page navigation
+var urlQty = parseInt(new URLSearchParams(window.location.search).get('qty') || '1', 10);
+if (urlQty > 1) { qty = urlQty; }
+updateCalc();
+</script>
+
+</body>
+</html>

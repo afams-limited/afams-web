@@ -88,6 +88,7 @@
     .badge-new        { background: #1565C0; color: #fff; }
     .badge-premium    { background: #7B1FA2; color: #fff; }
     .badge-preorder   { background: #F57C00; color: #fff; }
+    .badge-prosoil    { background: #2D6A4F; color: #fff; }
     .badge-indoor-safe { background: #1E7D34; color: #fff; left: auto; right: 0.85rem; }
     .product-body {
       padding: 1.5rem;
@@ -149,6 +150,17 @@
       font-size: 0.72rem;
       color: #718096;
       font-weight: 400;
+    }
+    .product-promo-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #E07B39;
+      background: #fff8e7;
+      border: 1px solid #E07B39;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      margin-top: 0.3rem;
+      display: inline-block;
     }
     .btn-order {
       padding: 0.65rem 1.25rem;
@@ -243,19 +255,26 @@
 <script>
 /* ── Products catalogue (shown when Supabase is not available) ── */
 const STATIC_PRODUCTS = [
-  { sku: 'FB-CLS-01', name: 'FarmBag Classic',   category: 'Flagship',   badge: 'flagship', emoji: '🌿',
+  { sku: 'FB-CLS-01', name: 'FarmBag Classic',   category: 'Flagship',        badge: 'flagship', emoji: '🌿',
     desc: '3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Zero soil mess.',
-    features: ['3 growing zones','Indoor safe'], priceKES: 7500, image: 'assets/images/farmbag-classic.jpg' },
-  { sku: 'FB-GRW-01', name: 'FarmBag Vertical',  category: 'Grow Cube™', badge: 'new',      emoji: '🌱',
+    features: ['3 growing zones','Indoor safe'], priceKES: 7500, image: 'assets/images/farmbag-classic.jpg',
+    link: 'checkout.html?sku=FB-CLS-01&name=FarmBag%20Classic&price=7500' },
+  { sku: 'FB-GRW-01', name: 'FarmBag Vertical',  category: 'Grow Cube™',      badge: 'new',      emoji: '🌱',
     desc: 'Classic upgraded with the Grow Cube™ inner basket. Plants grow in 5 directions — front, back, left, right, and upward. Zero soil mess. Fully indoor-safe on any floor.',
-    features: ['Grow Cube™ basket','5× yield surface','Indoor safe'], priceKES: 8500, image: 'assets/images/farmbag-vertical.jpg' },
+    features: ['Grow Cube™ basket','5× yield surface','Indoor safe'], priceKES: 8500, image: 'assets/images/farmbag-vertical.jpg',
+    link: 'checkout.html?sku=FB-GRW-01&name=FarmBag%20Vertical&price=8500' },
+  { sku: 'PS-25KG',   name: 'Afams ProSoil 25kg', category: 'Growing Medium',  badge: 'prosoil',  emoji: '🪴',
+    desc: 'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately.',
+    features: ['pH 6.2–6.8','Sterilised','Ready to plant','Made in Kenya'], priceKES: 399, image: 'assets/images/prosoil-front.jpg',
+    promoBadge: '🎁 Buy 1, get 1 FREE',
+    link: 'prosoil.html' },
 ];
 
 function renderProducts(products) {
   const grid = document.getElementById('products-grid');
   grid.innerHTML = products.map(p => {
     const badgeHtml = p.badge
-      ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : 'Pre-order'}</span>`
+      ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : 'Pre-order'}</span>`
       : '';
     const indoorSafe = (p.features || []).some(f => f.toLowerCase() === 'indoor safe');
     const indoorBadgeHtml = indoorSafe
@@ -283,10 +302,11 @@ function renderProducts(products) {
           <div class="product-footer">
             <div>
               <div class="product-price">KES ${(p.priceKES || p.unit_price || 0).toLocaleString()}</div>
-              <div class="product-price-sub">Pre-order · Ships in 3–5 days</div>
+              <div class="product-price-sub">${p.sku === 'PS-25KG' ? 'Per bag · Free delivery in Nairobi' : 'Pre-order · Ships in 3–5 days'}</div>
+              ${p.promoBadge ? `<span class="product-promo-badge">${p.promoBadge}</span>` : ''}
             </div>
-            <a href="checkout.html?sku=${encodeURIComponent(p.sku)}&name=${encodeURIComponent(p.name)}&price=${p.priceKES || p.unit_price || 0}"
-               class="btn-order">Order Now</a>
+            <a href="${p.link || 'checkout.html?sku=' + encodeURIComponent(p.sku) + '&name=' + encodeURIComponent(p.name) + '&price=' + (p.priceKES || p.unit_price || 0)}"
+               class="btn-order">${p.sku === 'PS-25KG' ? 'View & Order' : 'Order Now'}</a>
           </div>
         </div>
       </div>
