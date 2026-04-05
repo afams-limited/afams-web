@@ -639,6 +639,7 @@ const PRODUCTS = [
   { sku: 'FB-GRW-01', name: 'FarmBag Vertical',  price: 8500, emoji: '🌱', image: 'assets/images/farmbag-vertical.jpg' },
   { sku: 'PS-25KG',   name: 'Afams ProSoil 25kg', price: 399,  emoji: '🪴', image: 'assets/images/prosoil-front.jpg' },
 ];
+const PROSOIL_SKU = 'PS-25KG';
 
 // ── Read URL params: ?sku=FB-CLS-01&name=...&price=...
 const params = new URLSearchParams(window.location.search);
@@ -693,7 +694,8 @@ async function loadSeeds() {
       document.getElementById('seed-groups-container').innerHTML =
         '<div style="color:#888;font-size:0.82rem">Seed catalogue unavailable — seeds will be selected by our team.</div>';
     }
-  } catch (_) {
+  } catch (err) {
+    console.warn('[Afams] loadSeeds error:', err);
     document.getElementById('seed-groups-container').innerHTML =
       '<div style="color:#888;font-size:0.82rem">Seed catalogue unavailable — seeds will be selected by our team.</div>';
   }
@@ -865,7 +867,7 @@ function updateSummary() {
   var farmBagAddons     = document.getElementById('farmbag-addons');
   var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
   if (farmBagAddons)     farmBagAddons.style.display           = isFarmBag(p) ? '' : 'none';
-  if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', p.sku !== 'PS-25KG');
+  if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', p.sku !== PROSOIL_SKU);
 
   // Reset add-on state when switching away from FarmBag
   if (!isFarmBag(p)) {
