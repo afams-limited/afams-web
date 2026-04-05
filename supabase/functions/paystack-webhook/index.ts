@@ -120,6 +120,19 @@ Deno.serve(async (req: Request) => {
     const prosoil_promo_bag = metadata.prosoil_promo_bag === true || metadata.prosoil_promo_bag === "true";
     const addons_total      = parseInt(String(metadata.addons_total       ?? "0"), 10) || 0;
 
+    // Compute prosoil_promo_qty: from metadata if provided, otherwise derive from cart_items
+    let prosoil_promo_qty   = parseInt(String(metadata.prosoil_promo_qty  ?? "0"), 10) || 0;
+    if (!prosoil_promo_qty && metadata.cart_items) {
+      try {
+        const cartItems = JSON.parse(String(metadata.cart_items));
+        const hasFarmBag = Array.isArray(cartItems) &&
+          cartItems.some((i: any) => ["FB-CLS-01", "FB-GRW-01"].includes(i.sku));
+        if (hasFarmBag && prosoil_qty >= 3) {
+          prosoil_promo_qty = Math.floor(prosoil_qty / 3);
+        }
+      } catch { /* ignore parse errors */ }
+    }
+
     let free_seeds: unknown[] = [];
     let extra_seeds: unknown[] = [];
     try { free_seeds  = rawFreeSeeds  ? JSON.parse(rawFreeSeeds)  : []; } catch { free_seeds  = []; }
@@ -174,6 +187,7 @@ Deno.serve(async (req: Request) => {
       prosoil_qty:      prosoil_qty,
       prosoil_total:    prosoil_total,
       prosoil_promo_bag: prosoil_promo_bag,
+      prosoil_promo_qty: prosoil_promo_qty,
       addons_total:     addons_total,
     });
 

@@ -29,6 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+  <script src="js/cart.js"></script>
   <!-- Structured Data: Organisation + Product -->
   <script type="application/ld+json">
   {
@@ -97,7 +98,7 @@
       <a href="#contact" onclick="scrollTo('contact')">Contact</a>
     </div>
     <div class="nav-actions">
-      <div class="nav-cart" onclick="openCart()" title="View cart">
+      <div class="nav-cart" onclick="window.location.href='checkout.html'" title="View cart" style="cursor:pointer">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         <span class="cart-count" style="display:none">0</span>
       </div>
@@ -161,26 +162,26 @@
       <!-- PRODUCT HIGHLIGHT SLIDER -->
       <div class="hero-product-slider">
         <div class="hero-product-slider-track">
-          <a href="checkout.html?sku=FB-CLS-01&amp;name=FarmBag%20Classic&amp;price=7500" class="hero-product-slide hl-active" id="hl-slide-0">
+          <div class="hero-product-slide hl-active" id="hl-slide-0" style="cursor:pointer" onclick="addToCart({sku:'FB-CLS-01',name:'FarmBag Classic',unit_price:7500,qty:1,image:'assets/images/farmbag-classic.jpg',type:'farmbag'})">
             <div class="hero-product-slide-img">
               <img src="assets/images/farmbag-classic.jpg" alt="FarmBag Classic" onerror="this.parentElement.textContent='🌿'"/>
             </div>
             <div class="hero-product-slide-info">
               <div class="hero-product-slide-name">FarmBag Classic</div>
               <div class="hero-product-slide-price">KES 7,500 · Flagship</div>
-              <div class="hero-product-slide-cta">Pre-order →</div>
+              <div class="hero-product-slide-cta">Add to Cart →</div>
             </div>
-          </a>
-          <a href="checkout.html?sku=FB-GRW-01&amp;name=FarmBag%20Vertical&amp;price=8500" class="hero-product-slide" id="hl-slide-1">
+          </div>
+          <div class="hero-product-slide" id="hl-slide-1" style="cursor:pointer" onclick="addToCart({sku:'FB-GRW-01',name:'FarmBag Vertical',unit_price:8500,qty:1,image:'assets/images/farmbag-vertical.jpg',type:'farmbag'})">
             <div class="hero-product-slide-img">
               <img src="assets/images/farmbag-vertical.jpg" alt="FarmBag Vertical" onerror="this.parentElement.textContent='🌱'"/>
             </div>
             <div class="hero-product-slide-info">
               <div class="hero-product-slide-name">FarmBag Vertical</div>
               <div class="hero-product-slide-price">KES 8,500 · New</div>
-              <div class="hero-product-slide-cta">Pre-order →</div>
+              <div class="hero-product-slide-cta">Add to Cart →</div>
             </div>
-          </a>
+          </div>
         </div>
       </div>
     </div>
@@ -340,12 +341,12 @@
       <div class="how-card fade-up">
         <div class="how-num">5</div>
         <h3>Set up in 30 minutes</h3>
-        <p>Open the sealed packet. Unfold the bag. Insert the liner, net dividers, and Grow Cube basket. Fill the reservoir. Add your coir growing medium. Plant. Done.</p>
+        <p>Open the sealed packet. Unfold the bag. Insert the liner, net dividers, and Grow Cube basket. Fill the reservoir. Add Afams ProSoil growing medium. Plant. Done.</p>
       </div>
       <div class="how-card fade-up">
         <div class="how-num">6</div>
         <h3>Harvest in weeks</h3>
-        <p>Leafy greens in 3–4 weeks. Herbs in 2–3 weeks. Tomatoes in 8–10 weeks. Top up the reservoir, refill your coir, and keep growing season after season.</p>
+        <p>Leafy greens in 3–4 weeks. Herbs in 2–3 weeks. Tomatoes in 8–10 weeks. Top up the reservoir, refill your ProSoil, and keep growing season after season.</p>
       </div>
     </div>
   </div>
@@ -359,7 +360,7 @@
         <div class="story-tagline">Our story</div>
         <div class="story-title">Built in Nairobi.<br/>Farming into the future.</div>
         <div>
-          <p>Afams was founded in 2021 by Moses W. Mwombe in Nairobi, Kenya — with a clear and urgent mission: to make urban food production accessible to every household, school, restaurant, and office, regardless of land, water, or expertise.</p>
+          <p>Afams was founded in 2021 in Nairobi, Kenya — with a clear and urgent mission: to make urban food production accessible to every household, school, restaurant, and office, regardless of land, water, or expertise.</p>
           <p>We watched cities grow faster than their food systems. We watched urban Kenyans — and urban people everywhere — disconnected from the food they eat. We decided to build the bridge. Not with expensive technology. Not with complexity. With a bag.</p>
           <p>The FarmBag is that bridge. It folds flat. It ships anywhere. It grows anything. It waters itself. And it is growing into something that will one day feed people on Mars.</p>
         </div>
@@ -386,7 +387,7 @@
         <blockquote class="founder-quote">
           "I want to build a company that makes growing food as easy as charging your phone — and eventually, that feeds people on Mars. We start with a bag. We end with a movement."
         </blockquote>
-        <p class="founder-attribution">Moses W. Mwombe — Founder, Afams</p>
+        <p class="founder-attribution">— Founder, Afams</p>
       </div>
     </div>
   </div>

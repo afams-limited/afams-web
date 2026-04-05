@@ -505,29 +505,19 @@
     <div class="card">
       <h2>Order summary</h2>
 
-      <div class="product-selector">
-        <label for="s-product">Product</label>
-        <select id="s-product" autocomplete="off" onchange="updateSummary()">
-          <!-- populated by JS -->
-        </select>
+      <!-- Cart items (populated by JS) -->
+      <div id="cart-items-list"></div>
+
+      <!-- Empty cart message -->
+      <div id="empty-cart-msg" style="display:none;text-align:center;padding:1.5rem 0;">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem">🛒</div>
+        <p style="color:var(--gray-mid);margin-bottom:1rem">Your cart is empty.</p>
+        <a href="products.html" style="color:var(--green);font-weight:600;text-decoration:underline;">Browse products →</a>
       </div>
 
-      <div class="product-row" id="product-row">
-        <div class="product-thumb" id="product-thumb">🌿</div>
-        <div>
-          <div class="product-info-name" id="product-display-name">FarmBag Classic</div>
-          <div class="product-info-sku" id="product-display-sku">SKU: FB-CLS-01</div>
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
-            <input class="qty-val" id="qty" type="number" value="1" min="1" max="99" autocomplete="off" onchange="updateSummary()"/>
-            <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ProSoil standalone promo notice -->
+      <!-- ProSoil standalone promo notice (shown when only ProSoil in cart) -->
       <div id="prosoil-promo-notice" class="prosoil-checkout-promo hidden">
-        🎁 <strong>Buy 1 get 1 FREE</strong> — 1 bonus bag added per order, automatically. Ongoing offer.
+        🎁 <strong>Every 3 bags, 1 free</strong> — Add a FarmBag to your order to activate this promo.
       </div>
 
       <!-- Add-ons — FarmBag orders only -->
@@ -566,8 +556,8 @@
           <div class="prosoil-promo-banner">
             <span class="promo-icon">🎁</span>
             <div class="promo-text">
-              <strong>Buy 1 bag, get 1 FREE</strong>
-              <span>One bonus bag per order. Ongoing offer.</span>
+              <strong>Every 3 bags, get 1 FREE</strong>
+              <span id="prosoil-promo-banner-text">Exclusive for FarmBag customers.</span>
             </div>
           </div>
           <p class="prosoil-desc">
@@ -588,9 +578,9 @@
               <span id="prosoil-bags-label"></span>
               <span id="prosoil-bags-cost"></span>
             </div>
-            <div class="calc-row promo">
-              <span>🎁 Bonus bag (free)</span>
-              <span>+1 bag FREE</span>
+            <div class="calc-row promo" id="prosoil-promo-calc-row" style="display:none">
+              <span id="prosoil-promo-calc-label">🎁 Every 3 bags, 1 free</span>
+              <span id="prosoil-promo-calc-val">FREE</span>
             </div>
             <div class="calc-row total">
               <span>You receive</span>
@@ -601,14 +591,6 @@
 
       </div><!-- /farmbag-addons -->
 
-      <div class="summary-line">
-        <span class="label">Unit price</span>
-        <span id="unit-price-display">KES 7,500</span>
-      </div>
-      <div class="summary-line">
-        <span class="label">Quantity</span>
-        <span id="qty-display">× 1</span>
-      </div>
       <div class="summary-line" id="addon-seeds-line" style="display:none">
         <span class="label">Extra seeds</span>
         <span id="addon-seeds-cost">KES 0</span>
@@ -617,13 +599,17 @@
         <span class="label">ProSoil add-on</span>
         <span id="addon-prosoil-cost">KES 0</span>
       </div>
+      <div class="summary-line" id="promo-saving-line" style="display:none">
+        <span class="label" style="color:#2D6A4F">🎁 ProSoil promo saving</span>
+        <span id="promo-saving-val" style="color:#2D6A4F"></span>
+      </div>
       <div class="summary-line">
         <span class="label">Delivery</span>
         <span>Free</span>
       </div>
       <div class="summary-total">
         <span>Total</span>
-        <span id="total-display">KES 7,500</span>
+        <span id="total-display">KES 0</span>
       </div>
     </div>
   </div>
@@ -633,53 +619,112 @@
 <!-- Paystack Inline JS -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="assets/js/paystack-config.js"></script>
+<script src="js/cart.js"></script>
 <script>
-const PRODUCTS = [
-  { sku: 'FB-CLS-01', name: 'FarmBag Classic',   price: 7500, emoji: '🌿', image: 'assets/images/farmbag-classic.jpg' },
-  { sku: 'FB-GRW-01', name: 'FarmBag Vertical',  price: 8500, emoji: '🌱', image: 'assets/images/farmbag-vertical.jpg' },
-  { sku: 'PS-25KG',   name: 'Afams ProSoil 25kg', price: 399,  emoji: '🪴', image: 'assets/images/prosoil-front.jpg' },
-];
-const PROSOIL_SKU = 'PS-25KG';
+// ── Checkout logic — reads cart from sessionStorage via cart.js ────────────────
 
-// ── Read URL params: ?sku=FB-CLS-01&name=...&price=...
-const params = new URLSearchParams(window.location.search);
-const paramSku   = params.get('sku');
-const paramPrice = parseInt(params.get('price') || '0', 10);
-const paramName  = params.get('name');
-const paramQty   = parseInt(params.get('qty') || '0', 10);
-
-// ── Populate product selector
-const select = document.getElementById('s-product');
-PRODUCTS.forEach((p, i) => {
-  const opt = document.createElement('option');
-  opt.value = i;
-  opt.textContent = `${p.name} — KES ${p.price.toLocaleString()}`;
-  if (paramSku && p.sku === paramSku) opt.selected = true;
-  select.appendChild(opt);
-});
-
-// Apply URL qty param (e.g. from prosoil.html)
-if (paramQty > 1) {
-  const qtyInput = document.getElementById('qty');
-  if (qtyInput) qtyInput.value = paramQty;
-}
-
-function selectedProduct() {
-  return PRODUCTS[parseInt(select.value, 10)] || PRODUCTS[0];
-}
-
-function isFarmBag(product) {
-  return product.sku.startsWith('FB-');
-}
-
-// ── Add-on state ────────────────────────────────────────────────
-window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
-window.prosoilState = { qty: 0, total: 0, promoApplied: false };
-
-const SUPABASE_URL_CHECKOUT = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const PROSOIL_PRICE_CHECKOUT = 399;
+const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-// ── Seed Selector ───────────────────────────────────────────────
+// ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
+window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+
+function cartHasFarmBag() {
+  var cart = getCart();
+  return cart.items.some(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); });
+}
+
+function cartHasAnyItem() {
+  var cart = getCart();
+  return cart.items.length > 0;
+}
+
+// ── Render cart items list ────────────────────────────────────────────────────
+function renderCartItems() {
+  var cart     = getCart();
+  var listEl   = document.getElementById('cart-items-list');
+  var emptyEl  = document.getElementById('empty-cart-msg');
+  var payBtn   = document.getElementById('pay-btn');
+  var formEl   = document.getElementById('checkout-form');
+
+  if (!cart.items || cart.items.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display   = '';
+    if (payBtn)  payBtn.style.display  = 'none';
+    if (formEl)  formEl.style.display  = 'none';
+    return;
+  }
+
+  emptyEl.style.display   = 'none';
+  if (payBtn)  payBtn.style.display  = '';
+  if (formEl)  formEl.style.display  = '';
+
+  listEl.innerHTML = cart.items.map(function(item) {
+    var thumb = item.image
+      ? '<img src="' + item.image + '" alt="' + item.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent=\'🌿\'">'
+      : (item.type === 'prosoil' ? '🪴' : '🌿');
+    var subtotal = (item.unit_price * item.qty).toLocaleString();
+    return '<div class="product-row" style="align-items:flex-start;">'
+      + '<div class="product-thumb">' + thumb + '</div>'
+      + '<div style="flex:1;">'
+      + '<div class="product-info-name">' + item.name + '</div>'
+      + '<div class="product-info-sku">SKU: ' + item.sku + '</div>'
+      + '<div class="qty-control" style="margin-top:6px;">'
+      + '<button class="qty-btn" type="button" onclick="adjustCartQty(\'' + item.sku + '\',-1)">−</button>'
+      + '<span style="padding:0 10px;font-weight:700;">' + item.qty + '</span>'
+      + '<button class="qty-btn" type="button" onclick="adjustCartQty(\'' + item.sku + '\',1)">+</button>'
+      + '<button type="button" onclick="removeFromCart(\'' + item.sku + '\')" style="margin-left:8px;background:none;border:none;color:#718096;cursor:pointer;font-size:0.78rem;text-decoration:underline;">Remove</button>'
+      + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;white-space:nowrap;">'
+      + '<div style="font-size:0.8rem;color:#718096;">KES ' + item.unit_price.toLocaleString() + ' ea</div>'
+      + '<div style="font-weight:700;color:#1A2028;">KES ' + subtotal + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Show/hide FarmBag add-ons and ProSoil promo notice
+  var farmBagAddons      = document.getElementById('farmbag-addons');
+  var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
+  var hasFarmBag         = cartHasFarmBag();
+  var hasProsoilOnly     = !hasFarmBag && cart.items.some(function(i) { return i.sku === 'PS-25KG'; });
+
+  if (farmBagAddons)      farmBagAddons.style.display       = hasFarmBag ? '' : 'none';
+  if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', !hasProsoilOnly);
+
+  // Sync ProSoil add-on qty with cart
+  var prosoilItemInCart = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
+  var cartProsoilQty    = prosoilItemInCart ? prosoilItemInCart.qty : 0;
+  var qtyEl = document.getElementById('prosoil-qty');
+  if (qtyEl && parseInt(qtyEl.textContent, 10) !== cartProsoilQty) {
+    qtyEl.textContent = cartProsoilQty;
+    window.prosoilState = {
+      qty: cartProsoilQty,
+      total: cartProsoilQty * PROSOIL_PRICE_CHECKOUT,
+      promoApplied: hasFarmBag && cartProsoilQty >= 3
+    };
+    refreshProsoilCalcUI();
+  }
+
+  updateOrderTotals();
+}
+
+function adjustCartQty(sku, delta) {
+  var cart = getCart();
+  var item = cart.items.find(function(i) { return i.sku === sku; });
+  if (!item) return;
+  var newQty = Math.max(1, item.qty + delta);
+  updateQty(sku, newQty);
+  // cart-updated event fires, which re-renders
+}
+
+// Re-render on cart changes (including remove/adjust qty)
+window.addEventListener('afams:cart-updated', function() {
+  renderCartItems();
+});
+
+// ── Seed Selector ─────────────────────────────────────────────────────────────
 async function loadSeeds() {
   try {
     const res = await fetch(
@@ -796,17 +841,39 @@ function updateSeedSummary() {
     : '';
 }
 
-// ── ProSoil Add-on ──────────────────────────────────────────────
-const PROSOIL_PRICE = 399;
+// ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
+window.prosoilState = { qty: 0, total: 0, promoApplied: false };
 
 function changeProsoilQty(delta) {
-  var newQty = Math.max(0, window.prosoilState.qty + delta);
-  window.prosoilState.qty          = newQty;
-  window.prosoilState.promoApplied = newQty >= 1;
-  window.prosoilState.total        = newQty * PROSOIL_PRICE;
-  var qtyEl = document.getElementById('prosoil-qty');
+  var hasFarmBag = cartHasFarmBag();
+  var currentQty = window.prosoilState.qty;
+  var newQty     = Math.max(0, currentQty + delta);
+
+  // Sync with cart
+  if (newQty === 0) {
+    removeFromCart('PS-25KG');
+  } else if (currentQty === 0 && newQty > 0) {
+    addToCart({ sku: 'PS-25KG', name: 'Afams ProSoil 25kg', unit_price: PROSOIL_PRICE_CHECKOUT, qty: newQty, image: 'assets/images/prosoil-front.jpg', type: 'prosoil' });
+    return; // addToCart fires cart-updated → renderCartItems handles rest
+  } else {
+    updateQty('PS-25KG', newQty);
+    return; // updateQty fires cart-updated
+  }
+
+  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
+  window.prosoilState = { qty: newQty, total: newQty * PROSOIL_PRICE_CHECKOUT, promoApplied: promoBags > 0 };
+  refreshProsoilCalcUI();
+  updateOrderTotals();
+}
+
+function refreshProsoilCalcUI() {
+  var newQty    = window.prosoilState.qty;
+  var hasFarmBag = cartHasFarmBag();
+  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
+  var totalBags = newQty + promoBags;
+  var qtyEl     = document.getElementById('prosoil-qty');
+  var calc      = document.getElementById('prosoil-calc');
   if (qtyEl) qtyEl.textContent = newQty;
-  var calc  = document.getElementById('prosoil-calc');
   if (calc) {
     if (newQty === 0) {
       calc.classList.add('hidden');
@@ -815,94 +882,77 @@ function changeProsoilQty(delta) {
       var label = document.getElementById('prosoil-bags-label');
       var cost  = document.getElementById('prosoil-bags-cost');
       var recv  = document.getElementById('prosoil-total-bags');
-      if (label) label.textContent = newQty + ' bag' + (newQty > 1 ? 's' : '') + ' × KES ' + PROSOIL_PRICE;
+      var promoRow = document.getElementById('prosoil-promo-calc-row');
+      if (label) label.textContent = newQty + ' bag' + (newQty > 1 ? 's' : '') + ' × KES ' + PROSOIL_PRICE_CHECKOUT;
       if (cost)  cost.textContent  = 'KES ' + window.prosoilState.total.toLocaleString();
-      if (recv)  recv.textContent  = (newQty + 1) + ' bag' + (newQty + 1 > 1 ? 's' : '') + ' total';
+      if (recv)  recv.textContent  = totalBags + ' bag' + (totalBags > 1 ? 's' : '') + ' total';
+      if (promoRow) {
+        promoRow.style.display = promoBags > 0 ? '' : 'none';
+        var promoLabel = document.getElementById('prosoil-promo-calc-label');
+        if (promoLabel) promoLabel.textContent = '🎁 Every 3 bags, 1 free → +' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '');
+      }
     }
   }
-  updateOrderTotals();
+  // Update promo banner text
+  var bannerText = document.getElementById('prosoil-promo-banner-text');
+  if (bannerText) {
+    if (!hasFarmBag) {
+      bannerText.textContent = 'Add a FarmBag to your order to activate this promo.';
+    } else if (newQty > 0 && newQty < 3) {
+      bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag.';
+    } else if (promoBags > 0) {
+      bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '!';
+    } else {
+      bannerText.textContent = 'Exclusive for FarmBag customers.';
+    }
+  }
 }
 
-// ── Order totals ────────────────────────────────────────────────
+// ── Order totals ──────────────────────────────────────────────────────────────
 function updateOrderTotals() {
-  var p            = selectedProduct();
-  var qty          = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
-  var baseTotal    = p.price * qty;
-  var seedsTotal   = isFarmBag(p) ? (window.seedState?.extraTotal || 0) : 0;
-  var prosoilTotal = isFarmBag(p) ? (window.prosoilState?.total   || 0) : 0;
-  var addonTotal   = seedsTotal + prosoilTotal;
-  var grandTotal   = baseTotal + addonTotal;
+  var cart         = getCart();
+  var totals       = getCartTotals(cart);
+  var seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
+  var grandTotal   = totals.grandTotal + seedsTotal;
 
   // Add-on line items
-  var seedsLine    = document.getElementById('addon-seeds-line');
-  var seedsCost    = document.getElementById('addon-seeds-cost');
-  var prosoilLine  = document.getElementById('addon-prosoil-line');
-  var prosoilCost  = document.getElementById('addon-prosoil-cost');
-  if (seedsLine)  seedsLine.style.display   = (seedsTotal > 0)   ? '' : 'none';
-  if (seedsCost)  seedsCost.textContent     = 'KES ' + seedsTotal.toLocaleString();
-  if (prosoilLine) prosoilLine.style.display = (prosoilTotal > 0) ? '' : 'none';
-  if (prosoilCost) prosoilCost.textContent  = 'KES ' + prosoilTotal.toLocaleString();
+  var seedsLine   = document.getElementById('addon-seeds-line');
+  var seedsCost   = document.getElementById('addon-seeds-cost');
+  var prosoilLine = document.getElementById('addon-prosoil-line');
+  var prosoilCost = document.getElementById('addon-prosoil-cost');
+  var promoLine   = document.getElementById('promo-saving-line');
+  var promoVal    = document.getElementById('promo-saving-val');
+
+  if (seedsLine)  seedsLine.style.display  = seedsTotal > 0 ? '' : 'none';
+  if (seedsCost)  seedsCost.textContent    = 'KES ' + seedsTotal.toLocaleString();
+
+  var prosoilLineTotal = totals.itemsTotal - cart.items
+    .filter(function(i) { return i.sku !== 'PS-25KG'; })
+    .reduce(function(s, i) { return s + i.unit_price * i.qty; }, 0);
+  var prosoilItem = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
+  var prosoilCostAmt = prosoilItem ? prosoilItem.unit_price * prosoilItem.qty : 0;
+  if (prosoilLine) prosoilLine.style.display = prosoilCostAmt > 0 ? '' : 'none';
+  if (prosoilCost) prosoilCost.textContent   = 'KES ' + prosoilCostAmt.toLocaleString();
+
+  if (promoLine && promoVal) {
+    if (totals.promoSaving > 0) {
+      promoLine.style.display = '';
+      promoVal.textContent    = '− KES ' + totals.promoSaving.toLocaleString() + ' (free bag' + (totals.promoQty > 1 ? 's' : '') + ')';
+    } else {
+      promoLine.style.display = 'none';
+    }
+  }
 
   // Grand total display
   document.getElementById('total-display').textContent = 'KES ' + grandTotal.toLocaleString();
 
   // Pay button
   var btn = document.getElementById('pay-btn');
-  btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'
-    + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Card';
-
+  if (btn) {
+    btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'
+      + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Card';
+  }
   window.currentOrderAmount = grandTotal * 100;
-}
-
-function updateSummary() {
-  var p   = selectedProduct();
-  var qty = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
-
-  document.getElementById('product-display-name').textContent = p.name;
-  document.getElementById('product-display-sku').textContent  = 'SKU: ' + p.sku;
-  document.getElementById('unit-price-display').textContent   = 'KES ' + p.price.toLocaleString();
-  document.getElementById('qty-display').textContent          = '× ' + qty;
-
-  // Show/hide add-ons and promo notice based on product type
-  var farmBagAddons     = document.getElementById('farmbag-addons');
-  var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
-  if (farmBagAddons)     farmBagAddons.style.display           = isFarmBag(p) ? '' : 'none';
-  if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', p.sku !== PROSOIL_SKU);
-
-  // Reset add-on state when switching away from FarmBag
-  if (!isFarmBag(p)) {
-    window.seedState    = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
-    window.prosoilState = { qty: 0, total: 0, promoApplied: false };
-    var qtyEl = document.getElementById('prosoil-qty');
-    if (qtyEl) qtyEl.textContent = '0';
-    var calc = document.getElementById('prosoil-calc');
-    if (calc) calc.classList.add('hidden');
-    var seedSummary = document.getElementById('seed-summary');
-    if (seedSummary) seedSummary.classList.add('hidden');
-  }
-
-  // Update thumb
-  var thumb = document.getElementById('product-thumb');
-  if (p.image) {
-    var img = document.createElement('img');
-    img.alt = p.name;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px';
-    img.onerror = function() { thumb.removeChild(this); thumb.textContent = p.emoji; };
-    thumb.innerHTML = '';
-    thumb.appendChild(img);
-    img.src = p.image;
-  } else {
-    thumb.textContent = p.emoji;
-  }
-
-  updateOrderTotals();
-}
-
-function changeQty(delta) {
-  const el  = document.getElementById('qty');
-  const val = Math.max(1, Math.min(99, (parseInt(el.value, 10) || 1) + delta));
-  el.value  = val;
-  updateSummary();
 }
 
 function showError(msg) {
@@ -930,6 +980,11 @@ function launchPaystack() {
     return showError('Please enter a valid email address.');
   }
 
+  const cart = getCart();
+  if (!cart.items || cart.items.length === 0) {
+    return showError('Your cart is empty. Please add a product before paying.');
+  }
+
   const paystackKey = window.__PAYSTACK_PUBLIC_KEY;
   if (!paystackKey) {
     return showError(
@@ -937,21 +992,25 @@ function launchPaystack() {
     );
   }
 
-  const product = selectedProduct();
-  const qty     = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
-  const baseTotal = product.price * qty;
-  const seedsAddonTotal   = isFarmBag(product) ? (window.seedState?.extraTotal  || 0) : 0;
-  const prosoilAddonTotal = isFarmBag(product) ? (window.prosoilState?.total    || 0) : 0;
-  const addonTotal  = seedsAddonTotal + prosoilAddonTotal;
-  const grandTotal  = baseTotal + addonTotal;
+  const totals       = getCartTotals(cart);
+  const seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
+  const grandTotal   = totals.grandTotal + seedsTotal;
+
+  const hasFarmBag     = cartHasFarmBag();
+  const freeSeeds      = hasFarmBag ? (window.seedState?.freePackets  || []) : [];
+  const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []) : [];
+  const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
+  const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
+  const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
+  const prosoilPromoQty = totals.promoQty || 0;
+  const prosoilPromo   = prosoilPromoQty > 0;
+  const addonTotal     = seedsTotal + prosoilTotal;
+
+  // Primary product for backward-compat fields (first FarmBag, or first item)
+  const primaryItem    = cart.items.find(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); }) || cart.items[0];
 
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
-
-  const freeSeeds   = window.seedState?.freePackets  || [];
-  const extraSeeds  = window.seedState?.extraPackets || [];
-  const prosoilQty  = isFarmBag(product) ? (window.prosoilState?.qty || 0) : 0;
-  const prosoilPromo = prosoilQty >= 1;
 
   const handler = PaystackPop.setup({
     key:      paystackKey,
@@ -963,31 +1022,34 @@ function launchPaystack() {
       customer_name:    name,
       customer_email:   email,
       customer_phone:   phone,
-      product_sku:      product.sku,
-      product_name:     product.name,
-      quantity:         qty,
-      unit_price:       product.price,
+      product_sku:      primaryItem.sku,
+      product_name:     primaryItem.name,
+      quantity:         primaryItem.qty,
+      unit_price:       primaryItem.unit_price,
       delivery_address: address,
       county:           county,
+      cart_items:       JSON.stringify(cart.items),
       free_seeds:       JSON.stringify(freeSeeds),
       extra_seeds:      JSON.stringify(extraSeeds),
       extra_seeds_count: extraSeeds.length,
-      extra_seeds_total: seedsAddonTotal,
+      extra_seeds_total: seedsTotal,
       prosoil_qty:      prosoilQty,
-      prosoil_total:    prosoilAddonTotal,
+      prosoil_total:    prosoilTotal,
       prosoil_promo_bag: prosoilPromo,
+      prosoil_promo_qty: prosoilPromoQty,
       addons_total:     addonTotal,
       custom_fields: [
         { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
         { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
         { display_name: 'Delivery County',  variable_name: 'county',           value: county  },
         { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
-        { display_name: 'Product',          variable_name: 'product_name',     value: product.name + ' ×' + qty },
+        { display_name: 'Cart Items',       variable_name: 'cart_items',       value: cart.items.map(function(i) { return i.name + ' ×' + i.qty; }).join(', ') },
         { display_name: 'Add-ons Total',    variable_name: 'addons_total',     value: addonTotal > 0 ? 'KES ' + addonTotal : 'None' },
         { display_name: 'Order Type',       variable_name: 'order_type',       value: 'PRE-ORDER' },
       ],
     },
     callback: function(response) {
+      clearCart();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference)
         + '&name=' + encodeURIComponent(name)
         + '&email=' + encodeURIComponent(email)
@@ -1002,10 +1064,13 @@ function launchPaystack() {
 }
 
 // Initial render
-updateSummary();
+renderCartItems();
 
-// Load seeds (for FarmBag add-on) — runs in background; non-blocking
-loadSeeds();
+// Load seeds (for FarmBag add-on) — non-blocking
+if (cartHasFarmBag()) { loadSeeds(); }
+window.addEventListener('afams:cart-updated', function() {
+  if (cartHasFarmBag()) { loadSeeds(); }
+});
 
 document.getElementById('checkout-form').addEventListener('submit', function (e) {
   e.preventDefault();
