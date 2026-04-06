@@ -1098,7 +1098,7 @@ function launchPaystack() {
 
   if (!name)  { return showError('Please enter your full name.'); }
   if (!phone) { return showError('Please enter your phone number.'); }
-  if (!/^[+\d][\d\s().-]{6,14}$/.test(phone)) {
+  if (phone.replace(/\D/g, '').length < 7 || phone.replace(/\D/g, '').length > 15) {
     return showError('Please enter a valid phone number (e.g. +254 7XX XXX XXX).');
   }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
