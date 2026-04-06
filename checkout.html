@@ -456,8 +456,8 @@
       </div>
 
       <div class="form-group">
-        <label for="f-address">Delivery address</label>
-        <input type="text" id="f-address" placeholder="Building, street, area" autocomplete="street-address"/>
+        <label for="f-address">Delivery address <span class="req">*</span></label>
+        <input type="text" id="f-address" placeholder="Building, street, area" autocomplete="street-address" required/>
       </div>
 
       <div class="form-row">
@@ -1094,13 +1094,17 @@ function launchPaystack() {
   const phone   = document.getElementById('f-phone').value.trim();
   const email   = document.getElementById('f-email').value.trim();
   const address = document.getElementById('f-address').value.trim();
-  const county  = document.getElementById('f-county').value;
+  const county  = document.getElementById('f-county').value.trim();
 
   if (!name)  { return showError('Please enter your full name.'); }
   if (!phone) { return showError('Please enter your phone number.'); }
+  if (!/^[+\d][\d\s().-]{6,14}$/.test(phone)) {
+    return showError('Please enter a valid phone number (e.g. +254 7XX XXX XXX).');
+  }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return showError('Please enter a valid email address.');
   }
+  if (!address) { return showError('Please enter your delivery address.'); }
 
   const cart = getCart();
   if (!cart.items || cart.items.length === 0) {
