@@ -292,11 +292,14 @@ function renderProducts(products) {
       ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded');this.parentElement.querySelector('.product-emoji').style.opacity='0';"/><span class="product-emoji">${p.emoji || '🌿'}</span>`
       : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
 
-    // ProSoil links to its product page; FarmBags use add-to-cart
+    // ProSoil links to its product page; FarmBags get Add-to-Cart + Order Now
     const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.priceKES || p.unit_price || 0, qty: 1, image: p.image || '', type: p.type || 'product' });
     const actionHtml = p.link
       ? `<a href="${p.link}" class="btn-order">View &amp; Order</a>`
-      : `<button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}'>Add to Cart</button>`;
+      : `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
+           <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
+           <a href="checkout.html?sku=${p.sku}&qty=1" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">Order Now →</a>
+         </div>`;
 
     return `
       <div class="product-card">
@@ -325,29 +328,27 @@ function renderProducts(products) {
 }
 async function loadProducts() {
   // Try to load active products from Supabase
-  const supabaseUrl  = window.__SUPABASE_URL || 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const anonKey      = window.__SUPABASE_ANON_KEY;
+  const supabaseUrl  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+  const anonKey      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-  if (anonKey) {
-    try {
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/products?active=eq.true&order=sku`,
-        { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
-      );
-      if (res.ok) {
-        const rows = await res.json();
-        if (Array.isArray(rows) && rows.length > 0) {
-          // Map Supabase rows to display format using static catalogue for enrichment
-          const enriched = rows.map(row => {
-            const s = STATIC_PRODUCTS.find(p => p.sku === row.sku) || {};
-            return { ...s, ...row, priceKES: row.unit_price };
-          });
-          renderProducts(enriched);
-          return;
-        }
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/products?active=eq.true&order=sku`,
+      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
+    );
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        // Map Supabase rows to display format using static catalogue for enrichment
+        const enriched = rows.map(row => {
+          const s = STATIC_PRODUCTS.find(p => p.sku === row.sku) || {};
+          return { ...s, ...row, priceKES: row.unit_price };
+        });
+        renderProducts(enriched);
+        return;
       }
-    } catch (_) { /* fall through to static products */ }
-  }
+    }
+  } catch (_) { /* fall through to static products */ }
 
   // Fallback: render the static catalogue
   renderProducts(STATIC_PRODUCTS);
