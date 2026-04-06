@@ -58,63 +58,95 @@ const PRODUCTS = [
 ];
 
 // ── CART STATE ────────────────────────────────────────────────────
-let cart = JSON.parse(localStorage.getItem('afams_cart') || '[]');
+// Cart is managed by js/cart.js (sessionStorage key 'afams_cart').
+// app.js delegates all storage to cart.js functions: getCart(), saveCart(), etc.
 
-function saveCart() {
-  localStorage.setItem('afams_cart', JSON.stringify(cart));
-}
+// Product-card string IDs → canonical SKUs used by cart.js / checkout.html
+var PRODUCT_ID_TO_SKU = {
+  'fb-classic':  'FB-CLS-01',
+  'fb-vertical': 'FB-GRW-01',
+};
 
 function cartTotal() {
-  return cart.reduce((sum, item) => sum + item.priceKES * item.qty, 0);
+  return getCartTotals(getCart()).grandTotal;
 }
 
 function cartCount() {
-  return cart.reduce((sum, item) => sum + item.qty, 0);
+  return getCart().items.reduce(function(sum, i) { return sum + i.qty; }, 0);
 }
 
-function addToCart(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return;
-  const existing = cart.find(i => i.id === productId);
-  if (existing) {
-    existing.qty += 1;
+function addToCart(arg) {
+  var cartItem;
+
+  if (typeof arg === 'string') {
+    // Legacy format: addToCart('fb-classic') — used by product-card buttons
+    var product = PRODUCTS.find(function(p) { return p.id === arg; });
+    if (!product) return;
+    cartItem = {
+      sku:        PRODUCT_ID_TO_SKU[arg] || arg.toUpperCase(),
+      name:       product.name,
+      unit_price: product.priceKES,
+      qty:        1,
+      image:      product.image,
+      type:       'farmbag',
+    };
+  } else if (arg && typeof arg === 'object') {
+    // Object format: addToCart({sku, name, unit_price, qty, image, type})
+    cartItem = Object.assign({}, arg, { qty: arg.qty || 1 });
   } else {
-    cart.push({ ...product, qty: 1 });
+    return;
   }
-  saveCart();
+
+  // Add to cart using cart.js data model (sessionStorage)
+  var cartData = getCart();
+  var existing = cartData.items.find(function(i) { return i.sku === cartItem.sku; });
+  if (existing) {
+    existing.qty += cartItem.qty;
+  } else {
+    cartData.items.push(cartItem);
+  }
+  cartData.prosoilPromoBags = computeProsoilPromo(cartData);
+  saveCart(cartData);
+  showCartToast(cartItem.name);
   updateCartUI();
-  showToast('✓ Added to cart — ' + product.name);
-  // Flash button
-  const btn = document.querySelector(`[data-product="${productId}"]`);
-  if (btn) {
-    btn.classList.add('added');
-    btn.textContent = '✓ Added';
-    setTimeout(() => {
-      btn.classList.remove('added');
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Pre-Order`;
-    }, 1500);
+
+  // Flash product-card button (only for string-ID calls)
+  if (typeof arg === 'string') {
+    var btn = document.querySelector('[data-product="' + arg + '"]');
+    if (btn) {
+      btn.classList.add('added');
+      btn.textContent = '✓ Added';
+      setTimeout(function() {
+        btn.classList.remove('added');
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Pre-Order';
+      }, 1500);
+    }
   }
 }
 
-function removeFromCart(productId) {
-  cart = cart.filter(i => i.id !== productId);
-  saveCart();
+function removeFromCart(sku) {
+  var cartData = getCart();
+  cartData.items = cartData.items.filter(function(i) { return i.sku !== sku; });
+  cartData.prosoilPromoBags = computeProsoilPromo(cartData);
+  saveCart(cartData);
   updateCartUI();
   renderCartItems();
 }
 
-function updateQty(productId, delta) {
-  const item = cart.find(i => i.id === productId);
+function updateQty(sku, delta) {
+  var cartData = getCart();
+  var item = cartData.items.find(function(i) { return i.sku === sku; });
   if (!item) return;
   item.qty = Math.max(1, item.qty + delta);
-  saveCart();
+  cartData.prosoilPromoBags = computeProsoilPromo(cartData);
+  saveCart(cartData);
   updateCartUI();
   renderCartItems();
 }
 
 function updateCartUI() {
-  const count = cartCount();
-  document.querySelectorAll('.cart-count').forEach(el => {
+  var count = cartCount();
+  document.querySelectorAll('.cart-count').forEach(function(el) {
     el.textContent = count;
     el.style.display = count > 0 ? 'flex' : 'none';
   });
@@ -127,7 +159,7 @@ function buildCartThumb(item) {
     const img = document.createElement('img');
     img.src = item.image;
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
-    img.onerror = function() { this.style.display = 'none'; wrap.textContent = item.emoji; };
+    img.onerror = function() { this.style.display = 'none'; wrap.textContent = item.emoji || '🌿'; };
     wrap.appendChild(img);
   } else {
     wrap.textContent = item.emoji;
@@ -136,40 +168,40 @@ function buildCartThumb(item) {
 }
 
 function renderCartItems() {
-  const container = document.getElementById('cart-items');
+  var container = document.getElementById('cart-items');
   if (!container) return;
 
-  if (cart.length === 0) {
-    container.innerHTML = `
-      <div class="cart-empty">
-        <div class="cart-empty-icon">🛒</div>
-        <p style="font-weight:600;color:var(--gray-dark);margin-bottom:0.5rem">Your cart is empty</p>
-        <p style="font-size:0.85rem;color:var(--gray-mid)">Add a FarmBag to get started</p>
-      </div>`;
+  var cartData = getCart();
+  if (!cartData.items || cartData.items.length === 0) {
+    container.innerHTML = '<div class="cart-empty">'
+      + '<div class="cart-empty-icon">🛒</div>'
+      + '<p style="font-weight:600;color:var(--gray-dark);margin-bottom:0.5rem">Your cart is empty</p>'
+      + '<p style="font-size:0.85rem;color:var(--gray-mid)">Add a FarmBag to get started</p>'
+      + '</div>';
     document.getElementById('checkout-btn').disabled = true;
     document.getElementById('cart-total').textContent = 'KES 0';
     return;
   }
 
-  container.innerHTML = cart.map(item => `
-    <div class="cart-item" data-id="${item.id}">
-      <div class="cart-item-img-slot"></div>
-      <div class="cart-item-info">
-        <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-price">KES ${(item.priceKES).toLocaleString()} each</div>
-        <div class="cart-item-qty">
-          <button class="qty-btn" onclick="updateQty('${item.id}', -1)">−</button>
-          <span class="qty-val">${item.qty}</span>
-          <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
-        </div>
-      </div>
-      <button class="cart-item-del" onclick="removeFromCart('${item.id}')" title="Remove">×</button>
-    </div>
-  `).join('');
+  container.innerHTML = cartData.items.map(function(item) {
+    return '<div class="cart-item" data-sku="' + item.sku + '">'
+      + '<div class="cart-item-img-slot"></div>'
+      + '<div class="cart-item-info">'
+      + '<div class="cart-item-name">' + item.name + '</div>'
+      + '<div class="cart-item-price">KES ' + item.unit_price.toLocaleString() + ' each</div>'
+      + '<div class="cart-item-qty">'
+      + '<button class="qty-btn" onclick="updateQty(\'' + item.sku + '\', -1)">−</button>'
+      + '<span class="qty-val">' + item.qty + '</span>'
+      + '<button class="qty-btn" onclick="updateQty(\'' + item.sku + '\', 1)">+</button>'
+      + '</div>'
+      + '</div>'
+      + '<button class="cart-item-del" onclick="removeFromCart(\'' + item.sku + '\')" title="Remove">×</button>'
+      + '</div>';
+  }).join('');
 
   // Inject product thumbnails safely via DOM (avoids inline HTML injection)
-  cart.forEach(item => {
-    const row = container.querySelector(`[data-id="${item.id}"] .cart-item-img-slot`);
+  cartData.items.forEach(function(item) {
+    var row = container.querySelector('[data-sku="' + item.sku + '"] .cart-item-img-slot');
     if (row) row.replaceWith(buildCartThumb(item));
   });
 
@@ -191,141 +223,12 @@ function closeCart() {
   document.body.style.overflow = '';
 }
 
-// ── CHECKOUT MODAL ────────────────────────────────────────────────
-function openCheckout() {
-  closeCart();
-  renderOrderSummary();
-  document.getElementById('checkout-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeCheckout() {
-  document.getElementById('checkout-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function renderOrderSummary() {
-  const container = document.getElementById('order-summary-mini');
-  if (!container) return;
-  const shipping = 0; // free
-  const total = cartTotal();
-  container.innerHTML = `
-    ${cart.map(item => `
-      <div class="order-mini-row">
-        <span>${item.emoji} ${item.name} × ${item.qty}</span>
-        <span>KES ${(item.priceKES * item.qty).toLocaleString()}</span>
-      </div>`).join('')}
-    <div class="order-mini-row">
-      <span>Shipping (Nairobi)</span>
-      <span style="color:var(--g-mid)">Free</span>
-    </div>
-    <div class="order-mini-row total">
-      <span>Total (KES)</span>
-      <span>KES ${total.toLocaleString()}</span>
-    </div>
-    <div style="font-size:0.75rem;color:var(--gray-mid);margin-top:0.5rem">
-      ≈ GBP ${Math.round(total / 132).toLocaleString()} · USD ${Math.round(total / 130).toLocaleString()}
-    </div>
-  `;
-  document.getElementById('pay-btn-amount').textContent = 'KES ' + total.toLocaleString();
-}
-
-// ── PAYSTACK PAYMENT ──────────────────────────────────────────────
-function initiatePayment() {
-  const name    = document.getElementById('f-name').value.trim();
-  const email   = document.getElementById('f-email').value.trim();
-  const phone   = document.getElementById('f-phone').value.trim();
-  const county  = document.getElementById('f-county').value.trim();
-  const address = document.getElementById('f-address').value.trim();
-  const notes   = document.getElementById('f-notes').value.trim();
-
-  if (!name || !email || !phone || !address) {
-    showToast('⚠️ Please fill all required fields');
-    return;
-  }
-  if (!email.includes('@')) {
-    showToast('⚠️ Please enter a valid email address');
-    return;
-  }
-
-  if (!AFAMS.paystackKey) {
-    showToast('⚠️ Payment gateway is not configured. Please contact orders@afams.co.ke');
-    return;
-  }
-
-  const amountKobo = cartTotal() * 100; // Paystack uses kobo/cents
-  const reference = 'AFAMS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-
-  // Build product snapshot for webhook (schema stores one row per order)
-  const totalQty  = cart.reduce((s, i) => s + i.qty, 0);
-  const isSingle  = cart.length === 1;
-  const snapName  = isSingle
-    ? cart[0].name
-    : cart.map(i => `${i.name} ×${i.qty}`).join(', ');
-  const snapSku   = isSingle ? cart[0].id   : null;
-  const snapPrice = isSingle ? cart[0].priceKES : 0;
-  // For multi-item carts, unit_price is stored as 0 (NOT NULL constraint).
-  // The authoritative total is total_amount, set from Paystack's verified amount.
-
-  const metadata = {
-    // ── Top-level keys read directly by the webhook ────────────────
-    customer_name:    name,
-    customer_phone:   phone,
-    delivery_address: address,
-    county:           county,
-    product_name:     snapName,
-    product_sku:      snapSku,
-    quantity:         totalQty,
-    unit_price:       snapPrice,
-    // ── Paystack dashboard display ─────────────────────────────────
-    custom_fields: [
-      { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
-      { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
-      { display_name: 'Delivery County',  variable_name: 'county',           value: county  },
-      { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
-      { display_name: 'Order Items',      variable_name: 'items',            value: cart.map(i => `${i.name} x${i.qty}`).join(', ') },
-      { display_name: 'Order Type',       variable_name: 'order_type',       value: 'PRE-ORDER' },
-    ],
-  };
-
-  const handler = PaystackPop.setup({
-    key:      AFAMS.paystackKey,
-    email,
-    amount:   amountKobo,
-    currency: 'KES',
-    ref:      reference,
-    metadata,
-    label: 'Afams FarmBag Pre-Order',
-    onClose: () => {
-      showToast('Payment cancelled — your cart is saved');
-    },
-    callback: (transaction) => {
-      cart = [];
-      saveCart();
-      updateCartUI();
-      window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(transaction.reference || reference)
-        + '&name=' + encodeURIComponent(name)
-        + '&email=' + encodeURIComponent(email)
-        + '&amount=' + cartTotal();
-    },
-  });
-
-  handler.openIframe();
-}
-
-// ── SUCCESS MODAL ─────────────────────────────────────────────────
-function showSuccessModal(ref, name, email) {
-  const modal = document.getElementById('success-overlay');
-  document.getElementById('order-ref-display').textContent = ref;
-  document.getElementById('success-name').textContent = name.split(' ')[0];
-  document.getElementById('success-email').textContent = email;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeSuccess() {
-  document.getElementById('success-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+// ── CHECKOUT ──────────────────────────────────────────────────────
+function proceedToCheckout() {
+  var cartData = getCart();
+  if (!cartData.items || cartData.items.length === 0) return;
+  // Cart is already in sessionStorage via cart.js — navigate to checkout page
+  window.location.href = 'checkout.html';
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────
