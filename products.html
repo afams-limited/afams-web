@@ -342,8 +342,14 @@ async function loadProducts() {
         // Map Supabase rows to display format using static catalogue for enrichment
         const enriched = rows.map(row => {
           const s = STATIC_PRODUCTS.find(p => p.sku === row.sku) || {};
-          // Preserve static link/type/badge so a DB null doesn't strip them
-          return { ...s, ...row, priceKES: row.unit_price, link: row.link ?? s.link ?? null, type: row.type ?? s.type ?? 'product', badge: row.badge ?? s.badge ?? null };
+          // Spread DB row over static defaults, then restore display-only fields
+          // (link, type, badge) that have no DB column — ?? prevents a future
+          // nullable column from silently overwriting the static fallback values.
+          const merged = { ...s, ...row, priceKES: row.unit_price };
+          merged.link  = row.link  ?? s.link  ?? null;
+          merged.type  = row.type  ?? s.type  ?? 'product';
+          merged.badge = row.badge ?? s.badge ?? null;
+          return merged;
         });
         renderProducts(enriched);
         return;

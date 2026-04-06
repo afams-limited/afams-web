@@ -703,7 +703,10 @@ const CHECKOUT_PRODUCTS = {
 };
 
 // ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
-window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+const INITIAL_SEED_STATE    = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+const INITIAL_PROSOIL_STATE = { qty: 0, total: 0, promoApplied: false };
+window.seedState    = Object.assign({}, INITIAL_SEED_STATE);
+window.prosoilState = Object.assign({}, INITIAL_PROSOIL_STATE);
 
 function cartHasFarmBag() {
   var cart = getCart();
@@ -770,8 +773,8 @@ function renderCartItems() {
 
   // When FarmBag is removed, reset seed and ProSoil state so stale data doesn't affect totals
   if (!hasFarmBag) {
-    window.seedState    = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
-    window.prosoilState = { qty: 0, total: 0, promoApplied: false };
+    window.seedState    = Object.assign({}, INITIAL_SEED_STATE);
+    window.prosoilState = Object.assign({}, INITIAL_PROSOIL_STATE);
     _seedsRendered = false; // Allow seed groups to re-render if FarmBag is added again
     _seedsLoading  = false;
   } else {
@@ -971,8 +974,6 @@ function updateSeedSummary() {
 }
 
 // ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
-window.prosoilState = { qty: 0, total: 0, promoApplied: false };
-
 function changeProsoilQty(delta) {
   var hasFarmBag = cartHasFarmBag();
   var currentQty = window.prosoilState.qty;
