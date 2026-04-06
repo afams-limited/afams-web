@@ -768,10 +768,12 @@ function renderCartItems() {
   if (farmBagAddons)      farmBagAddons.style.display       = hasFarmBag ? '' : 'none';
   if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', !hasProsoilOnly);
 
-  // When FarmBag is removed, reset seed state so stale data doesn't affect totals
+  // When FarmBag is removed, reset seed and ProSoil state so stale data doesn't affect totals
   if (!hasFarmBag) {
-    window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+    window.seedState    = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+    window.prosoilState = { qty: 0, total: 0, promoApplied: false };
     _seedsRendered = false; // Allow seed groups to re-render if FarmBag is added again
+    _seedsLoading  = false;
   } else {
     // Load seeds only if not already rendered
     loadSeeds();
@@ -810,9 +812,11 @@ window.addEventListener('afams:cart-updated', function() {
 
 // ── Seed Selector ─────────────────────────────────────────────────────────────
 var _seedsRendered = false;
+var _seedsLoading  = false;
 
 async function loadSeeds() {
-  if (_seedsRendered) return; // Already rendered — don't wipe user selections
+  if (_seedsRendered || _seedsLoading) return; // already rendered or fetch in-flight
+  _seedsLoading = true;
   try {
     const res = await fetch(
       `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=group_number,sort_order`,
@@ -829,11 +833,13 @@ async function loadSeeds() {
     if (Array.isArray(seeds) && seeds.length > 0) {
       renderSeedGroups(seeds);
       _seedsRendered = true;
+      _seedsLoading  = false;
     } else {
       renderStaticSeedGroups();
     }
   } catch (err) {
     console.warn('[Afams] loadSeeds error, using static fallback:', err);
+    _seedsLoading = false;
     renderStaticSeedGroups();
   }
 }
@@ -850,6 +856,7 @@ function renderStaticSeedGroups() {
   });
   renderSeedGroups(rows);
   _seedsRendered = true;
+  _seedsLoading  = false;
 }
 
 function renderSeedGroups(seeds) {
@@ -974,6 +981,7 @@ function changeProsoilQty(delta) {
   // Sync with cart
   if (newQty === 0) {
     removeFromCart('PS-25KG');
+    return; // cart-updated fires → renderCartItems handles state + UI refresh
   } else if (currentQty === 0 && newQty > 0) {
     addToCart({ sku: 'PS-25KG', name: 'Afams ProSoil 25kg', unit_price: PROSOIL_PRICE_CHECKOUT, qty: newQty, image: 'assets/images/prosoil-front.jpg', type: 'prosoil' });
     return; // addToCart fires cart-updated → renderCartItems handles rest
@@ -981,11 +989,6 @@ function changeProsoilQty(delta) {
     updateQty('PS-25KG', newQty);
     return; // updateQty fires cart-updated
   }
-
-  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
-  window.prosoilState = { qty: newQty, total: newQty * PROSOIL_PRICE_CHECKOUT, promoApplied: promoBags > 0 };
-  refreshProsoilCalcUI();
-  updateOrderTotals();
 }
 
 function refreshProsoilCalcUI() {
@@ -1048,9 +1051,6 @@ function updateOrderTotals() {
   if (seedsLine)  seedsLine.style.display  = seedsTotal > 0 ? '' : 'none';
   if (seedsCost)  seedsCost.textContent    = 'KES ' + seedsTotal.toLocaleString();
 
-  var prosoilLineTotal = totals.itemsTotal - cart.items
-    .filter(function(i) { return i.sku !== 'PS-25KG'; })
-    .reduce(function(s, i) { return s + i.unit_price * i.qty; }, 0);
   var prosoilItem = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   var prosoilCostAmt = prosoilItem ? prosoilItem.unit_price * prosoilItem.qty : 0;
   if (prosoilLine) prosoilLine.style.display = prosoilCostAmt > 0 ? '' : 'none';
