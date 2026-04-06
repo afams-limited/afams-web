@@ -471,19 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const hero = document.querySelector('.hero');
   if (hero) heroObserver.observe(hero);
 
-  // Scroll-to-top button
-  const scrollTopBtn = document.getElementById('scroll-top-btn');
-  function updateScrollTop() {
-    if (!scrollTopBtn) return;
-    scrollTopBtn.classList.toggle('visible', window.scrollY >= 300);
-  }
-  window.addEventListener('scroll', updateScrollTop, { passive: true });
-  updateScrollTop();
 });
-
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
 // ============================================================
 // SUPPORT MODAL SYSTEM
