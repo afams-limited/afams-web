@@ -311,12 +311,23 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      cursor: pointer;
+      user-select: none;
     }
-    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; }
+    .seed-group-header:hover .seed-group-label { color: #1a4d38; }
+    .seed-group-chevron {
+      font-size: 0.75rem;
+      color: #2D6A4F;
+      margin-left: 8px;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+    .seed-group.sg-open .seed-group-chevron { transform: rotate(180deg); }
+    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; flex: 1; }
     .seed-group-status { font-size: 0.72rem; color: #888; }
     .seed-group-status.selected { color: #2D6A4F; font-weight: 600; }
-    .seed-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .seed-pills { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .seed-group.sg-open .seed-pills { display: flex; }
     .seed-pill {
       cursor: pointer;
       border: 1.5px solid rgba(45,106,79,0.27);
@@ -753,7 +764,7 @@ function renderCartItems() {
       + '</div>'
       + '</div>'
       + '<div style="text-align:right;white-space:nowrap;">'
-      + '<div style="font-size:0.8rem;color:#718096;">KES ' + item.unit_price.toLocaleString() + ' ea</div>'
+      + '<div style="font-size:0.8rem;color:#718096;">KES ' + item.unit_price.toLocaleString() + ' each</div>'
       + '<div style="font-weight:700;color:#1A2028;">KES ' + subtotal + '</div>'
       + '</div>'
       + '</div>';
@@ -863,9 +874,10 @@ function renderSeedGroups(seeds) {
   container.innerHTML = Object.entries(groups).map(function(entry) {
     var gNum = entry[0], gData = entry[1];
     return '<div class="seed-group" data-group="' + gNum + '">'
-      + '<div class="seed-group-header">'
+      + '<div class="seed-group-header" onclick="toggleSeedGroup(' + gNum + ')">'
       + '<span class="seed-group-label">' + (groupEmojis[gNum] || '') + ' ' + gData.name + '</span>'
       + '<span class="seed-group-status" id="status-group-' + gNum + '">None selected</span>'
+      + '<span class="seed-group-chevron">▾</span>'
       + '</div>'
       + '<div class="seed-pills">'
       + gData.seeds.map(function(s) {
@@ -880,6 +892,19 @@ function renderSeedGroups(seeds) {
         }).join('')
       + '</div></div>';
   }).join('');
+  // Open the first group by default
+  var firstGroup = container.querySelector('.seed-group');
+  if (firstGroup) firstGroup.classList.add('sg-open');
+}
+
+function toggleSeedGroup(gNum) {
+  var container = document.getElementById('seed-groups-container');
+  var allGroups = container.querySelectorAll('.seed-group');
+  var target    = container.querySelector('.seed-group[data-group="' + gNum + '"]');
+  if (!target) return;
+  var isOpen    = target.classList.contains('sg-open');
+  allGroups.forEach(function(g) { g.classList.remove('sg-open'); });
+  if (!isOpen) target.classList.add('sg-open');
 }
 
 function refreshGroupPillLabels(group) {
