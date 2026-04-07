@@ -323,8 +323,7 @@
       flex-shrink: 0;
     }
     .seed-group.sg-open .seed-group-chevron { transform: rotate(180deg); }
-    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; }
-    .seed-group-label-wrap { display: flex; align-items: center; gap: 0; flex: 1; }
+    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; flex: 1; }
     .seed-group-status { font-size: 0.72rem; color: #888; }
     .seed-group-status.selected { color: #2D6A4F; font-weight: 600; }
     .seed-pills { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -876,9 +875,7 @@ function renderSeedGroups(seeds) {
     var gNum = entry[0], gData = entry[1];
     return '<div class="seed-group" data-group="' + gNum + '">'
       + '<div class="seed-group-header" onclick="toggleSeedGroup(' + gNum + ')">'
-      + '<div class="seed-group-label-wrap">'
       + '<span class="seed-group-label">' + (groupEmojis[gNum] || '') + ' ' + gData.name + '</span>'
-      + '</div>'
       + '<span class="seed-group-status" id="status-group-' + gNum + '">None selected</span>'
       + '<span class="seed-group-chevron">▾</span>'
       + '</div>'
@@ -904,7 +901,8 @@ function toggleSeedGroup(gNum) {
   var container = document.getElementById('seed-groups-container');
   var allGroups = container.querySelectorAll('.seed-group');
   var target    = container.querySelector('.seed-group[data-group="' + gNum + '"]');
-  var isOpen    = target && target.classList.contains('sg-open');
+  if (!target) return;
+  var isOpen    = target.classList.contains('sg-open');
   allGroups.forEach(function(g) { g.classList.remove('sg-open'); });
   if (!isOpen) target.classList.add('sg-open');
 }
