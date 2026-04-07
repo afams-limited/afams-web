@@ -55,6 +55,20 @@ const PRODUCTS = [
     priceGBP: 54,
     image: 'assets/images/farmbag-vertical.jpg',
   },
+  {
+    id: 'ps-prosoil',
+    name: 'Afams ProSoil 25kg',
+    category: 'Growing Medium',
+    badge: 'prosoil',
+    badgeText: 'Growing Medium',
+    emoji: '🪴',
+    desc: 'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately.',
+    features: ['pH 6.2–6.8', 'Sterilised', 'Ready to plant', 'Made in Kenya'],
+    priceKES: 399,
+    priceGBP: 3,
+    image: 'assets/images/prosoil-front.jpg',
+    type: 'prosoil',
+  },
 ];
 
 // ── CART STATE ────────────────────────────────────────────────────
@@ -65,6 +79,7 @@ const PRODUCTS = [
 var PRODUCT_ID_TO_SKU = {
   'fb-classic':  'FB-CLS-01',
   'fb-vertical': 'FB-GRW-01',
+  'ps-prosoil':  'PS-25KG',
 };
 
 function cartTotal() {
@@ -88,7 +103,7 @@ function addToCart(arg) {
       unit_price: product.priceKES,
       qty:        1,
       image:      product.image,
-      type:       'farmbag',
+      type:       product.type || 'farmbag',
     };
   } else if (arg && typeof arg === 'object') {
     // Object format: addToCart({sku, name, unit_price, qty, image, type})

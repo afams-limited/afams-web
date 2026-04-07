@@ -11,7 +11,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
   <script src="js/cart.js"></script>
   <style>
@@ -326,31 +326,7 @@ function renderProducts(products) {
     `;
   }).join('');
 }
-async function loadProducts() {
-  // Try to load active products from Supabase
-  const supabaseUrl  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const anonKey      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-
-  try {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/products?active=eq.true&order=sku`,
-      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
-    );
-    if (res.ok) {
-      const rows = await res.json();
-      if (Array.isArray(rows) && rows.length > 0) {
-        // Map Supabase rows to display format using static catalogue for enrichment
-        const enriched = rows.map(row => {
-          const s = STATIC_PRODUCTS.find(p => p.sku === row.sku) || {};
-          return { ...s, ...row, priceKES: row.unit_price };
-        });
-        renderProducts(enriched);
-        return;
-      }
-    }
-  } catch (_) { /* fall through to static products */ }
-
-  // Fallback: render the static catalogue
+function loadProducts() {
   renderProducts(STATIC_PRODUCTS);
 }
 
