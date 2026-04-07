@@ -789,6 +789,29 @@ h1, h2, h3, h4 {
 }
 .how-card p { font-size: 0.87rem; color: var(--gray-dark); line-height: 1.65; }
 
+/* Accordion variant for how-it-works steps */
+.how-accordion { cursor: pointer; }
+.how-accordion summary {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+}
+.how-accordion summary::-webkit-details-marker { display: none; }
+.how-accordion summary::after {
+  content: '▾';
+  font-size: 1rem;
+  color: var(--g-mid);
+  margin-top: 0.4rem;
+  transition: transform var(--transition);
+}
+.how-accordion[open] summary::after { transform: rotate(180deg); }
+.how-accordion[open] { padding-bottom: 1.75rem; }
+.how-accordion p { margin-top: 0.85rem; }
+
+
 /* ── COUNTRIES ── */
 .countries-grid {
   display: grid;
