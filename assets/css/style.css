@@ -659,6 +659,7 @@ h1, h2, h3, h4 {
 .badge-preorder   { background: var(--g-mid); color: white; }
 .badge-premium    { background: var(--g-dark); color: white; border: 1px solid rgba(184,134,11,0.4); }
 .badge-flagship   { background: linear-gradient(135deg, var(--gold-deep), var(--gold)); color: white; }
+.badge-prosoil    { background: #2D6A4F; color: white; }
 .badge-indoor-safe { background: #1E7D34; color: white; left: auto; right: 0.85rem; }
 .product-body {
   padding: 1.6rem;

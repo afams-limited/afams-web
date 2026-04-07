@@ -147,7 +147,7 @@
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-num" data-count="2" data-suffix=" products">0 products</div>
+          <div class="hero-stat-num" data-count="3" data-suffix=" products">0 products</div>
           <div class="hero-stat-label">In the lineup</div>
         </div>
         <div class="hero-stat">
@@ -179,6 +179,16 @@
             <div class="hero-product-slide-info">
               <div class="hero-product-slide-name">FarmBag Vertical</div>
               <div class="hero-product-slide-price">KES 8,500 · New</div>
+              <div class="hero-product-slide-cta">Add to Cart →</div>
+            </div>
+          </div>
+          <div class="hero-product-slide" id="hl-slide-2" style="cursor:pointer" onclick="addToCart('ps-prosoil')">
+            <div class="hero-product-slide-img">
+              <img src="assets/images/prosoil-front.jpg" alt="Afams ProSoil" onerror="this.parentElement.textContent='🪴'"/>
+            </div>
+            <div class="hero-product-slide-info">
+              <div class="hero-product-slide-name">Afams ProSoil 25kg</div>
+              <div class="hero-product-slide-price">KES 399 · Growing Medium</div>
               <div class="hero-product-slide-cta">Add to Cart →</div>
             </div>
           </div>
@@ -241,7 +251,7 @@
       <div class="section-label">The Product Lineup</div>
       <h2 class="section-title">Pick your FarmBag</h2>
       <p class="section-sub">
-        Two products. One mission: making urban food production accessible to every household,
+        Three products. One mission: making urban food production accessible to every household,
         school, restaurant, and office on Earth — and eventually, beyond.
       </p>
      </div>
@@ -300,6 +310,35 @@
             <button class="btn-add-cart" data-product="fb-vertical" onclick="addToCart('fb-vertical')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               Pre-Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-img-wrap">
+          <img data-src="assets/images/prosoil-front.jpg" data-emoji="🪴" alt="Afams ProSoil 25kg" class="product-img lazy-img"/>
+          <span class="product-badge badge-prosoil">Growing Medium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">ProSoil · 25 kg bag</div>
+          <div class="product-name">Afams ProSoil</div>
+          <div class="product-desc">Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately. Buy 3 bags, get 1 free when ordering with a FarmBag.</div>
+          <div class="product-features">
+            <span class="feature-chip">pH 6.2–6.8</span>
+            <span class="feature-chip">Sterilised</span>
+            <span class="feature-chip">Ready to plant</span>
+            <span class="feature-chip">Made in Kenya</span>
+          </div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Per bag</span>
+              <span class="price-val">KES 399</span>
+              <span class="price-gbp">Free delivery in Nairobi</span>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart('ps-prosoil')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Add to Cart
             </button>
           </div>
         </div>
