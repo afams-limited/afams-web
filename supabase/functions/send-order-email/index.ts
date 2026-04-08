@@ -18,6 +18,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BREVO_TEMPLATES } from "../_shared/types.ts";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 // ── Brevo helper ──────────────────────────────────────────────
 async function sendBrevoTemplate(
   apiKey: string,
@@ -55,10 +61,15 @@ type AdminEmailType = (typeof ADMIN_EMAIL_TYPES)[number];
 
 // ── Main handler ──────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
       status: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -67,7 +78,7 @@ Deno.serve(async (req: Request) => {
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -76,7 +87,7 @@ Deno.serve(async (req: Request) => {
     console.error("[send-order-email] BREVO_API_KEY not set");
     return new Response(JSON.stringify({ error: "Server misconfigured: missing BREVO_API_KEY" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -90,7 +101,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -99,14 +110,14 @@ Deno.serve(async (req: Request) => {
   if (!orderId || typeof orderId !== "string") {
     return new Response(JSON.stringify({ error: "Missing orderId" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
   if (!emailType || !ADMIN_EMAIL_TYPES.includes(emailType as AdminEmailType)) {
     return new Response(
       JSON.stringify({ error: `Invalid emailType. Must be one of: ${ADMIN_EMAIL_TYPES.join(", ")}` }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }
 
@@ -122,7 +133,7 @@ Deno.serve(async (req: Request) => {
   if (authError || !user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -142,7 +153,7 @@ Deno.serve(async (req: Request) => {
     console.error("[send-order-email] Order not found:", orderId, fetchError?.message);
     return new Response(JSON.stringify({ error: "Order not found" }), {
       status: 404,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -157,7 +168,7 @@ Deno.serve(async (req: Request) => {
     console.warn(`[send-order-email] Order ${orderRef} has no customer_email — skipping`);
     return new Response(JSON.stringify({ sent: false, reason: "no customer email" }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -215,7 +226,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ sent: true, emailType, orderRef }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
 
   } catch (err) {
@@ -225,7 +236,7 @@ Deno.serve(async (req: Request) => {
     // Return a generic message to the client to avoid leaking internal details.
     return new Response(JSON.stringify({ sent: false, error: "Email delivery failed. Check Edge Function logs." }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 });
