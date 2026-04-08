@@ -1112,7 +1112,7 @@
             <div class="stat-value" id="stat-pending">—</div>
           </div>
           <div class="stat-card blue">
-            <div class="stat-label">Approved</div>
+            <div class="stat-label">Processing</div>
             <div class="stat-value" id="stat-approved">—</div>
           </div>
           <div class="stat-card green">
@@ -1131,17 +1131,13 @@
               placeholder="🔍 Search name, ref, email…" oninput="filterOrders()" />
             <select class="filter-select" id="order-filter" onchange="filterOrders()">
               <option value="">All statuses</option>
-              <option value="unverified">Unverified</option>
               <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
               <option value="paid">Paid</option>
-              <option value="verified">Verified</option>
               <option value="processing">Processing</option>
-              <option value="denied">Denied</option>
               <option value="shipped">Shipped</option>
-              <option value="expired">Expired</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
             </select>
             <select class="filter-select" id="payment-filter" onchange="filterOrders()">
               <option value="">All payments</option>
@@ -1340,17 +1336,13 @@
       <div class="modal-section-title">Status &amp; Notes</div>
       <label class="modal-field-label">Order Status</label>
       <select class="status-select" id="modal-status-select">
-        <option value="unverified">Unverified</option>
         <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
         <option value="paid">Paid</option>
-        <option value="verified">Verified</option>
         <option value="processing">Processing</option>
-        <option value="denied">Denied</option>
         <option value="shipped">Shipped</option>
-        <option value="expired">Expired</option>
         <option value="delivered">Delivered</option>
         <option value="cancelled">Cancelled</option>
+        <option value="refunded">Refunded</option>
       </select>
 
       <label class="modal-field-label">Admin Notes</label>
@@ -1394,15 +1386,20 @@ let currentOrder   = null;
 
 // ════════════════════════════════════════════════════
 // ORDER STATUS CONSTANTS & HELPERS
+// Canonical set — must match the Postgres order_status enum.
+// Flow: paid (auto) → processing → shipped → delivered
+//       cancelled / refunded at any stage.
 // ════════════════════════════════════════════════════
 const ORDER_STATUSES = [
-  'unverified', 'pending', 'approved', 'paid', 'verified',
-  'processing', 'denied', 'shipped', 'expired', 'delivered', 'cancelled'
+  'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'
 ];
 
+// Statuses where payment is considered confirmed (paid_at will be set)
+const PAID_STATUSES = ['paid', 'processing', 'shipped', 'delivered', 'refunded'];
+
 function renderStatusBadge(status) {
-  var s = (status || 'unverified').toLowerCase();
-  if (!ORDER_STATUSES.includes(s)) s = 'unverified';
+  var s = (status || 'pending').toLowerCase();
+  if (!ORDER_STATUSES.includes(s)) s = 'pending';
   return '<span class="badge badge-' + s + '" style="text-transform:capitalize">' + s + '</span>';
 }
 
@@ -1546,15 +1543,15 @@ async function loadOrders() {
 }
 
 function updateStats() {
-  var pending   = allOrders.filter(function (o) { return o.status === 'pending'; }).length;
-  var approved  = allOrders.filter(function (o) { return o.status === 'approved'; }).length;
-  var delivered = allOrders.filter(function (o) { return o.status === 'delivered'; }).length;
-  var revenue   = allOrders
-    .filter(function (o) { return o.payment_status === 'paid' || o.status === 'paid'; })
+  var pending    = allOrders.filter(function (o) { return o.status === 'pending'; }).length;
+  var processing = allOrders.filter(function (o) { return o.status === 'processing'; }).length;
+  var delivered  = allOrders.filter(function (o) { return o.status === 'delivered'; }).length;
+  var revenue    = allOrders
+    .filter(function (o) { return !!o.paid_at; })
     .reduce(function (s, o) { return s + (o.total_amount || 0); }, 0);
 
   document.getElementById('stat-pending').textContent   = pending;
-  document.getElementById('stat-approved').textContent  = approved;
+  document.getElementById('stat-approved').textContent  = processing;
   document.getElementById('stat-delivered').textContent = delivered;
   document.getElementById('stat-revenue').textContent   = (revenue / 1000).toFixed(1) + 'K';
 
@@ -1578,7 +1575,7 @@ function renderOrders(orders) {
     var ref      = escapeHtml(o.order_number || (o.id ? o.id.slice(0, 8) : '—'));
     var amount   = (o.total_amount || 0).toLocaleString();
     var status   = o.status || 'pending';
-    var payStatus = o.payment_status || (status === 'paid' ? 'paid' : 'pending');
+    var payStatus = o.paid_at ? 'paid' : 'pending';
     var date     = new Date(o.created_at).toLocaleDateString('en-KE', {
       day: '2-digit', month: 'short', year: '2-digit'
     });
@@ -1605,7 +1602,7 @@ function filterOrders() {
   var payment = document.getElementById('payment-filter').value;
 
   var filtered = allOrders.filter(function (o) {
-    var payStatus = o.payment_status || (o.status === 'paid' ? 'paid' : 'pending');
+    var payStatus = o.paid_at ? 'paid' : 'pending';
     var matchSearch = !search ||
       (o.customer_name  || '').toLowerCase().includes(search) ||
       (o.customer_email || '').toLowerCase().includes(search) ||
@@ -1753,27 +1750,72 @@ async function saveOrderUpdate() {
     return;
   }
 
+  // Guard: once an order is paid (has paid_at), it cannot be reverted to pending
+  if (currentOrder.paid_at && newStatus === 'pending') {
+    showToast('⚠️ Cannot revert a paid order to pending.', 'error');
+    return;
+  }
+
   btn.disabled    = true;
   btn.textContent = 'Saving…';
 
+  var updatePayload = { status: newStatus, admin_notes: newNotes };
+
+  // Record timestamps for shipped/delivered transitions
+  if (newStatus === 'shipped' && !currentOrder.shipped_at) {
+    updatePayload.shipped_at = new Date().toISOString();
+  }
+  if (newStatus === 'delivered' && !currentOrder.delivered_at) {
+    updatePayload.delivered_at = new Date().toISOString();
+  }
+
   var { error } = await sb
     .from('orders')
-    .update({ status: newStatus, admin_notes: newNotes })
+    .update(updatePayload)
     .eq('id', currentOrder.id);
 
   if (error) {
     showToast('Error: ' + error.message, 'error');
-  } else {
-    var idx = allOrders.findIndex(function (o) { return o.id === currentOrder.id; });
-    if (idx !== -1) {
-      allOrders[idx].status      = newStatus;
-      allOrders[idx].admin_notes = newNotes;
-    }
-    updateStats();
-    filterOrders();
-    showToast('✓ Order updated to ' + newStatus, 'success');
-    closeOrderModal();
+    btn.disabled    = false;
+    btn.textContent = 'Save Changes';
+    return;
   }
+
+  var idx = allOrders.findIndex(function (o) { return o.id === currentOrder.id; });
+  if (idx !== -1) {
+    allOrders[idx] = Object.assign({}, allOrders[idx], updatePayload);
+  }
+  updateStats();
+  filterOrders();
+  showToast('✓ Order updated to ' + newStatus, 'success');
+
+  // Trigger Brevo email for status changes that have templates
+  var emailType = null;
+  if (newStatus === 'shipped')    emailType = 'order_dispatched';
+  if (newStatus === 'delivered')  emailType = 'order_delivered';
+
+  if (emailType && currentOrder.customer_email) {
+    sb.functions.invoke('send-order-email', {
+      body: { orderId: currentOrder.id, emailType: emailType }
+    }).then(function (res) {
+      if (res.error) {
+        console.warn('[Admin] Email function error:', res.error.message);
+        showToast('⚠️ Order saved. Email notification failed — check logs.', 'error');
+      } else {
+        var d = res.data;
+        if (d && d.sent) {
+          showToast('📧 Customer notified (' + emailType + ')', 'success');
+        } else {
+          showToast('⚠️ Order saved. Email not delivered — ' + (d && d.reason || 'check logs') + '.', 'error');
+        }
+      }
+    }).catch(function (e) {
+      console.warn('[Admin] Email invoke failed:', e);
+      showToast('⚠️ Order saved. Email notification could not be sent.', 'error');
+    });
+  }
+
+  closeOrderModal();
 
   btn.disabled    = false;
   btn.textContent = 'Save Changes';
@@ -2094,7 +2136,7 @@ function loadCustomers() {
       };
     }
     customerMap[key].orders++;
-    var payStatus = o.payment_status || (o.status === 'paid' ? 'paid' : '');
+    var payStatus = o.paid_at ? 'paid' : '';
     if (payStatus === 'paid') customerMap[key].spent += (o.total_amount || 0);
     if (new Date(o.created_at) > new Date(customerMap[key].last)) customerMap[key].last = o.created_at;
   });
@@ -2125,7 +2167,7 @@ function loadCustomers() {
 // ════════════════════════════════════════════════════
 function loadAnalytics() {
   var paid    = allOrders.filter(function (o) {
-    return o.payment_status === 'paid' || o.status === 'paid';
+    return !!o.paid_at;
   });
   var revenue = paid.reduce(function (s, o) { return s + (o.total_amount || 0); }, 0);
   var aov     = paid.length ? Math.round(revenue / paid.length) : 0;

@@ -6,13 +6,14 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ── ENUM ─────────────────────────────────────────────────────────────────────
+-- Canonical order status flow:
+--   pending  → paid (webhook, auto)
+--   paid     → processing → shipped → delivered
+--   cancelled / refunded at any stage by admin
 DO $$ BEGIN
   CREATE TYPE order_status AS ENUM (
     'pending',
     'paid',
-    'confirmed',
-    'in_production',
-    'dispatched',
     'processing',
     'shipped',
     'delivered',
@@ -22,11 +23,14 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- Add new enum values when migrating an existing type (idempotent)
-DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'confirmed';      EXCEPTION WHEN others THEN NULL; END $$;
-DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'in_production';  EXCEPTION WHEN others THEN NULL; END $$;
-DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'dispatched';     EXCEPTION WHEN others THEN NULL; END $$;
-DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'refunded';       EXCEPTION WHEN others THEN NULL; END $$;
+-- Add any values that may be missing in an already-deployed DB (idempotent)
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'pending';     EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'paid';        EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'processing';  EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'shipped';     EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'delivered';   EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'cancelled';   EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'refunded';    EXCEPTION WHEN others THEN NULL; END $$;
 
 -- ── PRODUCTS TABLE ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.products (
@@ -151,18 +155,13 @@ SELECT
   COUNT(*)                                                                  AS total_orders,
   COUNT(*) FILTER (WHERE status = 'pending')                                AS pending,
   COUNT(*) FILTER (WHERE status = 'paid')                                   AS paid,
-  COUNT(*) FILTER (WHERE status = 'confirmed')                              AS confirmed,
-  COUNT(*) FILTER (WHERE status = 'in_production')                          AS in_production,
-  COUNT(*) FILTER (WHERE status = 'dispatched')                             AS dispatched,
   COUNT(*) FILTER (WHERE status = 'processing')                             AS processing,
   COUNT(*) FILTER (WHERE status = 'shipped')                                AS shipped,
   COUNT(*) FILTER (WHERE status = 'delivered')                              AS delivered,
   COUNT(*) FILTER (WHERE status = 'cancelled')                              AS cancelled,
   COUNT(*) FILTER (WHERE status = 'refunded')                               AS refunded,
   COALESCE(SUM(total_amount), 0)                                            AS total_revenue_kes,
-  COALESCE(SUM(total_amount) FILTER (WHERE status IN (
-    'paid','confirmed','in_production','dispatched','processing','shipped','delivered'
-  )), 0)                                                                    AS confirmed_revenue_kes
+  COALESCE(SUM(total_amount) FILTER (WHERE paid_at IS NOT NULL), 0)         AS confirmed_revenue_kes
 FROM public.orders;
 
 -- ── ROW LEVEL SECURITY ────────────────────────────────────────────────────────
