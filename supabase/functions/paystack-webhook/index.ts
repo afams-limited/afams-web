@@ -3,9 +3,50 @@
 // Path: supabase/functions/paystack-webhook/index.ts
 // Runtime: Supabase Edge Functions (Deno)
 // Deploy:  supabase functions deploy paystack-webhook --no-verify-jwt
+//
+// Required Supabase Secrets:
+//   PAYSTACK_SECRET_KEY
+//   BREVO_API_KEY
+//   BREVO_SENDER_EMAIL          (e.g. orders@afams.co.ke)
+//   BREVO_SENDER_NAME           (e.g. Afams)
+//   BREVO_ADMIN_EMAIL           (admin notification recipient)
+//   BREVO_TEMPLATE_ORDER_RECEIVED    (integer template ID)
+//   BREVO_TEMPLATE_PAYMENT_SUCCESS   (integer template ID)
+//   BREVO_TEMPLATE_ADMIN_NEW_ORDER   (integer template ID)
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { BREVO_TEMPLATES } from "../_shared/types.ts";
+
+// ── Brevo email helper ────────────────────────────────────────
+async function sendBrevoTemplate(
+  apiKey: string,
+  senderEmail: string,
+  senderName: string,
+  templateId: number,
+  toEmail: string,
+  toName: string,
+  params: Record<string, string | number>,
+): Promise<void> {
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { email: senderEmail, name: senderName },
+      to: [{ email: toEmail, name: toName }],
+      templateId,
+      params,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`[Webhook/Brevo] template ${templateId} failed: ${res.status} ${text}`);
+  }
+}
 
 // ── HMAC-SHA512 signature verification ───────────────────────
 async function verifySignature(
@@ -200,6 +241,70 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
+
+    // ── Send Brevo transactional emails ──────────────────────
+    const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+    if (brevoApiKey && customer?.email) {
+      const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL") ?? "orders@afams.co.ke";
+      const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
+      const adminEmail  = Deno.env.get("BREVO_ADMIN_EMAIL")  ?? "iammwombe@gmail.com";
+
+      // Fetch the newly created order to get the generated order_number
+      const { data: newOrder } = await supabase
+        .from("orders")
+        .select("order_number")
+        .eq("paystack_ref", reference)
+        .single();
+
+      const orderRef   = newOrder?.order_number ?? reference.slice(0, 8);
+      const custName   = resolvedCustomerName ?? "Customer";
+      const custEmail  = customer.email;
+      const prodName   = product_name ?? "FarmBag Product";
+      const qty        = String(parseInt(String(quantity ?? "1"), 10) || 1);
+      const totalStr   = `KES ${totalKes.toLocaleString("en-KE")}`;
+      const paidAtStr  = paid_at
+        ? new Date(paid_at).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
+        : new Date().toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" });
+
+      const sharedParams = {
+        order_number:   orderRef,
+        customer_name:  custName,
+        product_name:   prodName,
+        quantity:       qty,
+        total_amount:   totalStr,
+        payment_method: "Paystack",
+        paid_at:        paidAtStr,
+      };
+
+      // #1 Order Received — confirm the order is in our queue
+      const tplOrderReceived = parseInt(
+        Deno.env.get("BREVO_TEMPLATE_ORDER_RECEIVED") ?? String(BREVO_TEMPLATES.order_received), 10,
+      );
+      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplOrderReceived, custEmail, custName, sharedParams)
+        .catch((e) => console.error("[Webhook] order_received email failed:", e));
+
+      // #2 Payment Success — confirm payment was received
+      const tplPaymentSuccess = parseInt(
+        Deno.env.get("BREVO_TEMPLATE_PAYMENT_SUCCESS") ?? String(BREVO_TEMPLATES.payment_success), 10,
+      );
+      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplPaymentSuccess, custEmail, custName, sharedParams)
+        .catch((e) => console.error("[Webhook] payment_success email failed:", e));
+
+      // #4 Admin New Order — notify admin of new paid order
+      const tplAdminOrder = parseInt(
+        Deno.env.get("BREVO_TEMPLATE_ADMIN_NEW_ORDER") ?? String(BREVO_TEMPLATES.admin_new_order), 10,
+      );
+      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplAdminOrder, adminEmail, "Afams Admin", {
+        ...sharedParams,
+        customer_email: custEmail,
+        customer_phone: customer_phone ?? "—",
+        county:         county ?? "—",
+      }).catch((e) => console.error("[Webhook] admin_new_order email failed:", e));
+
+      console.log(`[Webhook] Brevo emails dispatched for order ${orderRef}`);
+    } else if (!brevoApiKey) {
+      console.warn("[Webhook] BREVO_API_KEY not set — skipping emails");
+    }
   }
 
   // Acknowledge all other events
