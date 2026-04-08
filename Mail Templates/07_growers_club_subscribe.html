@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Welcome to the Afams Growers Club</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F4F1E8;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F4F1E8;margin:0;padding:0;width:100%;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background-color:#FFFFFF;border:1px solid #E6E1D5;border-radius:12px;">
+          <tr>
+            <td align="center" style="padding:28px 24px 20px 24px;background-color:#183C2B;border-top-left-radius:12px;border-top-right-radius:12px;">
+              <img src="https://afams.co.ke/afams-logo.jpg" alt="Afams" width="120" style="display:block;width:120px;max-width:120px;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto 14px auto;" />
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:34px;font-weight:700;color:#FFFFFF;">
+                Welcome to the Afams Growers Club
+              </div>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#DCE8E1;padding-top:8px;">
+                Exclusive growing guides, product launches, harvest challenges, and member-only discounts — delivered to your inbox.
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;color:#1E2A22;">
+              <div style="font-size:16px;line-height:26px;">
+                Hi {{params.first_name | default:"there"}},
+              </div>
+              <div style="font-size:16px;line-height:26px;padding-top:14px;">
+                Thank you for subscribing to the <strong>Afams Growers Club</strong>. You’re now on the list to receive practical urban farming insights, Afams product news, and special offers curated for growers like you.
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background-color:#F8FAF7;border:1px solid #DDE7DE;border-radius:10px;">
+                <tr>
+                  <td style="padding:18px 18px 6px 18px;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:26px;font-weight:700;color:#183C2B;">
+                    Your subscription details
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 18px 18px 18px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                      <tr>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#607064;width:38%;vertical-align:top;border-bottom:1px solid #E6EEE7;">
+                          Email
+                        </td>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#1E2A22;vertical-align:top;border-bottom:1px solid #E6EEE7;">
+                          {{params.email}}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#607064;width:38%;vertical-align:top;border-bottom:1px solid #E6EEE7;">
+                          Subscription date
+                        </td>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#1E2A22;vertical-align:top;border-bottom:1px solid #E6EEE7;">
+                          {{params.subscribed_at}}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#607064;width:38%;vertical-align:top;">
+                          Preferences
+                        </td>
+                        <td style="padding:9px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#1E2A22;vertical-align:top;">
+                          {{params.preferences}}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:22px 24px 0 24px;font-family:Arial,Helvetica,sans-serif;color:#1E2A22;">
+              <div style="font-size:18px;line-height:26px;font-weight:700;color:#183C2B;">
+                What you can expect
+              </div>
+              <ul style="margin:12px 0 0 20px;padding:0;font-size:15px;line-height:24px;color:#1E2A22;">
+                <li style="margin-bottom:8px;">Product updates and new Afams launches</li>
+                <li style="margin-bottom:8px;">Promotions and exclusive member discounts</li>
+                <li style="margin-bottom:8px;">Growing tips and urban farming guides</li>
+                <li style="margin-bottom:0;">Harvest challenges and community events</li>
+              </ul>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="padding:28px 24px 8px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#2D6A4F" style="border-radius:8px;">
+                    <a href="https://afams.co.ke" target="_blank" style="display:inline-block;padding:14px 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;">
+                      Visit Afams
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 24px 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#1E2A22;">
+              You can unsubscribe at any time using the link in any newsletter email.
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#6B756E;border-top:1px solid #ECE7DB;">
+              You received this email because you subscribed to the Afams Growers Club from the Afams website.<br />
+              By subscribing, you agree to our <a href="https://afams.co.ke/privacy-policy" target="_blank" style="color:#2D6A4F;text-decoration:underline;">Privacy Policy</a>.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
