@@ -19,8 +19,8 @@ const SEED_PRICE_EXTRA = 150; // KES per extra seed packet beyond the free ones
 //       type: 'farmbag' | 'prosoil' | 'product'
 //     }
 //   ],
-//   freeSeeds:  [{ slug, name, group }],  // up to 1 per group (max 4 groups)
-//   extraSeeds: [{ slug, name, group }],  // each KES 150
+//   freeSeeds:  [{ slug, name, category, weight, price }],  // up to 2 across all categories
+//   extraSeeds: [{ slug, name, category, weight, price }],  // each at listed price
 //   prosoilPromoBags: 0,                  // computed: floor(prosoilQty / 3) when FarmBag present
 // }
 
