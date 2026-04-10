@@ -1689,13 +1689,13 @@ function openOrderModal(id) {
         addonsHtml += '<span class="seed-chip free">' + escapeHtml(s.name || s.slug || '?') + ' ✓ Free</span>';
       });
       extraSeeds.forEach(function(s) {
-        addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES 150</span>';
+        addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || 150) + '</span>';
       });
       addonsHtml += '</div>';
       if (extraSeeds.length > 0) {
         addonsHtml += '<div style="margin-top:8px;font-size:0.82rem;color:var(--text-muted)">'
           + extraSeeds.length + ' extra packet' + (extraSeeds.length > 1 ? 's' : '') + ' — KES '
-          + (o.extra_seeds_total || extraSeeds.length * 150).toLocaleString() + '</div>';
+          + (o.extra_seeds_total || extraSeeds.reduce(function(s,x){return s+(x.price||150);},0)).toLocaleString() + '</div>';
       }
       addonsHtml += '</div>';
     }

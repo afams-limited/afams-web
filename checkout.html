@@ -326,23 +326,45 @@
     .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; flex: 1; }
     .seed-group-status { font-size: 0.72rem; color: #888; }
     .seed-group-status.selected { color: #2D6A4F; font-weight: 600; }
-    .seed-pills { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .seed-pills { display: none; flex-direction: column; gap: 0; margin-top: 10px; }
     .seed-group.sg-open .seed-pills { display: flex; }
-    .seed-pill {
+    .seed-variety-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(45,106,79,0.08);
+      gap: 8px;
+    }
+    .seed-variety-row:last-child { border-bottom: none; }
+    .seed-subcategory-header {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: #2D6A4F;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 0 3px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(45,106,79,0.12);
+    }
+    .seed-subcategory-header:first-child { border-top: none; margin-top: 0; }
+    .seed-variety-name { font-size: 0.78rem; color: #333; flex: 1; min-width: 0; }
+    .seed-weight-btns { display: flex; gap: 5px; flex-shrink: 0; }
+    .seed-weight-btn {
       cursor: pointer;
       border: 1.5px solid rgba(45,106,79,0.27);
       background: #fff;
       color: #333;
-      border-radius: 20px;
-      padding: 4px 11px;
-      font-size: 0.76rem;
+      border-radius: 16px;
+      padding: 3px 9px;
+      font-size: 0.72rem;
       transition: all 0.15s ease;
       user-select: none;
     }
-    .seed-pill:hover { border-color: #2D6A4F; color: #2D6A4F; background: #f0f7f4; }
-    .seed-pill.selected { background: #2D6A4F; color: #fff; border-color: #2D6A4F; }
-    .seed-pill.extra-selected { background: #fff3e0; border-color: #E07B39; color: #E07B39; }
-    .seed-pill .extra-tag { font-size: 0.65rem; margin-left: 3px; opacity: 0.85; }
+    .seed-weight-btn:hover { border-color: #2D6A4F; color: #2D6A4F; background: #f0f7f4; }
+    .seed-weight-btn.selected { background: #2D6A4F; color: #fff; border-color: #2D6A4F; }
+    .seed-weight-btn.extra-selected { background: #fff3e0; border-color: #E07B39; color: #E07B39; }
+    .seed-weight-btn .extra-tag { font-size: 0.65rem; margin-left: 3px; opacity: 0.85; }
     .seed-summary {
       background: #fff;
       border: 1.5px solid #2D6A4F;
@@ -540,9 +562,9 @@
             <span class="addon-badge free">FREE</span>
             <h3>🌱 Certified Seeds — Choose Your Starter Pack</h3>
             <p class="addon-subtitle">
-              Select <strong>one variety from each group</strong> below.
-              Your first <strong>4 packets are free</strong> with any FarmBag order.
-              Additional packets are <strong>KES 150 each</strong>.
+              Choose any seed varieties below.
+              <strong>2 free seed packets included</strong> with every FarmBag order.
+              Additional packets at <strong>listed price</strong>.
             </p>
           </div>
           <div id="seed-groups-container">
@@ -638,73 +660,130 @@ const PROSOIL_PRICE_CHECKOUT = 399;
 const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-// ── Static seed catalogue — fallback when Supabase seed_catalog is unreachable ─
-const STATIC_SEED_GROUPS = {
-  1: {
-    name: 'Leafy Greens',
-    seeds: [
-      { seed_slug: 'sukuma-wiki',     seed_name: 'Sukuma Wiki (Kale)' },
-      { seed_slug: 'spinach',         seed_name: 'Spinach' },
-      { seed_slug: 'swiss-chard',     seed_name: 'Swiss Chard' },
-      { seed_slug: 'lettuce-butter',  seed_name: 'Lettuce (Butterhead)' },
-      { seed_slug: 'lettuce-romaine', seed_name: 'Lettuce (Romaine)' },
-      { seed_slug: 'managu',          seed_name: 'African Nightshade (Managu)' },
-      { seed_slug: 'terere',          seed_name: 'Amaranth (Terere)' },
-      { seed_slug: 'pak-choi',        seed_name: 'Pak Choi' },
-      { seed_slug: 'mustard-greens',  seed_name: 'Mustard Greens' },
-      { seed_slug: 'baby-cabbage',    seed_name: 'Baby Cabbage' },
-      { seed_slug: 'beetroot-leaves', seed_name: 'Beetroot Leaves' },
-    ]
-  },
-  2: {
-    name: 'Fruiting Vegetables',
-    seeds: [
-      { seed_slug: 'cherry-tomato',       seed_name: 'Cherry Tomato' },
-      { seed_slug: 'tomato-roma',         seed_name: 'Tomato (Roma)' },
-      { seed_slug: 'tomato-beefsteak',    seed_name: 'Tomato (Beefsteak)' },
-      { seed_slug: 'bell-pepper-green',   seed_name: 'Bell Pepper (Green)' },
-      { seed_slug: 'bell-pepper-red',     seed_name: 'Bell Pepper (Red)' },
-      { seed_slug: 'hot-pepper-cayenne',  seed_name: 'Hot Pepper (Cayenne)' },
-      { seed_slug: 'okra',                seed_name: 'Okra' },
-      { seed_slug: 'courgette',           seed_name: 'Courgette (Zucchini)' },
-      { seed_slug: 'cucumber',            seed_name: 'Cucumber' },
-      { seed_slug: 'eggplant',            seed_name: 'Eggplant (Brinjal)' },
-      { seed_slug: 'strawberry',          seed_name: 'Strawberry' },
-    ]
-  },
-  3: {
-    name: 'Herbs & Aromatics',
-    seeds: [
-      { seed_slug: 'basil-sweet',    seed_name: 'Basil (Sweet)' },
-      { seed_slug: 'coriander',      seed_name: 'Coriander (Dhania)' },
-      { seed_slug: 'parsley',        seed_name: 'Parsley (Flat Leaf)' },
-      { seed_slug: 'mint',           seed_name: 'Mint' },
-      { seed_slug: 'chives',         seed_name: 'Chives' },
-      { seed_slug: 'dill',           seed_name: 'Dill' },
-      { seed_slug: 'rosemary',       seed_name: 'Rosemary' },
-      { seed_slug: 'thyme',          seed_name: 'Thyme' },
-      { seed_slug: 'lemongrass',     seed_name: 'Lemon Grass' },
-      { seed_slug: 'spring-onion',   seed_name: 'Spring Onion' },
-      { seed_slug: 'garlic-chives',  seed_name: 'Garlic Chives' },
-    ]
-  },
-  4: {
-    name: 'Roots & Others',
-    seeds: [
-      { seed_slug: 'radish-french',    seed_name: 'Radish (French Breakfast)' },
-      { seed_slug: 'radish-cherry',    seed_name: 'Radish (Cherry Belle)' },
-      { seed_slug: 'carrot-baby',      seed_name: 'Carrot (Baby)' },
-      { seed_slug: 'beetroot-detroit', seed_name: 'Beetroot (Detroit)' },
-      { seed_slug: 'turnip',           seed_name: 'Turnip' },
-      { seed_slug: 'garden-peas',      seed_name: 'Garden Peas' },
-      { seed_slug: 'french-beans',     seed_name: 'French Dwarf Beans' },
-      { seed_slug: 'sunflower-edible', seed_name: 'Sunflower (Edible)' },
-      { seed_slug: 'microgreens-mix',  seed_name: 'Microgreens Mix' },
-      { seed_slug: 'arugula',          seed_name: 'Arugula (Rocket)' },
-      { seed_slug: 'watercress',       seed_name: 'Watercress' },
-    ]
-  },
+const FREE_SEED_PACKETS = 2; // free packets bundled with every FarmBag order
+
+// ── Maps each Simlaw crop-category to one of the 4 broad display groups ───────
+const SEED_GROUP_MAP = {
+  'Beetroot':              'Vegetables',
+  'Broccoli':              'Vegetables',
+  'Cabbage':               'Vegetables',
+  'Capsicum \u2014 Hot':   'Fruits',
+  'Capsicum \u2014 Sweet': 'Fruits',
+  'Carrot':                'Vegetables',
+  'Cauliflower':           'Vegetables',
+  'Celery':                'Vegetables',
+  'Collard (Sukuma Wiki)': 'Vegetables',
+  'Cucumber':              'Fruits',
+  'Eggplant (Brinjal)':   'Vegetables',
+  'Herbs':                 'Herbs',
+  'Indigenous Vegetables': 'Indigenous Vegetables',
+  'Kale':                  'Vegetables',
+  'Leeks':                 'Vegetables',
+  'Lettuce':               'Vegetables',
+  'Okra':                  'Vegetables',
+  'Onion':                 'Vegetables',
+  'Parsley':               'Herbs',
+  'Radish':                'Vegetables',
+  'Spinach':               'Vegetables',
+  'Squash':                'Fruits',
+  'Sweet Corn':            'Vegetables',
+  'Tomato':                'Fruits',
+  'Watermelon':            'Fruits',
 };
+const SEED_GROUP_ORDER = ['Vegetables', 'Fruits', 'Herbs', 'Indigenous Vegetables'];
+const SEED_GROUP_EMOJI = { 'Vegetables': '🥦', 'Fruits': '🍅', 'Herbs': '🌿', 'Indigenous Vegetables': '🌱' };
+
+// ── Static seed catalogue — fallback when Supabase seed_catalog is unreachable ─
+const STATIC_SEED_CATALOGUE = [
+  // BEETROOT
+  { category: 'Beetroot', variety: 'Crimson Globe / Detroit', seed_slug: 'beetroot-crimson-globe', price_10g: 70, price_25g: 145 },
+  // BROCCOLI
+  { category: 'Broccoli', variety: 'Calabrese', seed_slug: 'broccoli-calabrese', price_10g: 100, price_25g: 230 },
+  { category: 'Broccoli', variety: 'Green Sprouting', seed_slug: 'broccoli-green-sprouting', price_10g: 90, price_25g: 170 },
+  // CABBAGE
+  { category: 'Cabbage', variety: 'Chinese Cabbage (Michihili)', seed_slug: 'cabbage-chinese-michihili', price_10g: 55, price_25g: 95 },
+  { category: 'Cabbage', variety: 'Copenhagen Market', seed_slug: 'cabbage-copenhagen-market', price_10g: 65, price_25g: 145 },
+  { category: 'Cabbage', variety: 'Pack Choi Green', seed_slug: 'cabbage-pack-choi-green', price_10g: 65, price_25g: 130 },
+  { category: 'Cabbage', variety: 'Sugarloaf', seed_slug: 'cabbage-sugarloaf', price_10g: 70, price_25g: 145 },
+  // CAPSICUM - HOT
+  { category: 'Capsicum — Hot', variety: 'Long Cayenne', seed_slug: 'capsicum-hot-long-cayenne', price_10g: 170, price_25g: 400 },
+  // CAPSICUM - SWEET
+  { category: 'Capsicum — Sweet', variety: 'Super Wonder / California Wonder', seed_slug: 'capsicum-sweet-super-wonder', price_10g: 215, price_25g: 510 },
+  // CARROT
+  { category: 'Carrot', variety: 'Nantes', seed_slug: 'carrot-nantes', price_10g: 170, price_25g: 400 },
+  // CAULIFLOWER
+  { category: 'Cauliflower', variety: 'Early Snowball', seed_slug: 'cauliflower-early-snowball', price_10g: 85, price_25g: 145 },
+  // CELERY
+  { category: 'Celery', variety: 'Tall Utah', seed_slug: 'celery-tall-utah', price_10g: 140, price_25g: 270 },
+  // COLLARD (SUKUMA WIKI)
+  { category: 'Collard (Sukuma Wiki)', variety: 'Simlaw Select', seed_slug: 'collard-simlaw-select', price_10g: 170, price_25g: 395 },
+  { category: 'Collard (Sukuma Wiki)', variety: 'Southern Georgia', seed_slug: 'collard-southern-georgia', price_10g: 75, price_25g: 110 },
+  { category: 'Collard (Sukuma Wiki)', variety: 'Sukuma Siku', seed_slug: 'collard-sukuma-siku', price_10g: 60, price_25g: 125 },
+  // CUCUMBER
+  { category: 'Cucumber', variety: 'Ashley', seed_slug: 'cucumber-ashley', price_10g: 110, price_25g: 250 },
+  // EGGPLANT (BRINJAL)
+  { category: 'Eggplant (Brinjal)', variety: 'Black Beauty', seed_slug: 'eggplant-black-beauty', price_10g: 135, price_25g: 310 },
+  { category: 'Eggplant (Brinjal)', variety: 'Early Long Purple', seed_slug: 'eggplant-early-long-purple', price_10g: 100, price_25g: 235 },
+  // HERBS
+  { category: 'Herbs', variety: 'Chamomile', seed_slug: 'herbs-chamomile', price_10g: 435, price_25g: 1070 },
+  { category: 'Herbs', variety: 'Chives', seed_slug: 'herbs-chives', price_10g: 395, price_25g: 960 },
+  { category: 'Herbs', variety: 'Coriander (Dahnia)', seed_slug: 'herbs-coriander', price_10g: 55, price_25g: 90 },
+  { category: 'Herbs', variety: 'Dill', seed_slug: 'herbs-dill', price_10g: 100, price_25g: 215 },
+  { category: 'Herbs', variety: 'Fennel', seed_slug: 'herbs-fennel', price_10g: 200, price_25g: 470 },
+  { category: 'Herbs', variety: 'Sage', seed_slug: 'herbs-sage', price_10g: 615, price_25g: 1515 },
+  { category: 'Herbs', variety: 'Sweet Basil', seed_slug: 'herbs-sweet-basil', price_10g: 255, price_25g: 625 },
+  { category: 'Herbs', variety: 'Thyme', seed_slug: 'herbs-thyme', price_10g: 820, price_25g: 2020 },
+  // INDIGENOUS VEGETABLES
+  { category: 'Indigenous Vegetables', variety: 'Amaranthus / Terere', seed_slug: 'indig-amaranthus-terere', price_10g: 110, price_25g: 265 },
+  { category: 'Indigenous Vegetables', variety: 'Amaranthus Dubious', seed_slug: 'indig-amaranthus-dubious', price_10g: 60, price_25g: 100 },
+  { category: 'Indigenous Vegetables', variety: 'Common N. Shade / Managu', seed_slug: 'indig-common-nightshade', price_10g: 60, price_25g: 100 },
+  { category: 'Indigenous Vegetables', variety: 'Crotolaria (Mito/Miro)', seed_slug: 'indig-crotolaria', price_10g: 60, price_25g: 105 },
+  { category: 'Indigenous Vegetables', variety: 'Giant Night Shade / Managu', seed_slug: 'indig-giant-nightshade', price_10g: 65, price_25g: 120 },
+  { category: 'Indigenous Vegetables', variety: 'Jews Mallow / Sunhemp', seed_slug: 'indig-jews-mallow', price_10g: 60, price_25g: 75 },
+  { category: 'Indigenous Vegetables', variety: 'Kunde Mboga', seed_slug: 'indig-kunde-mboga', price_10g: 60, price_25g: 75 },
+  { category: 'Indigenous Vegetables', variety: 'Spider Plant (Saga/Saget)', seed_slug: 'indig-spider-plant', price_10g: 25, price_25g: 35 },
+  // KALE
+  { category: 'Kale', variety: 'Ethiopian Kale', seed_slug: 'kale-ethiopian', price_10g: 65, price_25g: 135 },
+  { category: 'Kale', variety: 'Thousand Headed', seed_slug: 'kale-thousand-headed', price_10g: 65, price_25g: 135 },
+  // LEEKS
+  { category: 'Leeks', variety: 'American Flag', seed_slug: 'leeks-american-flag', price_10g: 120, price_25g: 215 },
+  { category: 'Leeks', variety: 'Bulgarian Giant', seed_slug: 'leeks-bulgarian-giant', price_10g: 130, price_25g: 250 },
+  { category: 'Leeks', variety: 'Italian Giant', seed_slug: 'leeks-italian-giant', price_10g: 65, price_25g: 110 },
+  // LETTUCE
+  { category: 'Lettuce', variety: 'Great Lakes', seed_slug: 'lettuce-great-lakes', price_10g: 130, price_25g: 300 },
+  { category: 'Lettuce', variety: 'Red Salad', seed_slug: 'lettuce-red-salad', price_10g: 65, price_25g: 100 },
+  // OKRA
+  { category: 'Okra', variety: 'Carentan', seed_slug: 'okra-carentan', price_10g: 105, price_25g: 250 },
+  { category: 'Okra', variety: 'Pusa Sawani / Clemson Spineless', seed_slug: 'okra-pusa-sawani', price_10g: 40, price_25g: 55 },
+  // ONION
+  { category: 'Onion', variety: 'Bombay Red', seed_slug: 'onion-bombay-red', price_10g: 75, price_25g: 170 },
+  { category: 'Onion', variety: 'Improved Red Creole', seed_slug: 'onion-improved-red-creole', price_10g: 125, price_25g: 285 },
+  { category: 'Onion', variety: 'Spring Bunching', seed_slug: 'onion-spring-bunching', price_10g: 140, price_25g: 325 },
+  { category: 'Onion', variety: 'Texas Early Grano', seed_slug: 'onion-texas-early-grano', price_10g: 175, price_25g: 415 },
+  { category: 'Onion', variety: 'White Lisbon', seed_slug: 'onion-white-lisbon', price_10g: 125, price_25g: 300 },
+  // PARSLEY
+  { category: 'Parsley', variety: 'Champion Moss Curled', seed_slug: 'parsley-champion-moss-curled', price_10g: 110, price_25g: 205 },
+  // RADISH
+  { category: 'Radish', variety: 'Cherry Belle', seed_slug: 'radish-cherry-belle', price_10g: 70, price_25g: 160 },
+  // SPINACH
+  { category: 'Spinach', variety: 'Fordhook Giant', seed_slug: 'spinach-fordhook-giant', price_10g: 85, price_25g: 175 },
+  // SQUASH
+  { category: 'Squash', variety: 'Butternut — Waltham', seed_slug: 'squash-butternut-waltham', price_10g: 125, price_25g: 200 },
+  { category: 'Squash', variety: 'Zucchini / Black Beauty', seed_slug: 'squash-zucchini-black-beauty', price_10g: 210, price_25g: 360 },
+  // SWEET CORN
+  { category: 'Sweet Corn', variety: 'Golden Bantam', seed_slug: 'sweetcorn-golden-bantam', price_10g: 55, price_25g: 95 },
+  // TOMATO
+  { category: 'Tomato', variety: 'Cal J', seed_slug: 'tomato-cal-j', price_10g: 140, price_25g: 325 },
+  { category: 'Tomato', variety: 'M82', seed_slug: 'tomato-m82', price_10g: 135, price_25g: 250 },
+  { category: 'Tomato', variety: 'Marglobe', seed_slug: 'tomato-marglobe', price_10g: 220, price_25g: 530 },
+  { category: 'Tomato', variety: 'Money Maker', seed_slug: 'tomato-money-maker', price_10g: 175, price_25g: 420 },
+  { category: 'Tomato', variety: 'Rio Grande vF', seed_slug: 'tomato-rio-grande-vf', price_10g: 230, price_25g: 545 },
+  { category: 'Tomato', variety: 'Roma', seed_slug: 'tomato-roma', price_10g: 135, price_25g: 250 },
+  { category: 'Tomato', variety: 'Super Rio', seed_slug: 'tomato-super-rio', price_10g: 215, price_25g: 520 },
+  // WATERMELON
+  { category: 'Watermelon', variety: 'Crimson Sweet', seed_slug: 'watermelon-crimson-sweet', price_10g: 175, price_25g: 415 },
+  { category: 'Watermelon', variety: 'Sugar Baby', seed_slug: 'watermelon-sugar-baby', price_10g: 145, price_25g: 340 },
+];
 
 // ── Catalogue of products for URL-param pre-loading ──────────────────────────
 const CHECKOUT_PRODUCTS = {
@@ -714,7 +793,7 @@ const CHECKOUT_PRODUCTS = {
 };
 
 // ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
-window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+window.seedState = { ordered: [], freePackets: [], extraPackets: [], extraTotal: 0 };
 
 function cartHasFarmBag() {
   var cart = getCart();
@@ -781,7 +860,7 @@ function renderCartItems() {
 
   // When FarmBag is removed, reset seed state so stale data doesn't affect totals
   if (!hasFarmBag) {
-    window.seedState = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
+    window.seedState = { ordered: [], freePackets: [], extraPackets: [], extraTotal: 0 };
     _seedsRendered = false; // Allow seed groups to re-render if FarmBag is added again
   } else {
     // Load seeds only if not already rendered
@@ -826,7 +905,7 @@ async function loadSeeds() {
   if (_seedsRendered) return; // Already rendered — don't wipe user selections
   try {
     const res = await fetch(
-      `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=group_number,sort_order`,
+      `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=category,variety`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY_CHECKOUT,
@@ -850,124 +929,155 @@ async function loadSeeds() {
 }
 
 function renderStaticSeedGroups() {
-  // Convert STATIC_SEED_GROUPS into the same flat array format as Supabase rows
-  var rows = [];
-  Object.entries(STATIC_SEED_GROUPS).forEach(function(entry) {
-    var gNum = parseInt(entry[0], 10);
-    var gData = entry[1];
-    gData.seeds.forEach(function(s) {
-      rows.push({ group_number: gNum, group_name: gData.name, seed_slug: s.seed_slug, seed_name: s.seed_name, description: '' });
-    });
-  });
-  renderSeedGroups(rows);
+  renderSeedGroups(STATIC_SEED_CATALOGUE);
   _seedsRendered = true;
 }
 
 function renderSeedGroups(seeds) {
-  const container = document.getElementById('seed-groups-container');
-  const groups = {};
+  var container = document.getElementById('seed-groups-container');
+  // Build: broad group → crop category → varieties
+  var groups = {};
   seeds.forEach(function(s) {
-    if (!groups[s.group_number]) groups[s.group_number] = { name: s.group_name, seeds: [] };
-    groups[s.group_number].seeds.push(s);
+    var cat   = s.category || 'Other';
+    var group = SEED_GROUP_MAP[cat] || cat;
+    if (!groups[group]) groups[group] = {};
+    if (!groups[group][cat]) groups[group][cat] = [];
+    groups[group][cat].push(s);
   });
-  const groupEmojis = { 1: '🥬', 2: '🍓', 3: '🌿', 4: '🌱' };
-  container.innerHTML = Object.entries(groups).map(function(entry) {
-    var gNum = entry[0], gData = entry[1];
-    return '<div class="seed-group" data-group="' + gNum + '">'
-      + '<div class="seed-group-header" onclick="toggleSeedGroup(' + gNum + ')">'
-      + '<span class="seed-group-label">' + (groupEmojis[gNum] || '') + ' ' + gData.name + '</span>'
-      + '<span class="seed-group-status" id="status-group-' + gNum + '">None selected</span>'
+  // Ordered list of broad groups, with any unmapped ones appended
+  var orderedGroups = SEED_GROUP_ORDER.filter(function(g) { return groups[g]; });
+  Object.keys(groups).forEach(function(g) { if (orderedGroups.indexOf(g) < 0) orderedGroups.push(g); });
+
+  container.innerHTML = orderedGroups.map(function(group) {
+    var groupId  = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    var emoji    = SEED_GROUP_EMOJI[group] || '🌱';
+    var catsSorted = Object.keys(groups[group]).sort();
+
+    var innerHtml = catsSorted.map(function(cat) {
+      var varieties = groups[group][cat].slice().sort(function(a, b) {
+        return (a.variety || '').localeCompare(b.variety || '');
+      });
+      // Sub-category header: skip when category name matches the broad group (e.g. "Herbs" inside "Herbs")
+      var subHeaderHtml = (cat !== group)
+        ? '<div class="seed-subcategory-header">' + cat + '</div>'
+        : '';
+      return subHeaderHtml + varieties.map(function(s) {
+        var vName = (s.variety || '').replace(/"/g, '&quot;');
+        var slug  = s.seed_slug;
+        var catE  = cat.replace(/"/g, '&quot;');
+        var btns  = '';
+        if (s.price_10g) {
+          btns += '<button type="button" class="seed-weight-btn"'
+            + ' data-slug="' + slug + '" data-name="' + vName + '"'
+            + ' data-category="' + catE + '" data-weight="10g" data-price="' + s.price_10g + '"'
+            + ' onclick="toggleSeed(this)">10g &mdash; KES ' + s.price_10g + '</button>';
+        }
+        if (s.price_25g) {
+          btns += '<button type="button" class="seed-weight-btn"'
+            + ' data-slug="' + slug + '" data-name="' + vName + '"'
+            + ' data-category="' + catE + '" data-weight="25g" data-price="' + s.price_25g + '"'
+            + ' onclick="toggleSeed(this)">25g &mdash; KES ' + s.price_25g + '</button>';
+        }
+        return '<div class="seed-variety-row">'
+          + '<span class="seed-variety-name">' + (s.variety || '') + '</span>'
+          + '<div class="seed-weight-btns">' + btns + '</div>'
+          + '</div>';
+      }).join('');
+    }).join('');
+
+    // Use data-group-key on the header so onclick reads from dataset (avoids HTML quote-escaping issues)
+    return '<div class="seed-group" data-group="' + group.replace(/"/g, '&quot;') + '">'
+      + '<div class="seed-group-header" data-group-key="' + group.replace(/"/g, '&quot;') + '" onclick="toggleSeedGroup(this.dataset.groupKey)">'
+      + '<span class="seed-group-label">' + emoji + ' ' + group + '</span>'
+      + '<span class="seed-group-status" id="status-grp-' + groupId + '">None selected</span>'
       + '<span class="seed-group-chevron">▾</span>'
       + '</div>'
-      + '<div class="seed-pills">'
-      + gData.seeds.map(function(s) {
-          return '<div class="seed-pill"'
-            + ' data-slug="' + s.seed_slug + '"'
-            + ' data-name="' + s.seed_name.replace(/"/g, '&quot;') + '"'
-            + ' data-group="' + gNum + '"'
-            + ' title="' + (s.description || '').replace(/"/g, '&quot;') + '"'
-            + ' onclick="toggleSeed(this)">'
-            + s.seed_name
-            + '</div>';
-        }).join('')
-      + '</div></div>';
+      + '<div class="seed-pills">' + innerHtml + '</div>'
+      + '</div>';
   }).join('');
+
   // Open the first group by default
   var firstGroup = container.querySelector('.seed-group');
   if (firstGroup) firstGroup.classList.add('sg-open');
 }
 
-function toggleSeedGroup(gNum) {
+function toggleSeedGroup(group) {
   var container = document.getElementById('seed-groups-container');
   var allGroups = container.querySelectorAll('.seed-group');
-  var target    = container.querySelector('.seed-group[data-group="' + gNum + '"]');
+  // Iterate dataset to avoid CSS-selector escaping issues with special characters
+  var target = null;
+  allGroups.forEach(function(g) { if (g.dataset.group === group) target = g; });
   if (!target) return;
-  var isOpen    = target.classList.contains('sg-open');
+  var isOpen = target.classList.contains('sg-open');
   allGroups.forEach(function(g) { g.classList.remove('sg-open'); });
   if (!isOpen) target.classList.add('sg-open');
 }
 
-function refreshGroupPillLabels(group) {
-  var groupSel = window.seedState.selected[group] || [];
-  var container = document.querySelector('.seed-group[data-group="' + group + '"] .seed-pills');
-  if (!container) return;
-  container.querySelectorAll('.seed-pill').forEach(function(p) {
-    var slug = p.dataset.slug;
-    var name = p.dataset.name;
-    var pos  = groupSel.findIndex(function(s) { return s.slug === slug; });
+function refreshAllPillLabels() {
+  var ordered = window.seedState.ordered;
+  document.querySelectorAll('.seed-weight-btn').forEach(function(btn) {
+    var key = btn.dataset.slug + '-' + btn.dataset.weight;
+    var pos = ordered.findIndex(function(s) { return s.key === key; });
     if (pos < 0) {
-      p.classList.remove('selected', 'extra-selected');
-      p.innerHTML = name;
-    } else if (pos === 0) {
-      p.classList.remove('extra-selected');
-      p.classList.add('selected');
-      p.innerHTML = name + ' <span class="extra-tag">✓ Free</span>';
+      btn.classList.remove('selected', 'extra-selected');
+      btn.innerHTML = btn.dataset.weight + ' &mdash; KES ' + btn.dataset.price;
+    } else if (pos < FREE_SEED_PACKETS) {
+      btn.classList.add('selected');
+      btn.classList.remove('extra-selected');
+      btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">&#10003; Free</span>';
     } else {
-      p.classList.remove('selected');
-      p.classList.add('extra-selected');
-      p.innerHTML = name + ' <span class="extra-tag">+KES 150</span>';
+      btn.classList.remove('selected');
+      btn.classList.add('extra-selected');
+      btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">+KES ' + btn.dataset.price + '</span>';
+    }
+  });
+  // Update broad-group status labels
+  var byGroup = {};
+  ordered.forEach(function(s) {
+    var group = SEED_GROUP_MAP[s.category] || s.category;
+    if (!byGroup[group]) byGroup[group] = [];
+    byGroup[group].push(s.name + ' (' + s.weight + ')');
+  });
+  document.querySelectorAll('.seed-group').forEach(function(grp) {
+    var group = grp.dataset.group || '';
+    var grpId = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    var el    = document.getElementById('status-grp-' + grpId);
+    if (!el) return;
+    var names = byGroup[group] || [];
+    if (names.length === 0) {
+      el.textContent = 'None selected';
+      el.className = 'seed-group-status';
+    } else {
+      el.textContent = names.join(', ');
+      el.className = 'seed-group-status selected';
     }
   });
 }
 
-function toggleSeed(pill) {
-  var group = pill.dataset.group;
-  var slug  = pill.dataset.slug;
-  var name  = pill.dataset.name;
-  if (!window.seedState.selected[group]) window.seedState.selected[group] = [];
-  var groupSel = window.seedState.selected[group];
-  var idx = groupSel.findIndex(function(s) { return s.slug === slug; });
+function toggleSeed(btn) {
+  var slug     = btn.dataset.slug;
+  var name     = btn.dataset.name;
+  var category = btn.dataset.category;
+  var weight   = btn.dataset.weight;
+  var price    = parseInt(btn.dataset.price, 10) || 0;
+  var key      = slug + '-' + weight;
+  var idx = window.seedState.ordered.findIndex(function(s) { return s.key === key; });
   if (idx >= 0) {
-    groupSel.splice(idx, 1);
+    window.seedState.ordered.splice(idx, 1);
   } else {
-    groupSel.push({ slug: slug, name: name, group: parseInt(group, 10) });
+    window.seedState.ordered.push({ key: key, slug: slug, name: name, category: category, weight: weight, price: price });
   }
-  // Re-evaluate all pills in this group so free/extra labels stay correct
-  refreshGroupPillLabels(group);
-  var status = document.getElementById('status-group-' + group);
-  if (status) {
-    if (groupSel.length === 0) {
-      status.textContent = 'None selected';
-      status.className = 'seed-group-status';
-    } else {
-      status.textContent = groupSel.map(function(s) { return s.name; }).join(', ');
-      status.className = 'seed-group-status selected';
-    }
-  }
+  refreshAllPillLabels();
   recalculateSeedState();
 }
 
 function recalculateSeedState() {
-  var freePackets = [], extraPackets = [];
-  Object.values(window.seedState.selected).forEach(function(groupArr) {
-    groupArr.forEach(function(seed, i) {
-      if (i === 0) freePackets.push(seed);
-      else extraPackets.push(seed);
-    });
-  });
+  var ordered      = window.seedState.ordered;
+  var freePackets  = ordered.slice(0, FREE_SEED_PACKETS);
+  var extraPackets = ordered.slice(FREE_SEED_PACKETS);
   window.seedState.freePackets  = freePackets;
   window.seedState.extraPackets = extraPackets;
-  window.seedState.extraTotal   = extraPackets.length * 150;
+  window.seedState.extraTotal   = extraPackets.reduce(function(sum, s) { return sum + (s.price || 0); }, 0);
   updateSeedSummary();
   updateOrderTotals();
 }
@@ -1148,8 +1258,8 @@ function launchPaystack() {
   const grandTotal   = totals.grandTotal + seedsTotal;
 
   const hasFarmBag     = cartHasFarmBag();
-  const freeSeeds      = hasFarmBag ? (window.seedState?.freePackets  || []) : [];
-  const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []) : [];
+  const freeSeeds      = hasFarmBag ? (window.seedState?.freePackets  || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; }) : [];
+  const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; }) : [];
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;

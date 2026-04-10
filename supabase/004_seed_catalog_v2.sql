@@ -1,22 +1,36 @@
 -- ============================================================
--- Afams FarmBag — Add-ons & ProSoil Schema
+-- Afams FarmBag — Seed Catalog v2 Migration
 -- Run in Supabase SQL Editor on project dvquyzzqsnlcassvgdzz
+--
+-- Migrates seed_catalog from the old group-based schema
+-- (group_number, group_name, seed_name, unit_price) to the
+-- new category/variety/price schema (category, variety,
+-- price_10g, price_25g).
+--
+-- Source: Simlaw Seeds Retail Price List, October 2025.
+-- Afams retail = Simlaw price × 1.16, rounded to nearest KES 5.
+-- Prices are inclusive of VAT.
 -- ============================================================
 
--- ── 1A. SEED CATALOG TABLE ──────────────────────────────────
--- Simlaw Seeds retail catalogue (October 2025) + 16% Afams margin.
--- Weights: 10g and 25g only. Open-Pollinated / Maisha-pack varieties.
-CREATE TABLE IF NOT EXISTS seed_catalog (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  category    TEXT NOT NULL,
-  variety     TEXT NOT NULL,
-  seed_slug   TEXT NOT NULL UNIQUE,
-  price_10g   INTEGER,         -- KES, NULL if weight not available
-  price_25g   INTEGER,         -- KES, NULL if weight not available
-  in_stock    BOOLEAN DEFAULT TRUE,
-  created_at  TIMESTAMPTZ DEFAULT now()
-);
+-- ── Step 1: Drop old columns, add new ones ───────────────────
+ALTER TABLE seed_catalog
+  DROP COLUMN IF EXISTS group_number,
+  DROP COLUMN IF EXISTS group_name,
+  DROP COLUMN IF EXISTS seed_name,
+  DROP COLUMN IF EXISTS description,
+  DROP COLUMN IF EXISTS unit_price,
+  DROP COLUMN IF EXISTS sort_order;
 
+ALTER TABLE seed_catalog
+  ADD COLUMN IF NOT EXISTS category  TEXT,
+  ADD COLUMN IF NOT EXISTS variety   TEXT,
+  ADD COLUMN IF NOT EXISTS price_10g INTEGER,
+  ADD COLUMN IF NOT EXISTS price_25g INTEGER;
+
+-- ── Step 2: Clear old variety data ──────────────────────────
+TRUNCATE seed_catalog;
+
+-- ── Step 3: Insert all 63 Simlaw varieties ──────────────────
 INSERT INTO seed_catalog (category, variety, seed_slug, price_10g, price_25g) VALUES
 -- BEETROOT
 ('Beetroot',              'Crimson Globe / Detroit',              'beetroot-crimson-globe',          70,  145),
@@ -105,39 +119,14 @@ INSERT INTO seed_catalog (category, variety, seed_slug, price_10g, price_25g) VA
 ('Tomato',                'Super Rio',                            'tomato-super-rio',                215,  520),
 -- WATERMELON
 ('Watermelon',            'Crimson Sweet',                        'watermelon-crimson-sweet',        175,  415),
-('Watermelon',            'Sugar Baby',                           'watermelon-sugar-baby',           145,  340)
+('Watermelon',            'Sugar Baby',                           'watermelon-sugar-baby',           145,  340);
 
-ON CONFLICT (seed_slug) DO NOTHING;
+-- ── Step 4: Make category and variety NOT NULL now data is loaded
+ALTER TABLE seed_catalog
+  ALTER COLUMN category SET NOT NULL,
+  ALTER COLUMN variety   SET NOT NULL;
 
+-- ── Step 5: Re-confirm RLS ───────────────────────────────────
 ALTER TABLE seed_catalog ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Public can read seeds" ON seed_catalog;
 CREATE POLICY "Public can read seeds" ON seed_catalog FOR SELECT USING (TRUE);
-
--- ── 1B. PROSOIL PRODUCT ─────────────────────────────────────
--- Insert ProSoil into the existing products table
--- NOTE: Replace image filenames after uploading to Truehost /images/ directory
-INSERT INTO products (name, slug, description, price, category, in_stock, images, sort_order)
-VALUES (
-  'Afams ProSoil 25kg',
-  'prosoil-25kg',
-  'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour into your FarmBag, water and start planting immediately. No weed seeds. Ready to plant. pH 6.2–6.8. 25kg bag.',
-  39900,
-  'growing-medium',
-  TRUE,
-  '["prosoil-both.jpg", "prosoil-front.jpg", "prosoil-back.jpg"]',
-  10
-)
-ON CONFLICT (slug) DO NOTHING;
-
--- ── 1C. EXTEND ORDERS TABLE FOR ADD-ONS ────────────────────
-ALTER TABLE orders
-  ADD COLUMN IF NOT EXISTS free_seeds         JSONB   DEFAULT '[]',
-  ADD COLUMN IF NOT EXISTS extra_seeds        JSONB   DEFAULT '[]',
-  ADD COLUMN IF NOT EXISTS extra_seeds_count  INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS extra_seeds_total  INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS prosoil_qty        INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS prosoil_unit_price INTEGER DEFAULT 39900,
-  ADD COLUMN IF NOT EXISTS prosoil_total      INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS prosoil_promo_bag  BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS addons_total       INTEGER DEFAULT 0;
