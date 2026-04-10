@@ -337,6 +337,17 @@
       gap: 8px;
     }
     .seed-variety-row:last-child { border-bottom: none; }
+    .seed-subcategory-header {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: #2D6A4F;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 0 3px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(45,106,79,0.12);
+    }
+    .seed-subcategory-header:first-child { border-top: none; margin-top: 0; }
     .seed-variety-name { font-size: 0.78rem; color: #333; flex: 1; min-width: 0; }
     .seed-weight-btns { display: flex; gap: 5px; flex-shrink: 0; }
     .seed-weight-btn {
@@ -651,6 +662,37 @@ const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M
 
 const FREE_SEED_PACKETS = 2; // free packets bundled with every FarmBag order
 
+// ── Maps each Simlaw crop-category to one of the 4 broad display groups ───────
+const SEED_GROUP_MAP = {
+  'Beetroot':              'Vegetables',
+  'Broccoli':              'Vegetables',
+  'Cabbage':               'Vegetables',
+  'Capsicum \u2014 Hot':   'Fruits',
+  'Capsicum \u2014 Sweet': 'Fruits',
+  'Carrot':                'Vegetables',
+  'Cauliflower':           'Vegetables',
+  'Celery':                'Vegetables',
+  'Collard (Sukuma Wiki)': 'Vegetables',
+  'Cucumber':              'Fruits',
+  'Eggplant (Brinjal)':   'Vegetables',
+  'Herbs':                 'Herbs',
+  'Indigenous Vegetables': 'Indigenous Vegetables',
+  'Kale':                  'Vegetables',
+  'Leeks':                 'Vegetables',
+  'Lettuce':               'Vegetables',
+  'Okra':                  'Vegetables',
+  'Onion':                 'Vegetables',
+  'Parsley':               'Herbs',
+  'Radish':                'Vegetables',
+  'Spinach':               'Vegetables',
+  'Squash':                'Fruits',
+  'Sweet Corn':            'Vegetables',
+  'Tomato':                'Fruits',
+  'Watermelon':            'Fruits',
+};
+const SEED_GROUP_ORDER = ['Vegetables', 'Fruits', 'Herbs', 'Indigenous Vegetables'];
+const SEED_GROUP_EMOJI = { 'Vegetables': '🥦', 'Fruits': '🍅', 'Herbs': '🌿', 'Indigenous Vegetables': '🌱' };
+
 // ── Static seed catalogue — fallback when Supabase seed_catalog is unreachable ─
 const STATIC_SEED_CATALOGUE = [
   // BEETROOT
@@ -893,71 +935,80 @@ function renderStaticSeedGroups() {
 
 function renderSeedGroups(seeds) {
   var container = document.getElementById('seed-groups-container');
-  // Group by category
+  // Build: broad group → crop category → varieties
   var groups = {};
   seeds.forEach(function(s) {
-    var cat = s.category || s.group_name || 'Other';
-    if (!groups[cat]) groups[cat] = [];
-    groups[cat].push(s);
+    var cat   = s.category || 'Other';
+    var group = SEED_GROUP_MAP[cat] || cat;
+    if (!groups[group]) groups[group] = {};
+    if (!groups[group][cat]) groups[group][cat] = [];
+    groups[group][cat].push(s);
   });
-  // Sort categories alphabetically; sort varieties within each category alphabetically
-  var sortedCategories = Object.keys(groups).sort();
-  container.innerHTML = sortedCategories.map(function(cat) {
-    var catId  = cat.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    var catSeeds = groups[cat].slice().sort(function(a, b) {
-      return (a.variety || a.seed_name || '').localeCompare(b.variety || b.seed_name || '');
-    });
-    return '<div class="seed-group" data-category="' + cat.replace(/"/g, '&quot;') + '">'
-      + '<div class="seed-group-header" onclick="toggleSeedGroup(' + JSON.stringify(cat) + ')">'
-      + '<span class="seed-group-label">🌱 ' + cat + '</span>'
-      + '<span class="seed-group-status" id="status-cat-' + catId + '">None selected</span>'
+  // Ordered list of broad groups, with any unmapped ones appended
+  var orderedGroups = SEED_GROUP_ORDER.filter(function(g) { return groups[g]; });
+  Object.keys(groups).forEach(function(g) { if (orderedGroups.indexOf(g) < 0) orderedGroups.push(g); });
+
+  container.innerHTML = orderedGroups.map(function(group) {
+    var groupId  = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    var emoji    = SEED_GROUP_EMOJI[group] || '🌱';
+    var catsSorted = Object.keys(groups[group]).sort();
+
+    var innerHtml = catsSorted.map(function(cat) {
+      var varieties = groups[group][cat].slice().sort(function(a, b) {
+        return (a.variety || '').localeCompare(b.variety || '');
+      });
+      // Sub-category header: skip when category name matches the broad group (e.g. "Herbs" inside "Herbs")
+      var subHeaderHtml = (cat !== group)
+        ? '<div class="seed-subcategory-header">' + cat + '</div>'
+        : '';
+      return subHeaderHtml + varieties.map(function(s) {
+        var vName = (s.variety || '').replace(/"/g, '&quot;');
+        var slug  = s.seed_slug;
+        var catE  = cat.replace(/"/g, '&quot;');
+        var btns  = '';
+        if (s.price_10g) {
+          btns += '<button type="button" class="seed-weight-btn"'
+            + ' data-slug="' + slug + '" data-name="' + vName + '"'
+            + ' data-category="' + catE + '" data-weight="10g" data-price="' + s.price_10g + '"'
+            + ' onclick="toggleSeed(this)">10g &mdash; KES ' + s.price_10g + '</button>';
+        }
+        if (s.price_25g) {
+          btns += '<button type="button" class="seed-weight-btn"'
+            + ' data-slug="' + slug + '" data-name="' + vName + '"'
+            + ' data-category="' + catE + '" data-weight="25g" data-price="' + s.price_25g + '"'
+            + ' onclick="toggleSeed(this)">25g &mdash; KES ' + s.price_25g + '</button>';
+        }
+        return '<div class="seed-variety-row">'
+          + '<span class="seed-variety-name">' + (s.variety || '') + '</span>'
+          + '<div class="seed-weight-btns">' + btns + '</div>'
+          + '</div>';
+      }).join('');
+    }).join('');
+
+    // Use data-group-key on the header so onclick reads from dataset (avoids HTML quote-escaping issues)
+    return '<div class="seed-group" data-group="' + group.replace(/"/g, '&quot;') + '">'
+      + '<div class="seed-group-header" data-group-key="' + group.replace(/"/g, '&quot;') + '" onclick="toggleSeedGroup(this.dataset.groupKey)">'
+      + '<span class="seed-group-label">' + emoji + ' ' + group + '</span>'
+      + '<span class="seed-group-status" id="status-grp-' + groupId + '">None selected</span>'
       + '<span class="seed-group-chevron">▾</span>'
       + '</div>'
-      + '<div class="seed-pills">'
-      + catSeeds.map(function(s) {
-          var vName = (s.variety || s.seed_name || '').replace(/"/g, '&quot;');
-          var slug  = s.seed_slug;
-          var btns  = '';
-          if (s.price_10g) {
-            btns += '<button type="button" class="seed-weight-btn"'
-              + ' data-slug="' + slug + '"'
-              + ' data-name="' + vName + '"'
-              + ' data-category="' + cat.replace(/"/g, '&quot;') + '"'
-              + ' data-weight="10g"'
-              + ' data-price="' + s.price_10g + '"'
-              + ' onclick="toggleSeed(this)">'
-              + '10g &mdash; KES ' + s.price_10g
-              + '</button>';
-          }
-          if (s.price_25g) {
-            btns += '<button type="button" class="seed-weight-btn"'
-              + ' data-slug="' + slug + '"'
-              + ' data-name="' + vName + '"'
-              + ' data-category="' + cat.replace(/"/g, '&quot;') + '"'
-              + ' data-weight="25g"'
-              + ' data-price="' + s.price_25g + '"'
-              + ' onclick="toggleSeed(this)">'
-              + '25g &mdash; KES ' + s.price_25g
-              + '</button>';
-          }
-          return '<div class="seed-variety-row">'
-            + '<span class="seed-variety-name">' + (s.variety || s.seed_name || '') + '</span>'
-            + '<div class="seed-weight-btns">' + btns + '</div>'
-            + '</div>';
-        }).join('')
-      + '</div></div>';
+      + '<div class="seed-pills">' + innerHtml + '</div>'
+      + '</div>';
   }).join('');
+
   // Open the first group by default
   var firstGroup = container.querySelector('.seed-group');
   if (firstGroup) firstGroup.classList.add('sg-open');
 }
 
-function toggleSeedGroup(cat) {
+function toggleSeedGroup(group) {
   var container = document.getElementById('seed-groups-container');
   var allGroups = container.querySelectorAll('.seed-group');
-  var target    = container.querySelector('.seed-group[data-category="' + cat.replace(/"/g, '&quot;') + '"]');
+  // Iterate dataset to avoid CSS-selector escaping issues with special characters
+  var target = null;
+  allGroups.forEach(function(g) { if (g.dataset.group === group) target = g; });
   if (!target) return;
-  var isOpen    = target.classList.contains('sg-open');
+  var isOpen = target.classList.contains('sg-open');
   allGroups.forEach(function(g) { g.classList.remove('sg-open'); });
   if (!isOpen) target.classList.add('sg-open');
 }
@@ -980,18 +1031,19 @@ function refreshAllPillLabels() {
       btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">+KES ' + btn.dataset.price + '</span>';
     }
   });
-  // Update category status labels
-  var byCat = {};
+  // Update broad-group status labels
+  var byGroup = {};
   ordered.forEach(function(s) {
-    if (!byCat[s.category]) byCat[s.category] = [];
-    byCat[s.category].push(s.name + ' (' + s.weight + ')');
+    var group = SEED_GROUP_MAP[s.category] || s.category;
+    if (!byGroup[group]) byGroup[group] = [];
+    byGroup[group].push(s.name + ' (' + s.weight + ')');
   });
   document.querySelectorAll('.seed-group').forEach(function(grp) {
-    var cat   = grp.dataset.category || '';
-    var catId = cat.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    var el    = document.getElementById('status-cat-' + catId);
+    var group = grp.dataset.group || '';
+    var grpId = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    var el    = document.getElementById('status-grp-' + grpId);
     if (!el) return;
-    var names = byCat[cat] || [];
+    var names = byGroup[group] || [];
     if (names.length === 0) {
       el.textContent = 'None selected';
       el.className = 'seed-group-status';
