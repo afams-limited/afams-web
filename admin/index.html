@@ -1884,7 +1884,7 @@ function buildEmailContent(templateKey, o) {
   var payMethod = o.payment_method  || 'Paystack';
   var estDelivery = o.estimated_delivery || '3–5 business days';
   var checkoutUrl = 'https://afams.co.ke/checkout.html';
-  var sig = '\n\nWarm regards,\nAfams LTD Team\norders@afams.co.ke | +254 714 128 514 (also WhatsApp)\nafams.co.ke';
+  var sig = '\n\nWarm regards,\nAfams LTD Team\norders@afams.co.ke | +' + WA_NUMBER + ' (also WhatsApp)\nafams.co.ke';
 
   var subjects = {
     order_received:    '[Afams Order ' + ref + '] Order Confirmed',
@@ -1932,7 +1932,7 @@ function buildEmailContent(templateKey, o) {
       + 'Quantity: ' + qty + '\n'
       + 'Estimated Delivery: ' + estDelivery + '\n'
       + 'Tracking Number: ' + tracking + '\n\n'
-      + 'If you have any questions about your delivery, simply reply to this email or reach us on WhatsApp: +254 714 128 514.'
+      + 'If you have any questions about your delivery, simply reply to this email or reach us on WhatsApp: +' + WA_NUMBER + '.'
       + sig,
 
     order_delivered:
