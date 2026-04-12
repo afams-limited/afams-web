@@ -820,6 +820,18 @@
       cursor: text;
     }
 
+    .email-subject-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.88rem;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      box-sizing: border-box;
+      margin-bottom: 0.25rem;
+    }
+
     /* Modal action buttons */
     .modal-actions {
       display: flex;
@@ -1359,47 +1371,46 @@
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast" role="status" aria-live="polite"></div>
-
-<!-- Email Template Modal -->
-<div id="emailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="emailModalTitle">
-  <div style="background:#fff;border-radius:12px;max-width:640px;margin:40px auto;padding:28px 28px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:relative;">
-    <h2 id="emailModalTitle" style="font-size:18px;font-weight:800;color:#1b4332;margin:0 0 4px;">📧 Email Customer</h2>
-    <p style="font-size:12px;color:#6b7280;margin:0 0 18px;">Send from <strong>orders@afams.co.ke</strong> using your email client.</p>
-
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">To (Recipient)</label>
-      <input id="emailTo" type="email" readonly style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;background:#f9fafb;color:#374151;">
+<!-- ══════════════════════════════════════════════════════════════
+     EMAIL TEMPLATE MODAL
+══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="email-modal-title" style="display:none;">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="email-modal-title">📧 Email Customer</div>
+      <button class="modal-close" onclick="closeEmailModal()" aria-label="Close">×</button>
     </div>
+    <div class="modal-body">
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">
+        To: <strong id="email-modal-recipient"></strong>
+      </div>
 
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Email Template</label>
-      <select id="emailTemplateSelect" onchange="onEmailTemplateChange()" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;background:#fff;">
-        <option value="order_received">Order Confirmed (Order Received)</option>
-        <option value="payment_success">Payment Received</option>
-        <option value="payment_failed">Payment Incomplete — Action Required</option>
-        <option value="order_dispatched">Order Dispatched / On Its Way</option>
+      <label class="modal-field-label">Template</label>
+      <select class="status-select" id="email-template-select" onchange="updateEmailPreview()">
+        <option value="order_received">Order Confirmed</option>
+        <option value="payment_success">Payment Confirmed</option>
+        <option value="payment_failed">Payment Incomplete</option>
+        <option value="order_dispatched">Order Dispatched</option>
         <option value="order_delivered">Order Delivered</option>
       </select>
-    </div>
 
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Subject</label>
-      <input id="emailSubject" type="text" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;">
-    </div>
+      <label class="modal-field-label" style="margin-top:1rem;">Subject</label>
+      <input type="text" id="email-subject" class="email-subject-input" readonly />
 
-    <div style="margin-bottom:18px;">
-      <label style="font-size:11px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message Body</label>
-      <textarea id="emailBody" rows="12" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;font-family:inherit;resize:vertical;"></textarea>
-    </div>
+      <label class="modal-field-label" style="margin-top:1rem;">Email Body <span style="font-weight:400;color:var(--text-muted);">(editable)</span></label>
+      <textarea id="email-body-preview" class="notes-textarea" rows="14" style="font-family:monospace;font-size:0.78rem;white-space:pre;"></textarea>
 
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button onclick="closeEmailModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
-      <button onclick="sendEmailFromModal()" style="background:#2d6a4f;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">Open in Email Client</button>
+      <div class="modal-actions" style="margin-top:1.25rem;">
+        <button class="btn-save"    id="email-brevo-btn"    onclick="sendEmailViaBrevo()">✉️ Send via Brevo</button>
+        <button class="btn-outlined"                        onclick="openEmailClient()">📨 Open Email Client</button>
+        <button class="btn-outlined"                        onclick="closeEmailModal()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- WhatsApp Template Modal -->
 <div id="waModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="waModalTitle">
@@ -1447,6 +1458,7 @@ const SUPABASE_URL     = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const ADMIN_EMAIL      = 'iammwombe@gmail.com';
 const WA_NUMBER        = '254714128514';
+const EMAIL_SIGNATURE  = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
 
 // ════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1898,112 +1910,17 @@ async function saveOrderUpdate() {
 function emailCustomer() {
   if (!currentOrder) return;
   var o = currentOrder;
-  document.getElementById('emailTo').value = o.customer_email || '';
-  onEmailTemplateChange();
-  document.getElementById('emailModal').style.display = 'block';
-  setTimeout(function () { document.getElementById('emailSubject').focus(); }, 50);
-}
-
-function closeEmailModal() {
-  document.getElementById('emailModal').style.display = 'none';
-}
-
-function buildEmailContent(templateKey, o) {
-  var ref   = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
-  var name  = o.customer_name  || 'Customer';
-  var prod  = o.product_name   || o.product_sku || 'FarmBag';
-  var qty   = o.quantity       || 1;
-  var amt   = o.total_amount   ? 'KES ' + Number(o.total_amount).toLocaleString('en-KE') : '—';
-  var paidAt    = o.paid_at         ? new Date(o.paid_at).toLocaleString('en-KE')         : '—';
-  var delivAt   = o.delivered_at    ? new Date(o.delivered_at).toLocaleString('en-KE')    : '—';
-  var tracking  = o.tracking_number || '—';
-  var payMethod = o.payment_method  || 'Paystack';
-  var estDelivery = o.estimated_delivery || '3–5 business days';
-  var checkoutUrl = 'https://afams.co.ke/checkout.html';
-  var sig = '\n\nWarm regards,\nAfams LTD Team\norders@afams.co.ke | +' + WA_NUMBER + ' (also WhatsApp)\nafams.co.ke';
-
-  var subjects = {
-    order_received:    '[Afams Order ' + ref + '] Order Confirmed',
-    payment_success:   '[Afams Order ' + ref + '] Payment Received',
-    payment_failed:    '[Afams Order ' + ref + '] Complete Your Payment',
-    order_dispatched:  '[Afams Order ' + ref + '] Your Order Is On Its Way!',
-    order_delivered:   '[Afams Order ' + ref + '] Order Delivered'
+  document.getElementById('email-modal-recipient').textContent = o.customer_email || '(no email on file)';
+  var statusTemplateMap = {
+    'pending': 'order_received', 'paid': 'payment_success',
+    'processing': 'order_received', 'shipped': 'order_dispatched',
+    'delivered': 'order_delivered', 'cancelled': 'order_received', 'refunded': 'order_received'
   };
-
-  var bodies = {
-    order_received:
-      'Hello ' + name + ',\n\n'
-      + 'Thank you for your order! We have received it and it is now confirmed.\n\n'
-      + 'Order Reference: ' + ref + '\n'
-      + 'Product: ' + prod + '\n'
-      + 'Quantity: ' + qty + '\n'
-      + 'Payment Method: ' + payMethod + '\n'
-      + 'Total: ' + amt + '\n\n'
-      + 'We will keep you updated as your order is processed. If you have any questions, simply reply to this email.'
-      + sig,
-
-    payment_success:
-      'Payment received, ' + name + '.\n\n'
-      + 'We have successfully received your payment. Your order is secured and our team is preparing it for the next stage.\n\n'
-      + 'Order Reference: ' + ref + '\n'
-      + 'Paid At: ' + paidAt + '\n'
-      + 'Amount Paid: ' + amt + '\n\n'
-      + 'We will notify you again when the order is dispatched. For any questions, simply reply to this email.'
-      + sig,
-
-    payment_failed:
-      'Hi ' + name + ',\n\n'
-      + 'We noticed your payment for order ' + ref + ' was not completed.\n\n'
-      + 'Order Reference: ' + ref + '\n'
-      + 'Amount: ' + amt + '\n\n'
-      + 'Please complete your payment here to secure your order:\n' + checkoutUrl + '\n\n'
-      + 'If you have already paid or need assistance, simply reply to this email and we will help you right away.'
-      + sig,
-
-    order_dispatched:
-      "It's dispatched, " + name + '!\n\n'
-      + 'Great news — your order is on its way to you.\n\n'
-      + 'Order Reference: ' + ref + '\n'
-      + 'Product: ' + prod + '\n'
-      + 'Quantity: ' + qty + '\n'
-      + 'Estimated Delivery: ' + estDelivery + '\n'
-      + 'Tracking Number: ' + tracking + '\n\n'
-      + 'If you have any questions about your delivery, simply reply to this email or reach us on WhatsApp: +' + WA_NUMBER + '.'
-      + sig,
-
-    order_delivered:
-      'Delivered, ' + name + '!\n\n'
-      + 'Your order has been delivered. We hope you love it!\n\n'
-      + 'Order Reference: ' + ref + '\n'
-      + 'Product: ' + prod + '\n'
-      + 'Quantity: ' + qty + '\n'
-      + 'Delivered At: ' + delivAt + '\n\n'
-      + 'Thank you for choosing Afams. We would love to hear your feedback — simply reply to this email.\n'
-      + 'Also, check out our other products at afams.co.ke 🌿'
-      + sig
-  };
-
-  return { subject: subjects[templateKey] || subjects.order_received, body: bodies[templateKey] || bodies.order_received };
-}
-
-function onEmailTemplateChange() {
-  if (!currentOrder) return;
-  var key = document.getElementById('emailTemplateSelect').value;
-  var content = buildEmailContent(key, currentOrder);
-  document.getElementById('emailSubject').value = content.subject;
-  document.getElementById('emailBody').value = content.body;
-}
-
-function sendEmailFromModal() {
-  var to      = document.getElementById('emailTo').value.trim();
-  var subject = document.getElementById('emailSubject').value.trim();
-  var body    = document.getElementById('emailBody').value.trim();
-  if (!to) { alert('No customer email address on this order.'); return; }
-  var mailto = 'mailto:' + encodeURIComponent(to)
-    + '?subject=' + encodeURIComponent(subject)
-    + '&body='    + encodeURIComponent(body);
-  window.open(mailto, '_blank');
-  closeEmailModal();
+  var defaultTpl = statusTemplateMap[o.status] || 'order_received';
+  document.getElementById('email-template-select').value = defaultTpl;
+  updateEmailPreview();
+  document.getElementById('email-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
 
 function whatsappCustomer() {
@@ -2188,6 +2105,7 @@ function buildReceiptHTML(order) {
     + '.receipt { width: 210mm; min-height: 250mm; padding: 14mm 16mm 16mm; margin: 0 auto; background: #ffffff; }\n'
     + '.receipt-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 3px solid #2d6a4f; margin-bottom: 18px; }\n'
     + '.brand-block .brand-name { font-size: 22px; font-weight: 800; color: #2d6a4f; letter-spacing: -0.5px; }\n'
+    + '.receipt-logo { height: 64px; width: auto; display: block; margin-bottom: 8px; }\n'
     + '.brand-block .brand-tagline { font-size: 10px; color: #52b788; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }\n'
     + '.brand-block .brand-contact { font-size: 11px; color: #6b7280; margin-top: 8px; line-height: 1.7; }\n'
     + '.brand-block .brand-contact a { color: #2d6a4f; text-decoration: none; }\n'
@@ -2248,7 +2166,8 @@ function buildReceiptHTML(order) {
     + '<div class="receipt">\n'
     + '  <div class="receipt-header">\n'
     + '    <div class="brand-block">\n'
-    + '      <div class="brand-name"><img src="https://afams.co.ke/afams-logo.jpg" alt="Afams LTD" style="height:48px;width:auto;display:block;margin-bottom:6px;" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'inline\'"><span style="display:none">\uD83C\uDF3F Afams LTD</span></div>\n'
+    + '      <img src="https://afams.co.ke/afams-logo.jpg" alt="Afams LTD" class="receipt-logo" onerror="this.style.display=\'none\'">\n'
+    + '      <div class="brand-name">Afams LTD</div>\n'
     + '      <div class="brand-tagline">Farming into the future</div>\n'
     + '      <div class="brand-contact">afams.co.ke<br><a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a><br>+254 714 128 514<br>Nairobi, Kenya</div>\n'
     + '    </div>\n'
@@ -2529,7 +2448,7 @@ function escapeHtml(str) {
 document.getElementById('order-modal').addEventListener('click', function (e) {
   if (e.target === this) closeOrderModal();
 });
-document.getElementById('emailModal').addEventListener('click', function (e) {
+document.getElementById('email-modal').addEventListener('click', function (e) {
   if (e.target === this) closeEmailModal();
 });
 document.getElementById('waModal').addEventListener('click', function (e) {
@@ -2537,10 +2456,147 @@ document.getElementById('waModal').addEventListener('click', function (e) {
 });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
-    if (document.getElementById('emailModal').style.display !== 'none') closeEmailModal();
+    if (document.getElementById('email-modal').style.display !== 'none') closeEmailModal();
     if (document.getElementById('waModal').style.display    !== 'none') closeWAModal();
   }
 });
+
+// ════════════════════════════════════════════════════
+// EMAIL TEMPLATE MODAL
+// ════════════════════════════════════════════════════
+function closeEmailModal() {
+  document.getElementById('email-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function buildEmailContent(templateType) {
+  var o           = currentOrder;
+  var ref         = o.order_number || o.id;
+  var name        = o.customer_name  || 'Customer';
+  var product     = o.product_name   || o.product_sku || '—';
+  var qty         = String(o.quantity || 1);
+  var total       = 'KES ' + Number(o.total_amount || 0).toLocaleString('en-KE');
+  var payMethod   = o.payment_method || 'Paystack';
+  var trackingNo  = o.tracking_number || '—';
+  var paidAt      = o.paid_at
+    ? new Date(o.paid_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+  var deliveredAt = o.delivered_at
+    ? new Date(o.delivered_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+
+  var subject, body;
+
+  if (templateType === 'order_received') {
+    subject = '[Afams Order ' + ref + '] Order Confirmed';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Thank you for shopping with Afams. We\'ve received your order and it is now in our queue. '
+      + 'We will send you another update once the order is dispatched.\n\n'
+      + 'Order Number:    ' + ref + '\n'
+      + 'Product:         ' + product + '\n'
+      + 'Quantity:        ' + qty + '\n'
+      + 'Payment Method:  ' + payMethod + '\n'
+      + 'Total Amount:    ' + total + '\n\n'
+      + 'Our team will process your order and reach out to confirm your delivery details. '
+      + 'Questions? Email us at orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else if (templateType === 'payment_success') {
+    subject = '[Afams Order ' + ref + '] Payment Confirmed';
+    body = 'Hello ' + name + ',\n\n'
+      + 'We have successfully received your payment. Your order is secured and our team is preparing it.\n\n'
+      + 'Order Number:    ' + ref + '\n'
+      + 'Paid At:         ' + paidAt + '\n'
+      + 'Amount Paid:     ' + total + '\n\n'
+      + 'We\'ll notify you again when the order is dispatched. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else if (templateType === 'payment_failed') {
+    subject = '[Afams Order ' + ref + '] Payment Incomplete';
+    body = 'Hello ' + name + ',\n\n'
+      + 'We could not confirm payment for your Afams order. '
+      + 'Your items may not be reserved until checkout is completed.\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Amount:        ' + total + '\n\n'
+      + 'Please visit afams.co.ke to complete your payment. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else if (templateType === 'order_dispatched') {
+    subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
+      + 'Order Number:       ' + ref + '\n'
+      + 'Product:            ' + product + '\n'
+      + 'Quantity:           ' + qty + '\n'
+      + 'Tracking Number:    ' + trackingNo + '\n'
+      + 'Estimated Delivery: 2–5 business days\n\n'
+      + 'Our delivery partner may contact you when your package is near. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else {
+    subject = '[Afams Order ' + ref + '] Order Delivered';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Your Afams order has been marked as delivered. '
+      + 'Thank you for trusting us to support your growing journey!\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Product:       ' + product + '\n'
+      + 'Quantity:      ' + qty + '\n'
+      + 'Delivered At:  ' + deliveredAt + '\n\n'
+      + 'We hope you enjoy your purchase! Feel free to share your experience with us. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  }
+  return { subject: subject, body: body };
+}
+
+function updateEmailPreview() {
+  var tpl     = document.getElementById('email-template-select').value;
+  var content = buildEmailContent(tpl);
+  document.getElementById('email-subject').value      = content.subject;
+  document.getElementById('email-body-preview').value = content.body;
+  var brevoSupported = ['order_dispatched', 'order_delivered'].includes(tpl);
+  document.getElementById('email-brevo-btn').style.display = brevoSupported ? '' : 'none';
+}
+
+function openEmailClient() {
+  if (!currentOrder) return;
+  var to      = currentOrder.customer_email || '';
+  var subject = document.getElementById('email-subject').value;
+  var body    = document.getElementById('email-body-preview').value;
+  window.open(
+    'mailto:' + to
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body='    + encodeURIComponent(body),
+    '_blank'
+  );
+}
+
+async function sendEmailViaBrevo() {
+  if (!currentOrder) return;
+  var tpl = document.getElementById('email-template-select').value;
+  var btn = document.getElementById('email-brevo-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+  try {
+    var res = await sb.functions.invoke('send-order-email', {
+      body: { orderId: currentOrder.id, emailType: tpl }
+    });
+    if (res.error) {
+      showToast('⚠️ Email failed: ' + res.error.message, 'error');
+    } else {
+      var d = res.data;
+      if (d && d.sent) {
+        showToast('📧 Email sent to customer!', 'success');
+        closeEmailModal();
+      } else {
+        showToast('⚠️ Email not delivered — ' + (d && (d.reason || d.error) || 'check logs'), 'error');
+      }
+    }
+  } catch (e) {
+    showToast('⚠️ Email could not be sent.', 'error');
+  }
+  btn.disabled    = false;
+  btn.textContent = '✉️ Send via Brevo';
+}
 </script>
 </body>
 </html>
