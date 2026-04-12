@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Afams PLC — Admin</title>
+  <title>Afams LTD — Admin</title>
   <meta name="robots" content="noindex, nofollow" />
 
   <!-- Supabase JS -->
@@ -999,7 +999,7 @@
 ══════════════════════════════════════════════════════════════ -->
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">🌿 <span>Afams PLC</span></div>
+    <div class="auth-logo">🌿 <span>Afams LTD</span></div>
     <div class="auth-subtitle">Admin Operations Dashboard</div>
 
     <div id="login-view">
@@ -1359,6 +1359,47 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     EMAIL TEMPLATE MODAL
+══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="email-modal-title" style="display:none;">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="email-modal-title">📧 Email Customer</div>
+      <button class="modal-close" onclick="closeEmailModal()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">
+        To: <strong id="email-modal-recipient"></strong>
+      </div>
+
+      <label class="modal-field-label">Template</label>
+      <select class="status-select" id="email-template-select" onchange="updateEmailPreview()">
+        <option value="order_received">Order Confirmed</option>
+        <option value="payment_success">Payment Confirmed</option>
+        <option value="payment_failed">Payment Incomplete</option>
+        <option value="order_dispatched">Order Dispatched</option>
+        <option value="order_delivered">Order Delivered</option>
+      </select>
+
+      <label class="modal-field-label" style="margin-top:1rem;">Subject</label>
+      <input type="text" id="email-subject" style="
+        width:100%;border:1px solid var(--border);border-radius:6px;
+        padding:0.5rem 0.75rem;font-size:0.88rem;background:var(--bg-secondary);
+        color:var(--text-primary);box-sizing:border-box;margin-bottom:0.25rem;" readonly />
+
+      <label class="modal-field-label" style="margin-top:1rem;">Email Body <span style="font-weight:400;color:var(--text-muted);">(editable)</span></label>
+      <textarea id="email-body-preview" class="notes-textarea" rows="14" style="font-family:monospace;font-size:0.78rem;white-space:pre;"></textarea>
+
+      <div class="modal-actions" style="margin-top:1.25rem;">
+        <button class="btn-save"    id="email-brevo-btn"    onclick="sendEmailViaBrevo()">✉️ Send via Brevo</button>
+        <button class="btn-outlined"                        onclick="openEmailClient()">📨 Open Email Client</button>
+        <button class="btn-outlined"                        onclick="closeEmailModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -1372,7 +1413,7 @@
 const SUPABASE_URL     = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const ADMIN_EMAIL      = 'iammwombe@gmail.com';
-const WA_NUMBER        = '254702359618';
+const WA_NUMBER        = '254714128514';
 
 // ════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1823,18 +1864,18 @@ async function saveOrderUpdate() {
 
 function emailCustomer() {
   if (!currentOrder) return;
-  var o   = currentOrder;
-  var ref = o.order_number || o.id;
-  var sub = encodeURIComponent('[Afams Order ' + ref + '] Update');
-  var bod = encodeURIComponent(
-    'Dear ' + (o.customer_name || 'Customer') + ',\n\n'
-    + 'Thank you for your Afams FarmBag order.\n\n'
-    + 'Order Reference: ' + ref + '\n'
-    + 'Status: ' + (o.status || 'pending') + '\n\n'
-    + 'If you have any questions, please reply to this email.\n\n'
-    + 'Best regards,\nAfams PLC Team'
-  );
-  window.open('mailto:' + (o.customer_email || '') + '?subject=' + sub + '&body=' + bod);
+  var o = currentOrder;
+  document.getElementById('email-modal-recipient').textContent = o.customer_email || '(no email on file)';
+  var statusTemplateMap = {
+    'pending': 'order_received', 'paid': 'payment_success',
+    'processing': 'order_received', 'shipped': 'order_dispatched',
+    'delivered': 'order_delivered', 'cancelled': 'order_received', 'refunded': 'order_received'
+  };
+  var defaultTpl = statusTemplateMap[o.status] || 'order_received';
+  document.getElementById('email-template-select').value = defaultTpl;
+  updateEmailPreview();
+  document.getElementById('email-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
 
 function whatsappCustomer() {
@@ -1843,7 +1884,7 @@ function whatsappCustomer() {
   var phone = (o.customer_phone || '').replace(/\D/g, '').replace(/^0/, '254');
   var ref   = o.order_number || o.id;
   var msg   = encodeURIComponent(
-    'Hello ' + (o.customer_name || 'there') + ', this is Afams PLC. '
+    'Hello ' + (o.customer_name || 'there') + ', this is Afams LTD. '
     + 'Your order ' + ref + ' status is: ' + (o.status || 'pending') + '. '
     + 'Reply here for any queries. Thank you! 🌿'
   );
@@ -1987,15 +2028,16 @@ function buildReceiptHTML(order) {
     + '</head>\n'
     + '<body>\n'
     + '<div class="print-bar" id="printBar">\n'
-    + '  <p>\uD83C\uDF3F Afams PLC \u2014 Delivery Receipt \u00B7 ' + ref + '</p>\n'
+    + '  <p>\uD83C\uDF3F Afams LTD \u2014 Delivery Receipt \u00B7 ' + ref + '</p>\n'
     + '  <button class="btn-print" onclick="window.print()">\uD83D\uDDA8\uFE0F Print / Save PDF</button>\n'
     + '</div>\n'
     + '<div class="receipt">\n'
     + '  <div class="receipt-header">\n'
     + '    <div class="brand-block">\n'
-    + '      <div class="brand-name">\uD83C\uDF3F Afams PLC</div>\n'
+    + '      <img src="https://afams.co.ke/afams-logo.jpg" alt="Afams LTD" style="height:64px;width:auto;display:block;margin-bottom:8px;" />\n'
+    + '      <div class="brand-name">Afams LTD</div>\n'
     + '      <div class="brand-tagline">Farming into the future</div>\n'
-    + '      <div class="brand-contact">afams.co.ke<br><a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a><br>+254 702 359 618<br>Nairobi, Kenya</div>\n'
+    + '      <div class="brand-contact">afams.co.ke<br><a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a><br>+254 714 128 514<br>Nairobi, Kenya</div>\n'
     + '    </div>\n'
     + '    <div class="receipt-meta">\n'
     + '      <div class="doc-type">Delivery Receipt</div>\n'
@@ -2080,10 +2122,10 @@ function buildReceiptHTML(order) {
     + '    </div>\n'
     + '  </div>\n'
     + '  <div class="receipt-footer">\n'
-    + '    This is an official delivery receipt issued by <strong>Afams PLC</strong>, incorporated in Kenya.<br>\n'
-    + '    For enquiries: <strong>orders@afams.co.ke</strong> \u00B7 WhatsApp: <strong>+254 702 359 618</strong> \u00B7 <strong>afams.co.ke</strong>\n'
+    + '    This is an official delivery receipt issued by <strong>Afams LTD</strong>, incorporated in Kenya.<br>\n'
+    + '    For enquiries: <strong>orders@afams.co.ke</strong> \u00B7 WhatsApp: <strong>+254 714 128 514</strong> \u00B7 <strong>afams.co.ke</strong>\n'
     + '    <br><span class="guarantee">\uD83D\uDEE1\uFE0F 14-day satisfaction guarantee on all FarmBag hardware</span>\n'
-    + '    <br><br><span style="font-size:10px;">Afams PLC \u00B7 Nairobi, Kenya \u00B7 afams.co.ke<br>Receipt generated: ' + now + ' \u00B7 Receipt No: ' + receiptNo + '</span>\n'
+    + '    <br><br><span style="font-size:10px;">Afams LTD \u00B7 Nairobi, Kenya \u00B7 afams.co.ke<br>Receipt generated: ' + now + ' \u00B7 Receipt No: ' + receiptNo + '</span>\n'
     + '  </div>\n'
     + '</div>\n'
     + '<script>\n'
@@ -2274,6 +2316,147 @@ function escapeHtml(str) {
 document.getElementById('order-modal').addEventListener('click', function (e) {
   if (e.target === this) closeOrderModal();
 });
+document.getElementById('email-modal').addEventListener('click', function (e) {
+  if (e.target === this) closeEmailModal();
+});
+
+// ════════════════════════════════════════════════════
+// EMAIL TEMPLATE MODAL
+// ════════════════════════════════════════════════════
+function closeEmailModal() {
+  document.getElementById('email-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function buildEmailContent(templateType) {
+  var o           = currentOrder;
+  var ref         = o.order_number || o.id;
+  var name        = o.customer_name  || 'Customer';
+  var product     = o.product_name   || o.product_sku || '—';
+  var qty         = String(o.quantity || 1);
+  var total       = 'KES ' + Number(o.total_amount || 0).toLocaleString('en-KE');
+  var payMethod   = o.payment_method || 'Paystack';
+  var trackingNo  = o.tracking_number || '—';
+  var paidAt      = o.paid_at
+    ? new Date(o.paid_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+  var deliveredAt = o.delivered_at
+    ? new Date(o.delivered_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+
+  var subject, body;
+  var sig = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
+
+  if (templateType === 'order_received') {
+    subject = '[Afams Order ' + ref + '] Order Confirmed';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Thank you for shopping with Afams. We\'ve received your order and it is now in our queue. '
+      + 'We will send you another update once the order is dispatched.\n\n'
+      + 'Order Number:    ' + ref + '\n'
+      + 'Product:         ' + product + '\n'
+      + 'Quantity:        ' + qty + '\n'
+      + 'Payment Method:  ' + payMethod + '\n'
+      + 'Total Amount:    ' + total + '\n\n'
+      + 'Our team will process your order and reach out to confirm your delivery details. '
+      + 'Questions? Email us at orders@afams.co.ke'
+      + sig;
+  } else if (templateType === 'payment_success') {
+    subject = '[Afams Order ' + ref + '] Payment Confirmed';
+    body = 'Hello ' + name + ',\n\n'
+      + 'We have successfully received your payment. Your order is secured and our team is preparing it.\n\n'
+      + 'Order Number:    ' + ref + '\n'
+      + 'Paid At:         ' + paidAt + '\n'
+      + 'Amount Paid:     ' + total + '\n\n'
+      + 'We\'ll notify you again when the order is dispatched. '
+      + 'Questions? Email orders@afams.co.ke'
+      + sig;
+  } else if (templateType === 'payment_failed') {
+    subject = '[Afams Order ' + ref + '] Payment Incomplete';
+    body = 'Hello ' + name + ',\n\n'
+      + 'We could not confirm payment for your Afams order. '
+      + 'Your items may not be reserved until checkout is completed.\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Amount:        ' + total + '\n\n'
+      + 'Please visit afams.co.ke to complete your payment. '
+      + 'Questions? Email orders@afams.co.ke'
+      + sig;
+  } else if (templateType === 'order_dispatched') {
+    subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
+      + 'Order Number:       ' + ref + '\n'
+      + 'Product:            ' + product + '\n'
+      + 'Quantity:           ' + qty + '\n'
+      + 'Tracking Number:    ' + trackingNo + '\n'
+      + 'Estimated Delivery: 2–5 business days\n\n'
+      + 'Our delivery partner may contact you when your package is near. '
+      + 'Questions? Email orders@afams.co.ke'
+      + sig;
+  } else {
+    subject = '[Afams Order ' + ref + '] Order Delivered';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Your Afams order has been marked as delivered. '
+      + 'Thank you for trusting us to support your growing journey!\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Product:       ' + product + '\n'
+      + 'Quantity:      ' + qty + '\n'
+      + 'Delivered At:  ' + deliveredAt + '\n\n'
+      + 'We hope you enjoy your purchase! Feel free to share your experience with us. '
+      + 'Questions? Email orders@afams.co.ke'
+      + sig;
+  }
+  return { subject: subject, body: body };
+}
+
+function updateEmailPreview() {
+  var tpl     = document.getElementById('email-template-select').value;
+  var content = buildEmailContent(tpl);
+  document.getElementById('email-subject').value      = content.subject;
+  document.getElementById('email-body-preview').value = content.body;
+  var brevoSupported = ['order_dispatched', 'order_delivered'].indexOf(tpl) !== -1;
+  document.getElementById('email-brevo-btn').style.display = brevoSupported ? '' : 'none';
+}
+
+function openEmailClient() {
+  if (!currentOrder) return;
+  var to      = currentOrder.customer_email || '';
+  var subject = document.getElementById('email-subject').value;
+  var body    = document.getElementById('email-body-preview').value;
+  window.open(
+    'mailto:' + to
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body='    + encodeURIComponent(body),
+    '_blank'
+  );
+}
+
+async function sendEmailViaBrevo() {
+  if (!currentOrder) return;
+  var tpl = document.getElementById('email-template-select').value;
+  var btn = document.getElementById('email-brevo-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+  try {
+    var res = await sb.functions.invoke('send-order-email', {
+      body: { orderId: currentOrder.id, emailType: tpl }
+    });
+    if (res.error) {
+      showToast('⚠️ Email failed: ' + res.error.message, 'error');
+    } else {
+      var d = res.data;
+      if (d && d.sent) {
+        showToast('📧 Email sent to customer!', 'success');
+        closeEmailModal();
+      } else {
+        showToast('⚠️ Email not delivered — ' + (d && (d.reason || d.error) || 'check logs'), 'error');
+      }
+    }
+  } catch (e) {
+    showToast('⚠️ Email could not be sent.', 'error');
+  }
+  btn.disabled    = false;
+  btn.textContent = '✉️ Send via Brevo';
+}
 </script>
 </body>
 </html>
