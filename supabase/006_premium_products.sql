@@ -9,7 +9,7 @@
 -- with first delivery on 1 September 2026.
 --
 -- SKUs and prices:
---   FB-HYD-01   FarmBag Hydro             KES  8,299
+--   FB-HYD-01   FarmBag Hydro             KES  8,999
 --   FB-HYP-01   FarmBag Hydro Pro         KES 11,999
 --   FB-AQA-01   FarmBag Aqua              KES 14,999
 --   FB-AHP-01   FarmBag Aqua-Hydro Pro    KES 39,999
@@ -30,7 +30,7 @@ VALUES
     'FB-HYD-01',
     'FarmBag Hydro',
     'Advanced hydroponic urban farming system. Pre-order product — first delivery 1 September 2026. Full product details revealed at official launch.',
-    8299, true, 'farmbag-premium'
+    8999, true, 'farmbag-premium'
   ),
   (
     'FB-HYP-01',
