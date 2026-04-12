@@ -644,6 +644,25 @@ h1, h2, h3, h4 {
   transition: transform 0.6s ease;
 }
 .product-card:hover .product-img { transform: scale(1.06); }
+.gb-img-strip {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  background: var(--g-pale);
+  scrollbar-width: thin;
+  scrollbar-color: #C3DFC7 transparent;
+}
+.gb-img-strip::-webkit-scrollbar { height: 3px; }
+.gb-img-strip::-webkit-scrollbar-thumb { background: #C3DFC7; border-radius: 2px; }
+.gb-img-strip img {
+  height: 54px;
+  width: auto;
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0,0,0,0.06);
+}
 .product-badge {
   position: absolute;
   top: 1rem;
