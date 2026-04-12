@@ -1401,6 +1401,41 @@
   </div>
 </div>
 
+<!-- WhatsApp Template Modal -->
+<div id="waModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="waModalTitle">
+  <div style="background:#fff;border-radius:12px;max-width:600px;margin:40px auto;padding:28px 28px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:relative;">
+    <h2 id="waModalTitle" style="font-size:18px;font-weight:800;color:#075e54;margin:0 0 4px;">💬 WhatsApp Customer</h2>
+    <p style="font-size:12px;color:#6b7280;margin:0 0 18px;">Opens WhatsApp with the message pre-filled. Review and send from the app.</p>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:#075e54;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">To (Customer Phone)</label>
+      <input id="waPhone" type="text" readonly style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;background:#f9fafb;color:#374151;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:#075e54;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message Template</label>
+      <select id="waTemplateSelect" onchange="onWATemplateChange()" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;background:#fff;">
+        <option value="order_received">Order Confirmed</option>
+        <option value="payment_success">Payment Received</option>
+        <option value="payment_failed">Payment Incomplete — Action Required</option>
+        <option value="order_dispatched">Order Dispatched / On Its Way</option>
+        <option value="order_delivered">Order Delivered</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label style="font-size:11px;font-weight:700;color:#075e54;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message</label>
+      <textarea id="waBody" rows="12" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;font-family:inherit;resize:vertical;"></textarea>
+      <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">You can edit the message before opening WhatsApp.</p>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeWAModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+      <button onclick="sendWAFromModal()" style="background:#25d366;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">Open in WhatsApp</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
@@ -1974,13 +2009,98 @@ function whatsappCustomer() {
   if (!currentOrder) return;
   var o     = currentOrder;
   var phone = (o.customer_phone || '').replace(/\D/g, '').replace(/^0/, '254');
-  var ref   = o.order_number || o.id;
-  var msg   = encodeURIComponent(
-    'Hello ' + (o.customer_name || 'there') + ', this is Afams LTD. '
-    + 'Your order ' + ref + ' status is: ' + (o.status || 'pending') + '. '
-    + 'Reply here for any queries. Thank you! 🌿'
-  );
-  window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
+  if (!phone) { alert('No customer phone number on this order.'); return; }
+  document.getElementById('waPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
+  document.getElementById('waModal').dataset.phone = phone;
+  onWATemplateChange();
+  document.getElementById('waModal').style.display = 'block';
+}
+
+function closeWAModal() {
+  document.getElementById('waModal').style.display = 'none';
+}
+
+function buildWhatsAppContent(templateKey, o) {
+  var ref   = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
+  var name  = o.customer_name  || 'there';
+  var prod  = o.product_name   || o.product_sku || 'FarmBag';
+  var qty   = o.quantity       || 1;
+  var amt   = o.total_amount   ? 'KES ' + Number(o.total_amount).toLocaleString('en-KE') : '—';
+  var paidAt    = o.paid_at         ? new Date(o.paid_at).toLocaleString('en-KE')      : '—';
+  var delivAt   = o.delivered_at    ? new Date(o.delivered_at).toLocaleString('en-KE') : '—';
+  var tracking  = o.tracking_number || '—';
+  var estDelivery = o.estimated_delivery || '3–5 business days';
+  var checkoutUrl = 'https://afams.co.ke/checkout.html';
+  var sig = '\n\n🌿 *Afams LTD* | afams.co.ke';
+
+  var messages = {
+    order_received:
+      'Hello *' + name + '* 👋\n\n'
+      + 'Your Afams order has been *confirmed*!\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🛒 *Product:* ' + prod + '\n'
+      + '🔢 *Qty:* ' + qty + '\n'
+      + '💰 *Total:* ' + amt + '\n\n'
+      + 'We will keep you updated every step of the way. Reply here if you have any questions!'
+      + sig,
+
+    payment_success:
+      'Hello *' + name + '* 👋\n\n'
+      + '✅ *Payment received!* Your order is secured and we are preparing it.\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🕐 *Paid At:* ' + paidAt + '\n'
+      + '💰 *Amount:* ' + amt + '\n\n'
+      + 'We will notify you once your order is dispatched. Reply here for any queries!'
+      + sig,
+
+    payment_failed:
+      'Hello *' + name + '* 👋\n\n'
+      + '⚠️ We noticed your payment for order *' + ref + '* was *not completed*.\n\n'
+      + '💰 *Amount:* ' + amt + '\n\n'
+      + 'Please complete your payment here to secure your order:\n'
+      + checkoutUrl + '\n\n'
+      + 'Already paid or need help? Reply here and we will sort it out right away!'
+      + sig,
+
+    order_dispatched:
+      'Hello *' + name + '* 🎉\n\n'
+      + '🚚 *Great news — your order is on its way!*\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🛒 *Product:* ' + prod + '\n'
+      + '🔢 *Qty:* ' + qty + '\n'
+      + '📅 *Est. Delivery:* ' + estDelivery + '\n'
+      + '🔍 *Tracking No:* ' + tracking + '\n\n'
+      + 'Reply here if you have any questions about your delivery!'
+      + sig,
+
+    order_delivered:
+      'Hello *' + name + '* 🌿\n\n'
+      + '📬 *Your order has been delivered!*\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🛒 *Product:* ' + prod + '\n'
+      + '🔢 *Qty:* ' + qty + '\n'
+      + '🕐 *Delivered At:* ' + delivAt + '\n\n'
+      + 'Thank you for choosing Afams! We would love to hear your feedback. 😊\n'
+      + 'Check out our other products at afams.co.ke'
+      + sig
+  };
+
+  return messages[templateKey] || messages.order_received;
+}
+
+function onWATemplateChange() {
+  if (!currentOrder) return;
+  var key = document.getElementById('waTemplateSelect').value;
+  document.getElementById('waBody').value = buildWhatsAppContent(key, currentOrder);
+}
+
+function sendWAFromModal() {
+  var phone = document.getElementById('waModal').dataset.phone;
+  var body  = document.getElementById('waBody').value.trim();
+  if (!phone) { alert('No customer phone number on this order.'); return; }
+  if (!body)  { alert('Message cannot be empty.'); return; }
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(body), '_blank');
+  closeWAModal();
 }
 
 // ════════════════════════════════════════════════════
@@ -2409,6 +2529,9 @@ document.getElementById('order-modal').addEventListener('click', function (e) {
 });
 document.getElementById('emailModal').addEventListener('click', function (e) {
   if (e.target === this) closeEmailModal();
+});
+document.getElementById('waModal').addEventListener('click', function (e) {
+  if (e.target === this) closeWAModal();
 });
 </script>
 </body>
