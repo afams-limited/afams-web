@@ -1189,10 +1189,10 @@ function refreshProsoilCalcUI() {
       bannerText.textContent = 'Add a FarmBag to your order to activate this promo.';
     } else if (newQty > 0 && promoBags === 0 && newQty < 3) {
       bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag. First-time customers only.';
+    } else if (promoBags >= 3) {
+      bannerText.textContent = '🎁 Maximum promo reached: 3 free bags unlocked! First-time customers only.';
     } else if (promoBags > 0) {
       bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '! First-time customers only.';
-    } else if (promoBags === 3) {
-      bannerText.textContent = '🎁 Maximum promo reached: 3 free bags. First-time customers only.';
     } else {
       bannerText.textContent = 'Exclusive for FarmBag customers — first-time customers only.';
     }
