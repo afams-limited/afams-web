@@ -351,7 +351,7 @@ function renderGrowBagCard(grid) {
 
   let gbSize = 'Standard', gbVariant = 'Wide', gbQty = 5;
 
-  function getCurrent() { return gbVariant === 'Wide' ? GB_DATA[gbSize].wide : GB_DATA[gbSize].compact; }
+  function getCurrent() { return gbVariant === 'Wide' ? (GB_DATA[gbSize] || GB_DATA['Standard']).wide : (GB_DATA[gbSize] || GB_DATA['Standard']).compact; }
 
   function updateGBCard() {
     const cur = getCurrent();

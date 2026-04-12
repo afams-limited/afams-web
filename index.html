@@ -1242,7 +1242,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   };
 
   function getCurrent() {
-    var d = GB_DATA[gbSize];
+    var d = GB_DATA[gbSize] || GB_DATA['Standard'];
     return gbVariant === 'Wide' ? d.wide : d.compact;
   }
 
