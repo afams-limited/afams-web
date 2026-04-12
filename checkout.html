@@ -794,9 +794,13 @@ const STATIC_SEED_CATALOGUE = [
 
 // ── Catalogue of products for URL-param pre-loading ──────────────────────────
 const CHECKOUT_PRODUCTS = {
-  'FB-CLS-01': { name: 'FarmBag Classic',    unit_price: 7500, image: 'assets/images/farmbag-classic.jpg',  type: 'farmbag' },
-  'FB-GRW-01': { name: 'FarmBag Vertical',   unit_price: 8500, image: 'assets/images/farmbag-vertical.jpg', type: 'farmbag' },
-  'PS-25KG':   { name: 'Afams ProSoil 25kg', unit_price:  399, image: 'assets/images/prosoil-front.jpg',    type: 'prosoil' },
+  'FB-CLS-01': { name: 'FarmBag Classic',         unit_price:  7500, image: 'assets/images/farmbag-classic.jpg',  type: 'farmbag' },
+  'FB-GRW-01': { name: 'FarmBag Vertical',         unit_price:  8500, image: 'assets/images/farmbag-vertical.jpg', type: 'farmbag' },
+  'PS-25KG':   { name: 'Afams ProSoil 25kg',       unit_price:   399, image: 'assets/images/prosoil-front.jpg',    type: 'prosoil' },
+  'FB-HYD-01': { name: 'FarmBag Hydro',            unit_price:  8299, image: '',                                   type: 'farmbag' },
+  'FB-HYP-01': { name: 'FarmBag Hydro Pro',        unit_price: 11999, image: '',                                   type: 'farmbag' },
+  'FB-AQA-01': { name: 'FarmBag Aqua',             unit_price: 14999, image: '',                                   type: 'farmbag' },
+  'FB-AHP-01': { name: 'FarmBag Aqua-Hydro Pro',   unit_price: 39999, image: '',                                   type: 'farmbag' },
 };
 
 // ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
@@ -804,7 +808,8 @@ window.seedState = { ordered: [], freePackets: [], extraPackets: [], extraTotal:
 
 function cartHasFarmBag() {
   var cart = getCart();
-  return cart.items.some(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); });
+  var PREMIUM_FARMBAG_SKUS = ['FB-CLS-01','FB-GRW-01','FB-HYD-01','FB-HYP-01','FB-AQA-01','FB-AHP-01'];
+  return cart.items.some(function(i) { return PREMIUM_FARMBAG_SKUS.includes(i.sku); });
 }
 
 function cartHasAnyItem() {

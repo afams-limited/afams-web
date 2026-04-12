@@ -170,6 +170,63 @@ const PRODUCTS = [
     product_line: 'growbag', size: 'XL', variant: 'Compact', volume: '62 L', type: 'growbag',
     crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'],
   },
+  // ── PREMIUM FARMBAG RANGE ─────────────────────────────────────────
+  {
+    id: 'fb-hydro',
+    name: 'FarmBag Hydro',
+    category: 'Premium · Hydroponic',
+    badge: 'premium',
+    badgeText: 'Premium',
+    emoji: '💧',
+    desc: 'Advanced hydroponic urban farming system. Full product details will be revealed at official launch.',
+    features: ['Pre-order', 'First delivery Sep 2026'],
+    priceKES: 8299,
+    priceGBP: 64,
+    image: '',
+    type: 'farmbag',
+  },
+  {
+    id: 'fb-hydro-pro',
+    name: 'FarmBag Hydro Pro',
+    category: 'Premium · Pro Hydroponic',
+    badge: 'premium',
+    badgeText: 'Premium',
+    emoji: '🔬',
+    desc: 'Professional-grade hydroponic system for serious growers. Full product details at official launch.',
+    features: ['Pre-order', 'First delivery Sep 2026'],
+    priceKES: 11999,
+    priceGBP: 93,
+    image: '',
+    type: 'farmbag',
+  },
+  {
+    id: 'fb-aqua',
+    name: 'FarmBag Aqua',
+    category: 'Premium · Aquaponic',
+    badge: 'premium',
+    badgeText: 'Premium',
+    emoji: '🌊',
+    desc: 'Aquaponic urban farming innovation. Full product details available at official launch.',
+    features: ['Pre-order', 'First delivery Sep 2026'],
+    priceKES: 14999,
+    priceGBP: 116,
+    image: '',
+    type: 'farmbag',
+  },
+  {
+    id: 'fb-aqua-hydro-pro',
+    name: 'FarmBag Aqua-Hydro Pro',
+    category: 'Premium · Ultimate System',
+    badge: 'premium',
+    badgeText: 'Premium',
+    emoji: '🚀',
+    desc: 'The ultimate combined aquaponic-hydroponic system. Full product details at official launch.',
+    features: ['Pre-order', 'First delivery Sep 2026'],
+    priceKES: 39999,
+    priceGBP: 309,
+    image: '',
+    type: 'farmbag',
+  },
 ];
 
 // ── CART STATE ────────────────────────────────────────────────────
@@ -178,9 +235,13 @@ const PRODUCTS = [
 
 // Product-card string IDs → canonical SKUs used by cart.js / checkout.html
 var PRODUCT_ID_TO_SKU = {
-  'fb-classic':  'FB-CLS-01',
-  'fb-vertical': 'FB-GRW-01',
-  'ps-prosoil':  'PS-25KG',
+  'fb-classic':        'FB-CLS-01',
+  'fb-vertical':       'FB-GRW-01',
+  'ps-prosoil':        'PS-25KG',
+  'fb-hydro':          'FB-HYD-01',
+  'fb-hydro-pro':      'FB-HYP-01',
+  'fb-aqua':           'FB-AQA-01',
+  'fb-aqua-hydro-pro': 'FB-AHP-01',
 };
 
 function cartTotal() {

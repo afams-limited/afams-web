@@ -507,10 +507,10 @@ function loadProducts() {
 
 function renderPremiumRange(grid) {
   const PREMIUM = [
-    { name: 'FarmBag Hydro',          category: 'Premium · Hydroponic',       price: 8299,  emoji: '💧' },
-    { name: 'FarmBag Hydro Pro',       category: 'Premium · Pro Hydroponic',   price: 11999, emoji: '🔬' },
-    { name: 'FarmBag Aqua',            category: 'Premium · Aquaponic',        price: 14999, emoji: '🌊' },
-    { name: 'FarmBag Aqua-Hydro Pro',  category: 'Premium · Ultimate System',  price: 39999, emoji: '🚀' },
+    { name: 'FarmBag Hydro',          sku: 'FB-HYD-01', category: 'Premium · Hydroponic',       price: 8299,  emoji: '💧', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Hydro Pro',       sku: 'FB-HYP-01', category: 'Premium · Pro Hydroponic',   price: 11999, emoji: '🔬', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Aqua',            sku: 'FB-AQA-01', category: 'Premium · Aquaponic',        price: 14999, emoji: '🌊', bgStyle: 'background:linear-gradient(135deg,#0d2640,#1565C0)' },
+    { name: 'FarmBag Aqua-Hydro Pro',  sku: 'FB-AHP-01', category: 'Premium · Ultimate System',  price: 39999, emoji: '🚀', bgStyle: 'background:linear-gradient(135deg,#0d2640,#7B1FA2)' },
   ];
 
   // Insert divider
@@ -521,10 +521,11 @@ function renderPremiumRange(grid) {
   grid.appendChild(divider);
 
   PREMIUM.forEach(function(p) {
+    const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' });
     const card = document.createElement('div');
     card.className = 'product-card';
     card.innerHTML = `
-      <div class="product-image" style="background:linear-gradient(135deg,#1a0533,#3d0d6b);display:flex;align-items:center;justify-content:center;">
+      <div class="product-image" style="${p.bgStyle};display:flex;align-items:center;justify-content:center;">
         <span style="font-size:4rem">${p.emoji}</span>
         <span class="product-badge-pill badge-premium" style="position:absolute;top:0.85rem;left:0.85rem;">Premium</span>
       </div>
@@ -537,7 +538,8 @@ function renderPremiumRange(grid) {
             <div class="product-price">KES ${p.price.toLocaleString()}</div>
             <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
           </div>
-          <a href="checkout.html" class="btn-order" style="background:#7B1FA2;text-align:center;white-space:nowrap;">Pre-Order</a>
+          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;"
+            data-cart='${cartData.replace(/'/g, "&#39;")}'>Pre-Order</button>
         </div>
       </div>
     `;
