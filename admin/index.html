@@ -820,6 +820,18 @@
       cursor: text;
     }
 
+    .email-subject-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.88rem;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      box-sizing: border-box;
+      margin-bottom: 0.25rem;
+    }
+
     /* Modal action buttons */
     .modal-actions {
       display: flex;
@@ -1383,10 +1395,7 @@
       </select>
 
       <label class="modal-field-label" style="margin-top:1rem;">Subject</label>
-      <input type="text" id="email-subject" style="
-        width:100%;border:1px solid var(--border);border-radius:6px;
-        padding:0.5rem 0.75rem;font-size:0.88rem;background:var(--bg-secondary);
-        color:var(--text-primary);box-sizing:border-box;margin-bottom:0.25rem;" readonly />
+      <input type="text" id="email-subject" class="email-subject-input" readonly />
 
       <label class="modal-field-label" style="margin-top:1rem;">Email Body <span style="font-weight:400;color:var(--text-muted);">(editable)</span></label>
       <textarea id="email-body-preview" class="notes-textarea" rows="14" style="font-family:monospace;font-size:0.78rem;white-space:pre;"></textarea>
@@ -1414,6 +1423,7 @@ const SUPABASE_URL     = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const ADMIN_EMAIL      = 'iammwombe@gmail.com';
 const WA_NUMBER        = '254714128514';
+const EMAIL_SIGNATURE  = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
 
 // ════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1974,6 +1984,7 @@ function buildReceiptHTML(order) {
     + '.receipt { width: 210mm; min-height: 250mm; padding: 14mm 16mm 16mm; margin: 0 auto; background: #ffffff; }\n'
     + '.receipt-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 3px solid #2d6a4f; margin-bottom: 18px; }\n'
     + '.brand-block .brand-name { font-size: 22px; font-weight: 800; color: #2d6a4f; letter-spacing: -0.5px; }\n'
+    + '.receipt-logo { height: 64px; width: auto; display: block; margin-bottom: 8px; }\n'
     + '.brand-block .brand-tagline { font-size: 10px; color: #52b788; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }\n'
     + '.brand-block .brand-contact { font-size: 11px; color: #6b7280; margin-top: 8px; line-height: 1.7; }\n'
     + '.brand-block .brand-contact a { color: #2d6a4f; text-decoration: none; }\n'
@@ -2034,7 +2045,7 @@ function buildReceiptHTML(order) {
     + '<div class="receipt">\n'
     + '  <div class="receipt-header">\n'
     + '    <div class="brand-block">\n'
-    + '      <img src="https://afams.co.ke/afams-logo.jpg" alt="Afams LTD" style="height:64px;width:auto;display:block;margin-bottom:8px;" />\n'
+    + '      <img src="https://afams.co.ke/afams-logo.jpg" alt="Afams LTD" class="receipt-logo" />\n'
     + '      <div class="brand-name">Afams LTD</div>\n'
     + '      <div class="brand-tagline">Farming into the future</div>\n'
     + '      <div class="brand-contact">afams.co.ke<br><a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a><br>+254 714 128 514<br>Nairobi, Kenya</div>\n'
@@ -2345,7 +2356,6 @@ function buildEmailContent(templateType) {
     : '—';
 
   var subject, body;
-  var sig = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
 
   if (templateType === 'order_received') {
     subject = '[Afams Order ' + ref + '] Order Confirmed';
@@ -2359,7 +2369,7 @@ function buildEmailContent(templateType) {
       + 'Total Amount:    ' + total + '\n\n'
       + 'Our team will process your order and reach out to confirm your delivery details. '
       + 'Questions? Email us at orders@afams.co.ke'
-      + sig;
+      + EMAIL_SIGNATURE;
   } else if (templateType === 'payment_success') {
     subject = '[Afams Order ' + ref + '] Payment Confirmed';
     body = 'Hello ' + name + ',\n\n'
@@ -2369,7 +2379,7 @@ function buildEmailContent(templateType) {
       + 'Amount Paid:     ' + total + '\n\n'
       + 'We\'ll notify you again when the order is dispatched. '
       + 'Questions? Email orders@afams.co.ke'
-      + sig;
+      + EMAIL_SIGNATURE;
   } else if (templateType === 'payment_failed') {
     subject = '[Afams Order ' + ref + '] Payment Incomplete';
     body = 'Hello ' + name + ',\n\n'
@@ -2379,7 +2389,7 @@ function buildEmailContent(templateType) {
       + 'Amount:        ' + total + '\n\n'
       + 'Please visit afams.co.ke to complete your payment. '
       + 'Questions? Email orders@afams.co.ke'
-      + sig;
+      + EMAIL_SIGNATURE;
   } else if (templateType === 'order_dispatched') {
     subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
     body = 'Hello ' + name + ',\n\n'
@@ -2391,7 +2401,7 @@ function buildEmailContent(templateType) {
       + 'Estimated Delivery: 2–5 business days\n\n'
       + 'Our delivery partner may contact you when your package is near. '
       + 'Questions? Email orders@afams.co.ke'
-      + sig;
+      + EMAIL_SIGNATURE;
   } else {
     subject = '[Afams Order ' + ref + '] Order Delivered';
     body = 'Hello ' + name + ',\n\n'
@@ -2403,7 +2413,7 @@ function buildEmailContent(templateType) {
       + 'Delivered At:  ' + deliveredAt + '\n\n'
       + 'We hope you enjoy your purchase! Feel free to share your experience with us. '
       + 'Questions? Email orders@afams.co.ke'
-      + sig;
+      + EMAIL_SIGNATURE;
   }
   return { subject: subject, body: body };
 }
@@ -2413,7 +2423,7 @@ function updateEmailPreview() {
   var content = buildEmailContent(tpl);
   document.getElementById('email-subject').value      = content.subject;
   document.getElementById('email-body-preview').value = content.body;
-  var brevoSupported = ['order_dispatched', 'order_delivered'].indexOf(tpl) !== -1;
+  var brevoSupported = ['order_dispatched', 'order_delivered'].includes(tpl);
   document.getElementById('email-brevo-btn').style.display = brevoSupported ? '' : 'none';
 }
 
