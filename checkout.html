@@ -550,31 +550,30 @@
 
       <!-- ProSoil standalone promo notice (shown when only ProSoil in cart) -->
       <div id="prosoil-promo-notice" class="prosoil-checkout-promo hidden">
-        🎁 <strong>Every 3 bags, 1 free</strong> — Add a FarmBag to your order to activate this promo.
+        🎁 <strong>Every 3 bags, 1 free (max 3 free bags)</strong> — Add a FarmBag to your order to activate this promo. <em style="font-size:0.78rem;color:#a05000">First-time customers only.</em>
       </div>
 
-      <!-- Add-ons — FarmBag orders only -->
-      <div id="farmbag-addons" style="display:none">
+      <!-- SEED SELECTOR — visible for all customers with items in cart -->
+      <section id="seed-selector" class="addon-section" style="display:none">
+        <div class="addon-header">
+          <span class="addon-badge free" id="seed-addon-badge">ADD-ON</span>
+          <h3>🌱 Certified Seeds — Choose Your Pack</h3>
+          <p class="addon-subtitle" id="seed-addon-subtitle">
+            Browse and select seed varieties below. Seeds are available as paid add-ons for all customers.
+            Additional packets at <strong>listed price</strong>.
+          </p>
+        </div>
+        <div id="seed-groups-container">
+          <div style="color:#888;font-size:0.82rem;padding:8px 0">Loading seeds…</div>
+        </div>
+        <div id="seed-summary" class="seed-summary hidden">
+          <span id="seed-summary-text"></span>
+          <span id="seed-extra-cost" class="extra-cost"></span>
+        </div>
+      </section>
 
-        <!-- SEED SELECTOR -->
-        <section id="seed-selector" class="addon-section">
-          <div class="addon-header">
-            <span class="addon-badge free">FREE</span>
-            <h3>🌱 Certified Seeds — Choose Your Starter Pack</h3>
-            <p class="addon-subtitle">
-              Choose any seed varieties below.
-              <strong>2 free seed packets included</strong> with every FarmBag order.
-              Additional packets at <strong>listed price</strong>.
-            </p>
-          </div>
-          <div id="seed-groups-container">
-            <div style="color:#888;font-size:0.82rem;padding:8px 0">Loading seeds…</div>
-          </div>
-          <div id="seed-summary" class="seed-summary hidden">
-            <span id="seed-summary-text"></span>
-            <span id="seed-extra-cost" class="extra-cost"></span>
-          </div>
-        </section>
+      <!-- Add-ons — FarmBag orders only (ProSoil) -->
+      <div id="farmbag-addons" style="display:none">
 
         <!-- PROSOIL ADD-ON -->
         <section id="prosoil-addon" class="addon-section">
@@ -589,8 +588,8 @@
           <div class="prosoil-promo-banner">
             <span class="promo-icon">🎁</span>
             <div class="promo-text">
-              <strong>Every 3 bags, get 1 FREE</strong>
-              <span id="prosoil-promo-banner-text">Exclusive for FarmBag customers.</span>
+              <strong>Every 3 bags, get 1 FREE (max 3 free bags)</strong>
+              <span id="prosoil-promo-banner-text">Exclusive for FarmBag customers — first-time customers only.</span>
             </div>
           </div>
           <p class="prosoil-desc">
@@ -625,7 +624,7 @@
       </div><!-- /farmbag-addons -->
 
       <div class="summary-line" id="addon-seeds-line" style="display:none">
-        <span class="label">Extra seeds</span>
+        <span class="label">Paid seeds</span>
         <span id="addon-seeds-cost">KES 0</span>
       </div>
       <div class="summary-line" id="addon-prosoil-line" style="display:none">
@@ -660,7 +659,15 @@ const PROSOIL_PRICE_CHECKOUT = 399;
 const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-const FREE_SEED_PACKETS = 2; // free packets bundled with every FarmBag order
+const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
+
+function getFreeSeeds() {
+  var cart = getCart();
+  var fbQty = cart.items
+    .filter(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); })
+    .reduce(function(sum, i) { return sum + i.qty; }, 0);
+  return fbQty * FREE_SEEDS_PER_FARMBAG;
+}
 
 // ── Maps each Simlaw crop-category to one of the 4 broad display groups ───────
 const SEED_GROUP_MAP = {
@@ -849,23 +856,41 @@ function renderCartItems() {
       + '</div>';
   }).join('');
 
-  // Show/hide FarmBag add-ons and ProSoil promo notice
+  // Show/hide add-ons and ProSoil promo notice
+  var seedSection        = document.getElementById('seed-selector');
   var farmBagAddons      = document.getElementById('farmbag-addons');
   var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
   var hasFarmBag         = cartHasFarmBag();
   var hasProsoilOnly     = !hasFarmBag && cart.items.some(function(i) { return i.sku === 'PS-25KG'; });
+  var hasItems           = cart.items.length > 0;
 
+  // Seeds always visible when cart has items
+  if (seedSection) seedSection.style.display = hasItems ? '' : 'none';
   if (farmBagAddons)      farmBagAddons.style.display       = hasFarmBag ? '' : 'none';
   if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', !hasProsoilOnly);
 
-  // When FarmBag is removed, reset seed state so stale data doesn't affect totals
-  if (!hasFarmBag) {
-    window.seedState = { ordered: [], freePackets: [], extraPackets: [], extraTotal: 0 };
-    _seedsRendered = false; // Allow seed groups to re-render if FarmBag is added again
-  } else {
-    // Load seeds only if not already rendered
+  // Update seed section header based on FarmBag presence
+  var seedBadge    = document.getElementById('seed-addon-badge');
+  var seedSubtitle = document.getElementById('seed-addon-subtitle');
+  var freeCount    = getFreeSeeds();
+  if (seedBadge) {
+    seedBadge.textContent = freeCount > 0 ? 'FREE INCLUDED' : 'PAID ADD-ON';
+    seedBadge.className   = 'addon-badge ' + (freeCount > 0 ? 'free' : 'paid');
+  }
+  if (seedSubtitle) {
+    if (freeCount > 0) {
+      seedSubtitle.innerHTML = 'Choose any seed varieties below. <strong>' + freeCount + ' free seed packet' + (freeCount > 1 ? 's' : '') + '</strong> included (2 per FarmBag purchased). Additional packets at <strong>listed price</strong>.';
+    } else {
+      seedSubtitle.innerHTML = 'Seeds are available as paid add-ons. <strong>Add a FarmBag to unlock free seed packets</strong> (2 free per FarmBag). All packets at <strong>listed price</strong> without a FarmBag.';
+    }
+  }
+
+  // Seeds stay rendered; just recalculate allocation when cart changes
+  if (hasItems) {
     loadSeeds();
   }
+  // Re-run seed recalculation with updated free count based on current FarmBag qty
+  recalculateSeedState();
 
   // Sync ProSoil add-on qty with cart
   var prosoilItemInCart = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
@@ -876,7 +901,7 @@ function renderCartItems() {
     window.prosoilState = {
       qty: cartProsoilQty,
       total: cartProsoilQty * PROSOIL_PRICE_CHECKOUT,
-      promoApplied: hasFarmBag && cartProsoilQty >= 3
+      promoApplied: hasFarmBag && Math.min(3, Math.floor(cartProsoilQty / 3)) > 0
     };
     refreshProsoilCalcUI();
   }
@@ -1014,6 +1039,7 @@ function toggleSeedGroup(group) {
 }
 
 function refreshAllPillLabels() {
+  var freePackets = getFreeSeeds();
   var ordered = window.seedState.ordered;
   document.querySelectorAll('.seed-weight-btn').forEach(function(btn) {
     var key = btn.dataset.slug + '-' + btn.dataset.weight;
@@ -1021,7 +1047,7 @@ function refreshAllPillLabels() {
     if (pos < 0) {
       btn.classList.remove('selected', 'extra-selected');
       btn.innerHTML = btn.dataset.weight + ' &mdash; KES ' + btn.dataset.price;
-    } else if (pos < FREE_SEED_PACKETS) {
+    } else if (pos < freePackets) {
       btn.classList.add('selected');
       btn.classList.remove('extra-selected');
       btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">&#10003; Free</span>';
@@ -1072,12 +1098,14 @@ function toggleSeed(btn) {
 }
 
 function recalculateSeedState() {
+  var freePackets  = getFreeSeeds();
   var ordered      = window.seedState.ordered;
-  var freePackets  = ordered.slice(0, FREE_SEED_PACKETS);
-  var extraPackets = ordered.slice(FREE_SEED_PACKETS);
-  window.seedState.freePackets  = freePackets;
+  var freePkts     = ordered.slice(0, freePackets);
+  var extraPackets = ordered.slice(freePackets);
+  window.seedState.freePackets  = freePkts;
   window.seedState.extraPackets = extraPackets;
   window.seedState.extraTotal   = extraPackets.reduce(function(sum, s) { return sum + (s.price || 0); }, 0);
+  refreshAllPillLabels();
   updateSeedSummary();
   updateOrderTotals();
 }
@@ -1092,9 +1120,13 @@ function updateSeedSummary() {
   summary.classList.remove('hidden');
   var freeCount  = window.seedState.freePackets.length;
   var extraCount = window.seedState.extraPackets.length;
-  textEl.textContent = total + ' packet' + (total > 1 ? 's' : '') + ' selected — ' + freeCount + ' free';
+  var freeAlloc  = getFreeSeeds();
+  var freeLabel  = freeCount > 0
+    ? freeCount + ' free (2 per FarmBag)'
+    : (freeAlloc > 0 ? '0 free used' : 'all paid');
+  textEl.textContent = total + ' packet' + (total > 1 ? 's' : '') + ' selected — ' + freeLabel;
   costEl.textContent = extraCount > 0
-    ? '+ ' + extraCount + ' extra = KES ' + window.seedState.extraTotal
+    ? '+ ' + extraCount + ' paid = KES ' + window.seedState.extraTotal
     : '';
 }
 
@@ -1117,7 +1149,7 @@ function changeProsoilQty(delta) {
     return; // updateQty fires cart-updated
   }
 
-  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
+  var promoBags = hasFarmBag ? Math.min(3, Math.floor(newQty / 3)) : 0;
   window.prosoilState = { qty: newQty, total: newQty * PROSOIL_PRICE_CHECKOUT, promoApplied: promoBags > 0 };
   refreshProsoilCalcUI();
   updateOrderTotals();
@@ -1126,7 +1158,7 @@ function changeProsoilQty(delta) {
 function refreshProsoilCalcUI() {
   var newQty    = window.prosoilState.qty;
   var hasFarmBag = cartHasFarmBag();
-  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
+  var promoBags = hasFarmBag ? Math.min(3, Math.floor(newQty / 3)) : 0;
   var totalBags = newQty + promoBags;
   var qtyEl     = document.getElementById('prosoil-qty');
   var calc      = document.getElementById('prosoil-calc');
@@ -1155,12 +1187,14 @@ function refreshProsoilCalcUI() {
   if (bannerText) {
     if (!hasFarmBag) {
       bannerText.textContent = 'Add a FarmBag to your order to activate this promo.';
-    } else if (newQty > 0 && newQty < 3) {
-      bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag.';
+    } else if (newQty > 0 && promoBags === 0 && newQty < 3) {
+      bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag. First-time customers only.';
     } else if (promoBags > 0) {
-      bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '!';
+      bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '! First-time customers only.';
+    } else if (promoBags === 3) {
+      bannerText.textContent = '🎁 Maximum promo reached: 3 free bags. First-time customers only.';
     } else {
-      bannerText.textContent = 'Exclusive for FarmBag customers.';
+      bannerText.textContent = 'Exclusive for FarmBag customers — first-time customers only.';
     }
   }
 }
@@ -1258,8 +1292,8 @@ function launchPaystack() {
   const grandTotal   = totals.grandTotal + seedsTotal;
 
   const hasFarmBag     = cartHasFarmBag();
-  const freeSeeds      = hasFarmBag ? (window.seedState?.freePackets  || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; }) : [];
-  const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; }) : [];
+  const freeSeeds      = (window.seedState?.freePackets  || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
+  const extraSeeds     = (window.seedState?.extraPackets || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;

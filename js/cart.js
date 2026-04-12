@@ -82,7 +82,7 @@ function computeProsoilPromo(cart) {
   if (!hasFarmBag) return 0;
   var prosoilItem = cart.items.find(function(i) { return i.sku === PROSOIL_SKU; });
   if (!prosoilItem) return 0;
-  return Math.floor(prosoilItem.qty / 3); // 3 bought → 1 free, 6 → 2 free, etc.
+  return Math.min(3, Math.floor(prosoilItem.qty / 3)); // 3 bought → 1 free, cap at 3 free bags
 }
 
 // ── Cart Totals ───────────────────────────────────────────────────────────────

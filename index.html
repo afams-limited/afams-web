@@ -60,6 +60,42 @@
       padding: 2px 9px;
       border-radius: 999px;
     }
+    /* GrowBag gallery arrows */
+    .gb-gallery-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(7,26,11,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 2;
+      padding: 0;
+    }
+    .gb-gallery-arrow:hover { background: rgba(7,26,11,0.85); }
+    .gb-gallery-arrow-left  { left: 8px; }
+    .gb-gallery-arrow-right { right: 8px; }
+    /* GrowBag thumbnail strip */
+    .gb-thumb {
+      cursor: pointer;
+      opacity: 0.65;
+      transition: opacity 0.2s, border-color 0.2s;
+      border: 2px solid transparent !important;
+    }
+    .gb-thumb:hover { opacity: 1; }
+    .gb-thumb.gb-thumb-active {
+      opacity: 1;
+      border-color: #1E7D34 !important;
+    }
   </style>
   <script src="js/cart.js"></script>
   <!-- Structured Data: Organisation + Product -->
@@ -302,15 +338,18 @@
 
       <!-- ═══ GROWBAG CARD — FIRST ═══ -->
       <div class="product-card fade-up" id="growbag-card">
-        <div class="product-img-wrap">
-          <img data-src="assets/images/growbag-hero.jpg" data-emoji="🌱" alt="Afams GrowBag" class="product-img lazy-img" onerror="this.style.display='none'"/>
+        <div class="product-img-wrap" style="position:relative;">
+          <img id="growbag-main-img" src="assets/images/growbag-hero.jpg" data-emoji="🌱" alt="Afams GrowBag" class="product-img" onerror="this.style.display='none'"/>
           <span id="growbag-badge" class="product-badge" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;">Most Popular</span>
+          <button onclick="gbGalleryNav(-1)" class="gb-gallery-arrow gb-gallery-arrow-left" aria-label="Previous image">&#8249;</button>
+          <button onclick="gbGalleryNav(1)"  class="gb-gallery-arrow gb-gallery-arrow-right" aria-label="Next image">&#8250;</button>
         </div>
-        <div class="gb-img-strip">
-          <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide"/>
-          <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact"/>
-          <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide"/>
-          <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes"/>
+        <div class="gb-img-strip" id="growbag-img-strip">
+          <img src="assets/images/growbag-hero.jpg" alt="GrowBag Hero" class="gb-thumb gb-thumb-active" onclick="gbSetImage(0)"/>
+          <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" class="gb-thumb" onclick="gbSetImage(1)"/>
+          <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" class="gb-thumb" onclick="gbSetImage(2)"/>
+          <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" class="gb-thumb" onclick="gbSetImage(3)"/>
+          <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" class="gb-thumb" onclick="gbSetImage(4)"/>
         </div>
         <div class="product-body">
           <div class="product-category">GrowBag · Basic Range</div>
@@ -438,7 +477,7 @@
         <div class="product-body">
           <div class="product-category">ProSoil · 25 kg bag</div>
           <div class="product-name">Afams ProSoil</div>
-          <div class="product-desc">Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately. Buy 3 bags, get 1 free when ordering with a FarmBag.</div>
+          <div class="product-desc">Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately. Buy 3 bags, get 1 free (up to 3 free bags max) when ordering with a FarmBag — first-time customers.</div>
           <div class="product-features">
             <span class="feature-chip">pH 6.2–6.8</span>
             <span class="feature-chip">Sterilised</span>
@@ -455,6 +494,96 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               Add to Cart
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium Range divider -->
+      <div class="product-divider" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#7B1FA2;font-weight:700;margin:0">The FarmBag System · Premium Range</p>
+        <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Exciting Innovations Coming — Pre-order now. First delivery: 1 September 2026.</p>
+      </div>
+
+      <!-- HYDRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#1a0533,#3d0d6b);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3.5rem">💧</span>
+          <span class="product-badge badge-premium">Premium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Hydroponic System</div>
+          <div class="product-name">FarmBag Hydro</div>
+          <div class="product-desc">Advanced hydroponic urban farming. Full details available at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 8,299</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <a href="checkout.html" class="btn-add-cart" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;gap:5px;">Pre-Order</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- HYDRO PRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#1a0533,#3d0d6b);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3.5rem">🔬</span>
+          <span class="product-badge badge-premium">Premium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Pro Hydroponic</div>
+          <div class="product-name">FarmBag Hydro Pro</div>
+          <div class="product-desc">Professional-grade hydroponic system for serious growers. Full details at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 11,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <a href="checkout.html" class="btn-add-cart" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;gap:5px;">Pre-Order</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQUA -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#0d2640,#1565C0);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3.5rem">🌊</span>
+          <span class="product-badge badge-premium">Premium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Aquaponic System</div>
+          <div class="product-name">FarmBag Aqua</div>
+          <div class="product-desc">Aquaponic urban farming innovation. Full details available at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 14,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <a href="checkout.html" class="btn-add-cart" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;gap:5px;">Pre-Order</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQUA-HYDRO PRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#0d2640,#7B1FA2);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3.5rem">🚀</span>
+          <span class="product-badge badge-premium">Premium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Ultimate System</div>
+          <div class="product-name">FarmBag Aqua-Hydro Pro</div>
+          <div class="product-desc">The ultimate combined aquaponic-hydroponic system. Full details at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 39,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <a href="checkout.html" class="btn-add-cart" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;gap:5px;">Pre-Order</a>
           </div>
         </div>
       </div>
@@ -1230,6 +1359,33 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
 
 <!-- ═══ GROWBAG SELECTOR ═══ -->
 <script>
+// GrowBag image gallery
+(function() {
+  var GB_GALLERY_IMAGES = [
+    'assets/images/growbag-hero.jpg',
+    'assets/images/growbag-wide.jpg',
+    'assets/images/growbag-compact.jpg',
+    'assets/images/growbag-standard-wide.jpg',
+    'assets/images/growbag-sizes.jpg',
+  ];
+  var _gbGalleryIdx = 0;
+
+  window.gbSetImage = function(idx) {
+    _gbGalleryIdx = (idx + GB_GALLERY_IMAGES.length) % GB_GALLERY_IMAGES.length;
+    var mainImg = document.getElementById('growbag-main-img');
+    if (mainImg) {
+      mainImg.src = GB_GALLERY_IMAGES[_gbGalleryIdx];
+      mainImg.style.display = '';
+    }
+    document.querySelectorAll('#growbag-img-strip .gb-thumb').forEach(function(t, i) {
+      t.classList.toggle('gb-thumb-active', i === _gbGalleryIdx);
+    });
+  };
+
+  window.gbGalleryNav = function(dir) {
+    gbSetImage(_gbGalleryIdx + dir);
+  };
+})();
 (function() {
   var gbSize    = 'Standard';
   var gbVariant = 'Wide';
