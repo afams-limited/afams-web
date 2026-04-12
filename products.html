@@ -521,7 +521,7 @@ function renderPremiumRange(grid) {
   grid.appendChild(divider);
 
   PREMIUM.forEach(function(p) {
-    const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' });
+    const cartItem = { sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' };
     const card = document.createElement('div');
     card.className = 'product-card';
     card.innerHTML = `
@@ -538,11 +538,12 @@ function renderPremiumRange(grid) {
             <div class="product-price">KES ${p.price.toLocaleString()}</div>
             <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
           </div>
-          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;"
-            data-cart='${cartData.replace(/'/g, "&#39;")}'>Pre-Order</button>
+          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;">Pre-Order</button>
         </div>
       </div>
     `;
+    // Set data-cart via setAttribute to avoid any HTML-encoding issues
+    card.querySelector('.btn-add-to-cart').setAttribute('data-cart', JSON.stringify(cartItem));
     grid.appendChild(card);
   });
 }
