@@ -29,6 +29,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+  <style>
+    /* GrowBag selector buttons */
+    .gb-size-btn, .gb-variant-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1.5px solid #C3DFC7;
+      background: #fff;
+      color: #4A5568;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .gb-size-btn:hover, .gb-variant-btn:hover {
+      border-color: #1E7D34;
+      color: #155D27;
+    }
+    .gb-size-btn.gb-active, .gb-variant-btn.gb-active {
+      background: #155D27;
+      border-color: #155D27;
+      color: #fff;
+    }
+    .gb-crop-tag {
+      background: #E6F0E7;
+      color: #155D27;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+  </style>
   <script src="js/cart.js"></script>
   <!-- Structured Data: Organisation + Product -->
   <script type="application/ld+json">
@@ -251,13 +283,79 @@
       <div class="section-label">The Product Lineup</div>
       <h2 class="section-title">Pick your FarmBag</h2>
       <p class="section-sub">
-        Three products. One mission: making urban food production accessible to every household,
-        school, restaurant, and office on Earth — and eventually, beyond.
+        From the essential GrowBag to the advanced FarmBag System — urban food production for every space, every budget, and every level of grower.
       </p>
      </div>
    </div>
     <div class="products-grid">
       <!-- Products rendered by JS below, but also hardcoded for SEO/no-JS -->
+
+      <!-- ═══ GROWBAG CARD — FIRST ═══ -->
+      <div class="product-card fade-up" id="growbag-card">
+        <div class="product-img-wrap">
+          <img data-src="assets/images/growbag-standard-wide.jpg" data-emoji="🌱" alt="Afams GrowBag" class="product-img lazy-img" onerror="this.style.display='none'"/>
+          <span id="growbag-badge" class="product-badge" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;">Most Popular</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">GrowBag · Basic Range</div>
+          <div class="product-name" id="growbag-name">GrowBag Standard — Wide</div>
+          <div class="product-desc" id="growbag-volume" style="font-size:0.82rem;color:#718096;margin-bottom:0.6rem">32 litres · PP geotextile · Bonded liner</div>
+
+          <!-- SIZE SELECTOR -->
+          <div style="margin-bottom:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Size</p>
+            <div id="growbag-size-btns" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="gb-size-btn" data-size="Mini"     onclick="selectGrowBagSize('Mini')">Mini</button>
+              <button class="gb-size-btn" data-size="Medium"   onclick="selectGrowBagSize('Medium')">Medium</button>
+              <button class="gb-size-btn gb-active" data-size="Standard" onclick="selectGrowBagSize('Standard')">Standard</button>
+              <button class="gb-size-btn" data-size="Large"    onclick="selectGrowBagSize('Large')">Large</button>
+              <button class="gb-size-btn" data-size="XL"       onclick="selectGrowBagSize('XL')">XL</button>
+            </div>
+          </div>
+
+          <!-- VARIANT SELECTOR -->
+          <div style="margin-bottom:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
+            <div id="growbag-variant-btns" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="gb-variant-btn gb-active" data-variant="Wide"    onclick="selectGrowBagVariant('Wide')"    title="Broad and squat — best where floor space is available">Wide</button>
+              <button class="gb-variant-btn"           data-variant="Compact" onclick="selectGrowBagVariant('Compact')" title="Narrower and taller — best for tight corners">Compact</button>
+            </div>
+            <p id="growbag-variant-desc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
+          </div>
+
+          <!-- QTY SELECTOR -->
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0">Qty</p>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="changeGBQty(-1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">−</button>
+              <span id="growbag-qty" style="font-size:0.95rem;font-weight:700;color:#071A0B;min-width:24px;text-align:center">5</span>
+              <button onclick="changeGBQty(1)"  style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">+</button>
+            </div>
+          </div>
+
+          <!-- CROPS -->
+          <div id="growbag-crops" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px"></div>
+
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">From</span>
+              <span class="price-val" id="growbag-price">KES 1,050</span>
+            </div>
+            <button class="btn-add-cart" id="growbag-cta" onclick="addGrowBagToCart()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ═══ END GROWBAG CARD ═══ -->
+
+      <!-- FarmBag range divider -->
+      <div class="product-divider" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#1E7D34;font-weight:700;margin:0">The FarmBag System · Advanced Range</p>
+        <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Full 3-zone urban farming system with compost zone, Grow Zone, and indoor wicking.</p>
+      </div>
+
       <div class="product-card fade-up">
         <div class="product-img-wrap">
           <img data-src="assets/images/farmbag-classic.jpg" data-emoji="🌿" alt="FarmBag Classic" class="product-img lazy-img"/>
@@ -684,34 +782,70 @@
       <p class="section-sub">Choose the right team — we respond faster when your message lands in the right inbox.</p>
     </div>
     <div class="contact-emails-grid">
-      <div class="contact-email-card fade-up" onclick="openContactForm('orders')">
+      <!-- Orders & Shopping -->
+      <a class="contact-email-card fade-up"
+         href="mailto:orders@afams.co.ke?subject=%5BORDER%20ENQUIRY%5D&body=Hi%20Afams%20Orders%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0A%0AName%3A%20%0AEnquiry%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">📦</div>
         <div class="contact-email-topic">Orders &amp; Shopping</div>
         <div class="contact-email-addr">orders@afams.co.ke</div>
-        <div class="contact-email-desc">Track an order, amend delivery details, or ask about pre-order timelines.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('support')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [ORDER ENQUIRY]</div>
+        <div class="contact-email-desc">Track an order, amend delivery details, or ask about pre-order timelines. We respond within 4 hours.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=orders%40afams.co.ke&su=%5BORDER%20ENQUIRY%5D&body=Hi%20Afams%20Orders%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0A%0AName%3A%20%0AEnquiry%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Support & Returns -->
+      <a class="contact-email-card fade-up"
+         href="mailto:support@afams.co.ke?subject=%5BSUPPORT%20REQUEST%5D&body=Hi%20Afams%20Support%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0AProduct%3A%20FarmBag%20Classic%20%2F%20FarmBag%20Vertical%20%2F%20ProSoil%20%2F%20GrowBag%0A%0AIssue%20description%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">🛠</div>
         <div class="contact-email-topic">Support &amp; Returns</div>
         <div class="contact-email-addr">support@afams.co.ke</div>
-        <div class="contact-email-desc">Product issues, returns, refunds, or anything that needs fixing. We respond in 1 business day.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('partnerships')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [SUPPORT REQUEST]</div>
+        <div class="contact-email-desc">Product issues, returns, refunds, or anything that needs fixing. We respond within 1 business day.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=support%40afams.co.ke&su=%5BSUPPORT%20REQUEST%5D&body=Hi%20Afams%20Support%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0AProduct%3A%20FarmBag%20Classic%20%2F%20FarmBag%20Vertical%20%2F%20ProSoil%20%2F%20GrowBag%0A%0AIssue%20description%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Partnerships & B2B -->
+      <a class="contact-email-card fade-up"
+         href="mailto:partner@afams.co.ke?subject=%5BPARTNERSHIP%20ENQUIRY%5D&body=Hi%20Afams%20Partnerships%20Team%2C%0A%0AOrganisation%3A%20%0AType%3A%20School%20%2F%20Restaurant%20%2F%20Hotel%20%2F%20Corporate%20%2F%20Distributor%0A%0AWhat%20we%E2%80%99re%20looking%20for%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">🤝</div>
         <div class="contact-email-topic">Partnerships &amp; B2B</div>
         <div class="contact-email-addr">partner@afams.co.ke</div>
-        <div class="contact-email-desc">Schools, restaurants, hotels, distributors, and institutional buyers. Bulk pricing available.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('press')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [PARTNERSHIP ENQUIRY]</div>
+        <div class="contact-email-desc">Schools, restaurants, hotels, distributors, and institutional buyers. Bulk pricing and bespoke installations available.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=partner%40afams.co.ke&su=%5BPARTNERSHIP%20ENQUIRY%5D&body=Hi%20Afams%20Partnerships%20Team%2C%0A%0AOrganisation%3A%20%0AType%3A%20School%20%2F%20Restaurant%20%2F%20Hotel%20%2F%20Corporate%20%2F%20Distributor%0A%0AWhat%20we%E2%80%99re%20looking%20for%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Press & Media -->
+      <a class="contact-email-card fade-up"
+         href="mailto:press@afams.co.ke?subject=%5BPRESS%20ENQUIRY%5D&body=Hi%20Afams%20Press%20Team%2C%0A%0APublication%20%2F%20Organisation%3A%20%0AEnquiry%20type%3A%20Interview%20%2F%20Media%20kit%20%2F%20Product%20sample%20%2F%20Speaking%20engagement%0A%0AMessage%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">📰</div>
         <div class="contact-email-topic">Press &amp; Media</div>
         <div class="contact-email-addr">press@afams.co.ke</div>
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [PRESS ENQUIRY]</div>
         <div class="contact-email-desc">Interview requests, media kits, product samples for review, and speaking engagements.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=press%40afams.co.ke&su=%5BPRESS%20ENQUIRY%5D&body=Hi%20Afams%20Press%20Team%2C%0A%0APublication%20%2F%20Organisation%3A%20%0AEnquiry%20type%3A%20Interview%20%2F%20Media%20kit%20%2F%20Product%20sample%20%2F%20Speaking%20engagement%0A%0AMessage%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
     </div>
     <div style="text-align:center;margin-top:2rem">
       <p style="font-size:0.88rem;color:var(--gray-mid)">Prefer WhatsApp? <a href="https://wa.me/254702359618" target="_blank" rel="noopener" style="color:var(--g-mid);font-weight:600">Chat with us</a> · Response usually within 2 hours</p>
@@ -788,6 +922,7 @@
       <div class="footer-col">
         <h4>Products</h4>
         <ul>
+          <li><a href="#products" onclick="scrollTo('products')">GrowBag Range</a></li>
           <li><a href="#products" onclick="scrollTo('products')">FarmBag Classic</a></li>
           <li><a href="#products" onclick="scrollTo('products')">FarmBag Vertical</a></li>
         </ul>
@@ -1075,6 +1210,120 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   setInterval(advance, 3000);
 })();
 </script>
+
+<!-- ═══ GROWBAG SELECTOR ═══ -->
+<script>
+(function() {
+  var gbSize    = 'Standard';
+  var gbVariant = 'Wide';
+  var gbQty     = 5;
+
+  var GB_DATA = {
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 550,  volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 500,  volume: '6 L'  },
+                crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 850,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 800,  volume: '14 L' },
+                crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 1050, volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 950,  volume: '28 L' },
+                crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 1450, volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 1350, volume: '44 L' },
+                crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1950, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 1800, volume: '62 L' },
+                crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
+  };
+
+  var GB_VARIANT_DESC = {
+    Wide:    'Broad and squat. Best for balconies and rooftops.',
+    Compact: 'Narrower and taller. Best for tight corners and small spaces.',
+  };
+
+  function getCurrent() {
+    var d = GB_DATA[gbSize];
+    return gbVariant === 'Wide' ? d.wide : d.compact;
+  }
+
+  function updateCard() {
+    var cur  = getCurrent();
+    var data = GB_DATA[gbSize];
+
+    var nameEl = document.getElementById('growbag-name');
+    if (nameEl) nameEl.textContent = 'GrowBag ' + gbSize + ' \u2014 ' + gbVariant;
+
+    var volEl = document.getElementById('growbag-volume');
+    if (volEl) volEl.textContent = cur.volume + ' \u00B7 PP geotextile \u00B7 Bonded liner';
+
+    var priceEl = document.getElementById('growbag-price');
+    if (priceEl) priceEl.textContent = 'KES ' + cur.price.toLocaleString('en-KE');
+
+    var badge = document.getElementById('growbag-badge');
+    if (badge) {
+      if (gbSize === 'Standard' && gbVariant === 'Wide') {
+        badge.textContent = 'Most Popular';
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    var descEl = document.getElementById('growbag-variant-desc');
+    if (descEl) descEl.textContent = GB_VARIANT_DESC[gbVariant];
+
+    var cropsEl = document.getElementById('growbag-crops');
+    if (cropsEl) {
+      cropsEl.innerHTML = data.crops.map(function(c) {
+        return '<span class="gb-crop-tag">' + c + '</span>';
+      }).join('');
+    }
+  }
+
+  window.selectGrowBagSize = function(size) {
+    gbSize = size;
+    gbQty  = GB_DATA[size].defaultQty;
+    var qEl = document.getElementById('growbag-qty');
+    if (qEl) qEl.textContent = gbQty;
+    document.querySelectorAll('.gb-size-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.size === size);
+    });
+    updateCard();
+  };
+
+  window.selectGrowBagVariant = function(variant) {
+    gbVariant = variant;
+    document.querySelectorAll('.gb-variant-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.variant === variant);
+    });
+    updateCard();
+  };
+
+  window.changeGBQty = function(delta) {
+    gbQty = Math.max(1, gbQty + delta);
+    var qEl = document.getElementById('growbag-qty');
+    if (qEl) qEl.textContent = gbQty;
+  };
+
+  window.addGrowBagToCart = function() {
+    var cur  = getCurrent();
+    var name = 'GrowBag ' + gbSize + ' \u2014 ' + gbVariant;
+    addToCart({
+      sku:        cur.sku,
+      name:       name,
+      unit_price: cur.price,
+      qty:        gbQty,
+      image:      'assets/images/growbag-standard-wide.jpg',
+      type:       'growbag',
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCard();
+  });
+})();
+</script>
+<!-- ═══ END GROWBAG SELECTOR ═══ -->
 
 </body>
 </html>

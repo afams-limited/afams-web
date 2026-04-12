@@ -69,6 +69,107 @@ const PRODUCTS = [
     image: 'assets/images/prosoil-front.jpg',
     type: 'prosoil',
   },
+  // ── GROWBAG SKUs ──────────────────────────────────────────────────
+  {
+    id: 'gb-mini-w', name: 'Afams GrowBag Mini — Wide', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['8 L', 'Wide', 'PP geotextile', 'Bonded liner'],
+    priceKES: 550, priceGBP: 4,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Mini', variant: 'Wide', volume: '8 L', type: 'growbag',
+    crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'],
+  },
+  {
+    id: 'gb-mini-c', name: 'Afams GrowBag Mini — Compact', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['6 L', 'Compact', 'PP geotextile', 'Bonded liner'],
+    priceKES: 500, priceGBP: 4,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Mini', variant: 'Compact', volume: '6 L', type: 'growbag',
+    crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'],
+  },
+  {
+    id: 'gb-med-w', name: 'Afams GrowBag Medium — Wide', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['17 L', 'Wide', 'PP geotextile', 'Bonded liner'],
+    priceKES: 850, priceGBP: 6,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Medium', variant: 'Wide', volume: '17 L', type: 'growbag',
+    crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'],
+  },
+  {
+    id: 'gb-med-c', name: 'Afams GrowBag Medium — Compact', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['14 L', 'Compact', 'PP geotextile', 'Bonded liner'],
+    priceKES: 800, priceGBP: 6,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Medium', variant: 'Compact', volume: '14 L', type: 'growbag',
+    crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'],
+  },
+  {
+    id: 'gb-std-w', name: 'Afams GrowBag Standard — Wide', category: 'GrowBag · Basic Range',
+    badge: 'popular', badgeText: 'Most Popular', emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['32 L', 'Wide', 'PP geotextile', 'Bonded liner'],
+    priceKES: 1050, priceGBP: 8,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Standard', variant: 'Wide', volume: '32 L', type: 'growbag',
+    crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'],
+  },
+  {
+    id: 'gb-std-c', name: 'Afams GrowBag Standard — Compact', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['28 L', 'Compact', 'PP geotextile', 'Bonded liner'],
+    priceKES: 950, priceGBP: 7,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Standard', variant: 'Compact', volume: '28 L', type: 'growbag',
+    crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'],
+  },
+  {
+    id: 'gb-lrg-w', name: 'Afams GrowBag Large — Wide', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['50 L', 'Wide', 'PP geotextile', 'Bonded liner'],
+    priceKES: 1450, priceGBP: 11,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Large', variant: 'Wide', volume: '50 L', type: 'growbag',
+    crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'],
+  },
+  {
+    id: 'gb-lrg-c', name: 'Afams GrowBag Large — Compact', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['44 L', 'Compact', 'PP geotextile', 'Bonded liner'],
+    priceKES: 1350, priceGBP: 10,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'Large', variant: 'Compact', volume: '44 L', type: 'growbag',
+    crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'],
+  },
+  {
+    id: 'gb-xl-w', name: 'Afams GrowBag XL — Wide', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['70 L', 'Wide', 'PP geotextile', 'Bonded liner'],
+    priceKES: 1950, priceGBP: 15,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'XL', variant: 'Wide', volume: '70 L', type: 'growbag',
+    crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'],
+  },
+  {
+    id: 'gb-xl-c', name: 'Afams GrowBag XL — Compact', category: 'GrowBag · Basic Range',
+    badge: null, badgeText: null, emoji: '🌱',
+    desc: 'The Afams GrowBag is a forest green PP geotextile grow bag with a bonded black polythene liner, 12 brass drainage grommets, and reinforced carry handles.',
+    features: ['62 L', 'Compact', 'PP geotextile', 'Bonded liner'],
+    priceKES: 1800, priceGBP: 14,
+    image: 'assets/images/growbag-standard-wide.jpg',
+    product_line: 'growbag', size: 'XL', variant: 'Compact', volume: '62 L', type: 'growbag',
+    crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'],
+  },
 ];
 
 // ── CART STATE ────────────────────────────────────────────────────
@@ -356,19 +457,21 @@ async function handleSubscribe() {
 function submitInstitutional(e) {
   e.preventDefault();
   const form = e.target;
-  const data = new FormData(form);
-  fetch('/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(data).toString(),
-  })
-    .then(() => {
-      showToast("✓ Enquiry sent! We'll be in touch within 24 hours");
-      form.reset();
-    })
-    .catch(() => {
-      showToast('⚠️ Could not send — please email info@afams.co.ke directly');
-    });
+  const org     = (form.querySelector('[name="organisation"]') || {}).value || '';
+  const email   = (form.querySelector('[name="email"]')        || {}).value || '';
+  const type    = (form.querySelector('[name="type"]')         || {}).value || '';
+  const message = (form.querySelector('[name="message"]')      || {}).value || '';
+
+  // Pre-fill the partnerships contact dialog with the institutional enquiry data
+  const nameEl = document.getElementById('contact-dialog-name');
+  const emailEl = document.getElementById('contact-dialog-email');
+  const msgEl  = document.getElementById('contact-dialog-msg');
+  if (nameEl)  nameEl.value  = org;
+  if (emailEl) emailEl.value = email;
+  if (msgEl)   msgEl.value   =
+    (type ? 'Institution type: ' + type + '\n\n' : '') + message;
+
+  openContactForm('partnerships');
 }
 
 // ── WHATSAPP ──────────────────────────────────────────────────────
