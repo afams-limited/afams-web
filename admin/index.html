@@ -1901,6 +1901,7 @@ function emailCustomer() {
   document.getElementById('emailTo').value = o.customer_email || '';
   onEmailTemplateChange();
   document.getElementById('emailModal').style.display = 'block';
+  setTimeout(function () { document.getElementById('emailSubject').focus(); }, 50);
 }
 
 function closeEmailModal() {
@@ -2014,6 +2015,7 @@ function whatsappCustomer() {
   document.getElementById('waModal').dataset.phone = phone;
   onWATemplateChange();
   document.getElementById('waModal').style.display = 'block';
+  setTimeout(function () { document.getElementById('waTemplateSelect').focus(); }, 50);
 }
 
 function closeWAModal() {
@@ -2532,6 +2534,12 @@ document.getElementById('emailModal').addEventListener('click', function (e) {
 });
 document.getElementById('waModal').addEventListener('click', function (e) {
   if (e.target === this) closeWAModal();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('emailModal').style.display !== 'none') closeEmailModal();
+    if (document.getElementById('waModal').style.display    !== 'none') closeWAModal();
+  }
 });
 </script>
 </body>
