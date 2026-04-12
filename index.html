@@ -187,7 +187,7 @@
           <div class="hero-stat-label">Global presence</div>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-num" data-prefix="KES " data-count="550">0</div>
+          <div class="hero-stat-num" data-prefix="KES " data-count="59">0</div>
           <div class="hero-stat-label">GrowBag from</div>
         </div>
       </div>
@@ -200,7 +200,7 @@
             </div>
             <div class="hero-product-slide-info">
               <div class="hero-product-slide-name">GrowBag Range</div>
-              <div class="hero-product-slide-price">From KES 550 · Basic Range</div>
+              <div class="hero-product-slide-price">From KES 59 · Basic Range</div>
               <div class="hero-product-slide-cta">Choose size →</div>
             </div>
           </div>
@@ -327,8 +327,9 @@
           <div style="margin-bottom:10px">
             <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
             <div id="growbag-variant-btns" style="display:flex;gap:6px;flex-wrap:wrap">
-              <button class="gb-variant-btn gb-active" data-variant="Wide"    onclick="selectGrowBagVariant('Wide')"    title="Broad and squat — best where floor space is available">Wide</button>
-              <button class="gb-variant-btn"           data-variant="Compact" onclick="selectGrowBagVariant('Compact')" title="Narrower and taller — best for tight corners">Compact</button>
+              <button class="gb-variant-btn gb-active" data-variant="Wide"     onclick="selectGrowBagVariant('Wide')"     title="Broad and squat — best where floor space is available">Wide</button>
+              <button class="gb-variant-btn"           data-variant="Compact"  onclick="selectGrowBagVariant('Compact')"  title="Narrower and taller — best for tight corners">Compact</button>
+              <button class="gb-variant-btn"           data-variant="Vertical" onclick="selectGrowBagVariant('Vertical')" title="Tall and upright — maximises vertical growing" style="display:none">Vertical</button>
             </div>
             <p id="growbag-variant-desc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
           </div>
@@ -1229,31 +1230,35 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   var gbQty     = 5;
 
   var GB_DATA = {
-    Mini:     { wide: { sku: 'GB-MINI-W', price: 550,  volume: '8 L'  },
-                compact: { sku: 'GB-MINI-C', price: 500,  volume: '6 L'  },
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 99,   volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 59,   volume: '6 L'  },
                 crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
-    Medium:   { wide: { sku: 'GB-MED-W',  price: 850,  volume: '17 L' },
-                compact: { sku: 'GB-MED-C',  price: 800,  volume: '14 L' },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 199,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 159,  volume: '14 L' },
                 crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
-    Standard: { wide: { sku: 'GB-STD-W',  price: 1050, volume: '32 L' },
-                compact: { sku: 'GB-STD-C',  price: 950,  volume: '28 L' },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 299,  volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 259,  volume: '28 L' },
                 crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
-    Large:    { wide: { sku: 'GB-LRG-W',  price: 1450, volume: '50 L' },
-                compact: { sku: 'GB-LRG-C',  price: 1350, volume: '44 L' },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 699,  volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 659,  volume: '44 L' },
+                vertical: { sku: 'GB-LRG-V',  price: 799,  volume: '50 L' },
                 crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
-    XL:       { wide: { sku: 'GB-XL-W',   price: 1950, volume: '70 L' },
-                compact: { sku: 'GB-XL-C',   price: 1800, volume: '62 L' },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1099, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 999,  volume: '62 L' },
+                vertical: { sku: 'GB-XL-V',   price: 1399, volume: '70 L' },
                 crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
   };
+  var VERTICAL_SIZES = { Large: true, XL: true };
 
   var GB_VARIANT_DESC = {
-    Wide:    'Broad and squat. Best for balconies and rooftops.',
-    Compact: 'Narrower and taller. Best for tight corners and small spaces.',
+    Wide:     'Broad and squat. Best for balconies and rooftops.',
+    Compact:  'Narrower and taller. Best for tight corners and small spaces.',
+    Vertical: 'Tall and upright. Maximises vertical growing on small balconies.',
   };
 
   function getCurrent() {
     var d = GB_DATA[gbSize] || GB_DATA['Standard'];
-    return gbVariant === 'Wide' ? d.wide : d.compact;
+    return gbVariant === 'Wide' ? d.wide : gbVariant === 'Compact' ? d.compact : (d.vertical || d.wide);
   }
 
   function updateCard() {
@@ -1292,11 +1297,16 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
 
   window.selectGrowBagSize = function(size) {
     gbSize = size;
+    if (gbVariant === 'Vertical' && !VERTICAL_SIZES[size]) gbVariant = 'Wide';
     gbQty  = GB_DATA[size].defaultQty;
     var qEl = document.getElementById('growbag-qty');
     if (qEl) qEl.textContent = gbQty;
     document.querySelectorAll('.gb-size-btn').forEach(function(b) {
       b.classList.toggle('gb-active', b.dataset.size === size);
+    });
+    document.querySelectorAll('.gb-variant-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.variant === gbVariant);
+      if (b.dataset.variant === 'Vertical') b.style.display = VERTICAL_SIZES[size] ? '' : 'none';
     });
     updateCard();
   };

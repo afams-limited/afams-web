@@ -331,30 +331,34 @@ function renderProducts(products) {
 
 function renderGrowBagCard(grid) {
   const GB_DATA = {
-    Mini:     { wide: { sku: 'GB-MINI-W', price: 550,  volume: '8 L'  },
-                compact: { sku: 'GB-MINI-C', price: 500,  volume: '6 L'  },
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 99,   volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 59,   volume: '6 L'  },
                 crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
-    Medium:   { wide: { sku: 'GB-MED-W',  price: 850,  volume: '17 L' },
-                compact: { sku: 'GB-MED-C',  price: 800,  volume: '14 L' },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 199,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 159,  volume: '14 L' },
                 crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
-    Standard: { wide: { sku: 'GB-STD-W',  price: 1050, volume: '32 L' },
-                compact: { sku: 'GB-STD-C',  price: 950,  volume: '28 L' },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 299,  volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 259,  volume: '28 L' },
                 crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
-    Large:    { wide: { sku: 'GB-LRG-W',  price: 1450, volume: '50 L' },
-                compact: { sku: 'GB-LRG-C',  price: 1350, volume: '44 L' },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 699,  volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 659,  volume: '44 L' },
+                vertical: { sku: 'GB-LRG-V',  price: 799,  volume: '50 L' },
                 crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
-    XL:       { wide: { sku: 'GB-XL-W',   price: 1950, volume: '70 L' },
-                compact: { sku: 'GB-XL-C',   price: 1800, volume: '62 L' },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1099, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 999,  volume: '62 L' },
+                vertical: { sku: 'GB-XL-V',   price: 1399, volume: '70 L' },
                 crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
   };
+  const VERTICAL_SIZES = new Set(['Large', 'XL']);
   const GB_VARIANT_DESC = {
-    Wide:    'Broad and squat. Best for balconies and rooftops.',
-    Compact: 'Narrower and taller. Best for tight corners and small spaces.',
+    Wide:     'Broad and squat. Best for balconies and rooftops.',
+    Compact:  'Narrower and taller. Best for tight corners and small spaces.',
+    Vertical: 'Tall and upright. Maximises vertical growing on small balconies.',
   };
 
   let gbSize = 'Standard', gbVariant = 'Wide', gbQty = 5;
 
-  function getCurrent() { return gbVariant === 'Wide' ? (GB_DATA[gbSize] || GB_DATA['Standard']).wide : (GB_DATA[gbSize] || GB_DATA['Standard']).compact; }
+  function getCurrent() { return gbVariant === 'Wide' ? (GB_DATA[gbSize] || GB_DATA['Standard']).wide : gbVariant === 'Compact' ? (GB_DATA[gbSize] || GB_DATA['Standard']).compact : ((GB_DATA[gbSize] || GB_DATA['Standard']).vertical || (GB_DATA[gbSize] || GB_DATA['Standard']).wide); }
 
   function updateGBCard() {
     const cur = getCurrent();
@@ -376,9 +380,15 @@ function renderGrowBagCard(grid) {
 
   window.pgSelectSize = function(size) {
     gbSize = size; gbQty = GB_DATA[size].defaultQty;
+    if (gbVariant === 'Vertical' && !VERTICAL_SIZES.has(size)) gbVariant = 'Wide';
     const qEl = document.getElementById('pg-qty');
     if (qEl) qEl.textContent = gbQty;
     document.querySelectorAll('.pg-size-btn').forEach(b => b.classList.toggle('pg-active', b.dataset.size === size));
+    document.querySelectorAll('.pg-variant-btn').forEach(b => {
+      const v = b.dataset.v;
+      b.classList.toggle('pg-active', v === gbVariant);
+      if (v === 'Vertical') b.style.display = VERTICAL_SIZES.has(size) ? '' : 'none';
+    });
     updateGBCard();
   };
   window.pgSelectVariant = function(v) {
@@ -397,7 +407,7 @@ function renderGrowBagCard(grid) {
   };
 
   const btns = s => `<button class="pg-size-btn${s==='Standard'?' pg-active':''}" data-size="${s}" onclick="pgSelectSize('${s}')">${s}</button>`;
-  const vBtns = v => `<button class="pg-variant-btn${v==='Wide'?' pg-active':''}" data-v="${v}" onclick="pgSelectVariant('${v}')" title="${v==='Wide'?'Broad and squat':'Narrower and taller'}">${v}</button>`;
+  const vBtns = v => `<button class="pg-variant-btn${v==='Wide'?' pg-active':''}" data-v="${v}" onclick="pgSelectVariant('${v}')" title="${v==='Wide'?'Broad and squat':v==='Compact'?'Narrower and taller':'Tall and upright'}"${v==='Vertical'?' style="display:none"':''}>${v}</button>`;
 
   const card = document.createElement('div');
   card.className = 'product-card';
@@ -422,7 +432,7 @@ function renderGrowBagCard(grid) {
       <div style="margin-bottom:10px">
         <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${['Wide','Compact'].map(vBtns).join('')}
+          ${['Wide','Compact','Vertical'].map(vBtns).join('')}
         </div>
         <p id="pg-vdesc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
       </div>
