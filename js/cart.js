@@ -4,7 +4,7 @@
 
 const CART_KEY        = 'afams_cart';
 const PROSOIL_SKU     = 'PS-25KG';
-const FARMBAG_SKUS    = ['FB-CLS-01', 'FB-GRW-01'];
+const FARMBAG_SKUS    = ['FB-CLS-01', 'FB-GRW-01', 'FB-HYD-01', 'FB-HYP-01', 'FB-AQA-01', 'FB-AHP-01'];
 const SEED_PRICE_EXTRA = 150; // KES per extra seed packet beyond the free ones
 
 // ── Cart shape ────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ function computeProsoilPromo(cart) {
   if (!hasFarmBag) return 0;
   var prosoilItem = cart.items.find(function(i) { return i.sku === PROSOIL_SKU; });
   if (!prosoilItem) return 0;
-  return Math.floor(prosoilItem.qty / 3); // 3 bought → 1 free, 6 → 2 free, etc.
+  return Math.min(3, Math.floor(prosoilItem.qty / 3)); // 3 bought → 1 free, cap at 3 free bags
 }
 
 // ── Cart Totals ───────────────────────────────────────────────────────────────

@@ -270,7 +270,7 @@ const STATIC_PRODUCTS = [
   { sku: 'PS-25KG',   name: 'Afams ProSoil 25kg', category: 'Growing Medium',  badge: 'prosoil',  emoji: '🪴',
     desc: 'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately.',
     features: ['pH 6.2–6.8','Sterilised','Ready to plant','Made in Kenya'], priceKES: 399, image: 'assets/images/prosoil-front.jpg',
-    promoBadge: '🎁 Every 3 bags, 1 free',
+    promoBadge: '🎁 Every 3 bags, 1 free (max 3) — first-time customers',
     type: 'prosoil', link: null, detailsLink: 'prosoil.html' },
 ];
 
@@ -414,14 +414,17 @@ function renderGrowBagCard(grid) {
   card.id = 'growbag-products-card';
   card.innerHTML = `
     <div class="product-image" style="position:relative;">
-      <img src="assets/images/growbag-hero.jpg" alt="Afams GrowBag" loading="lazy" onerror="this.classList.add('failed');" />
+      <img id="pg-main-img" src="assets/images/growbag-hero.jpg" alt="Afams GrowBag" loading="lazy" onerror="this.classList.add('failed');" />
       <span id="pg-badge" class="product-badge-pill" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;top:0.85rem;left:0.85rem;">Most Popular</span>
+      <button onclick="pgGalleryNav(-1)" class="gb-gallery-arrow gb-gallery-arrow-left" aria-label="Previous image">&#8249;</button>
+      <button onclick="pgGalleryNav(1)"  class="gb-gallery-arrow gb-gallery-arrow-right" aria-label="Next image">&#8250;</button>
     </div>
-    <div class="gb-img-strip">
-      <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" loading="lazy"/>
-      <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" loading="lazy"/>
-      <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" loading="lazy"/>
-      <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" loading="lazy"/>
+    <div class="gb-img-strip" id="pg-img-strip">
+      <img src="assets/images/growbag-hero.jpg" alt="GrowBag Hero" class="gb-thumb gb-thumb-active" onclick="pgSetImage(0)" loading="lazy"/>
+      <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" class="gb-thumb" onclick="pgSetImage(1)" loading="lazy"/>
+      <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" class="gb-thumb" onclick="pgSetImage(2)" loading="lazy"/>
+      <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" class="gb-thumb" onclick="pgSetImage(3)" loading="lazy"/>
+      <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" class="gb-thumb" onclick="pgSetImage(4)" loading="lazy"/>
     </div>
     <div class="product-body">
       <div class="product-category">GrowBag · Basic Range</div>
@@ -465,11 +468,30 @@ function renderGrowBagCard(grid) {
   `;
   grid.insertAdjacentElement('afterbegin', card);
 
+  // GrowBag gallery for products page
+  var PG_GALLERY = [
+    'assets/images/growbag-hero.jpg',
+    'assets/images/growbag-wide.jpg',
+    'assets/images/growbag-compact.jpg',
+    'assets/images/growbag-standard-wide.jpg',
+    'assets/images/growbag-sizes.jpg',
+  ];
+  var _pgGalleryIdx = 0;
+  window.pgSetImage = function(idx) {
+    _pgGalleryIdx = (idx + PG_GALLERY.length) % PG_GALLERY.length;
+    var mainImg = document.getElementById('pg-main-img');
+    if (mainImg) { mainImg.src = PG_GALLERY[_pgGalleryIdx]; mainImg.classList.remove('failed'); }
+    document.querySelectorAll('#pg-img-strip .gb-thumb').forEach(function(t, i) {
+      t.classList.toggle('gb-thumb-active', i === _pgGalleryIdx);
+    });
+  };
+  window.pgGalleryNav = function(dir) { pgSetImage(_pgGalleryIdx + dir); };
+
   // Inject selector button styles
   if (!document.getElementById('pg-styles')) {
     const style = document.createElement('style');
     style.id = 'pg-styles';
-    style.textContent = `.pg-size-btn,.pg-variant-btn{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;color:#4A5568;cursor:pointer;font-family:inherit;transition:all 0.15s;}.pg-size-btn:hover,.pg-variant-btn:hover{border-color:#1E7D34;color:#155D27;}.pg-size-btn.pg-active,.pg-variant-btn.pg-active{background:#155D27;border-color:#155D27;color:#fff;}`;
+    style.textContent = `.pg-size-btn,.pg-variant-btn{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;color:#4A5568;cursor:pointer;font-family:inherit;transition:all 0.15s;}.pg-size-btn:hover,.pg-variant-btn:hover{border-color:#1E7D34;color:#155D27;}.pg-size-btn.pg-active,.pg-variant-btn.pg-active{background:#155D27;border-color:#155D27;color:#fff;}.gb-gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(7,26,11,0.55);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:1.4rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:2;padding:0;}.gb-gallery-arrow:hover{background:rgba(7,26,11,0.85);}.gb-gallery-arrow-left{left:8px;}.gb-gallery-arrow-right{right:8px;}.gb-thumb{cursor:pointer;opacity:0.65;transition:opacity 0.2s,border-color 0.2s;border:2px solid transparent!important;}.gb-thumb:hover{opacity:1;}.gb-thumb.gb-thumb-active{opacity:1;border-color:#1E7D34!important;}`;
     document.head.appendChild(style);
   }
 
@@ -480,6 +502,50 @@ function loadProducts() {
   const grid = document.getElementById('products-grid');
   renderProducts(STATIC_PRODUCTS);
   renderGrowBagCard(grid);
+  renderPremiumRange(grid);
+}
+
+function renderPremiumRange(grid) {
+  const PREMIUM = [
+    { name: 'FarmBag Hydro',          sku: 'FB-HYD-01', category: 'Premium · Hydroponic',       price: 8999,  emoji: '💧', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Hydro Pro',       sku: 'FB-HYP-01', category: 'Premium · Pro Hydroponic',   price: 11999, emoji: '🔬', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Aqua',            sku: 'FB-AQA-01', category: 'Premium · Aquaponic',        price: 14999, emoji: '🌊', bgStyle: 'background:linear-gradient(135deg,#0d2640,#1565C0)' },
+    { name: 'FarmBag Aqua-Hydro Pro',  sku: 'FB-AHP-01', category: 'Premium · Ultimate System',  price: 39999, emoji: '🚀', bgStyle: 'background:linear-gradient(135deg,#0d2640,#7B1FA2)' },
+  ];
+
+  // Insert divider
+  const divider = document.createElement('div');
+  divider.style.cssText = 'grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px';
+  divider.innerHTML = '<p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#7B1FA2;font-weight:700;margin:0">The FarmBag System · Premium Range</p>'
+    + '<p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Exciting Innovations Coming — Pre-order now. First delivery: 1 September 2026.</p>';
+  grid.appendChild(divider);
+
+  PREMIUM.forEach(function(p) {
+    const cartItem = { sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' };
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="product-image" style="${p.bgStyle};display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:4rem">${p.emoji}</span>
+        <span class="product-badge-pill badge-premium" style="position:absolute;top:0.85rem;left:0.85rem;">Premium</span>
+      </div>
+      <div class="product-body">
+        <div class="product-category">${p.category}</div>
+        <h2 class="product-name">${p.name}</h2>
+        <p class="product-desc">Advanced urban farming innovation. Full product details will be revealed at official launch.</p>
+        <div class="product-footer">
+          <div>
+            <div class="product-price">KES ${p.price.toLocaleString()}</div>
+            <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
+          </div>
+          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;">Pre-Order</button>
+        </div>
+      </div>
+    `;
+    // Set data-cart via setAttribute to avoid any HTML-encoding issues
+    card.querySelector('.btn-add-to-cart').setAttribute('data-cart', JSON.stringify(cartItem));
+    grid.appendChild(card);
+  });
 }
 
 // Add-to-cart via event delegation (avoids inline onclick with user data)
