@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <meta name="description" content="Browse all Afams FarmBag products — urban farming systems for homes, schools and institutions."/>
-  <meta property="og:title" content="Afams FarmBag — Products"/>
-  <meta property="og:description" content="Browse all FarmBag urban farming systems. Pre-order yours today."/>
+  <meta name="description" content="Browse all Afams products — GrowBag range (5 sizes), FarmBag Classic, FarmBag Vertical, and ProSoil growing medium. Urban farming systems for homes, schools and institutions."/>
+  <meta property="og:title" content="Afams Products — GrowBag, FarmBag &amp; ProSoil"/>
+  <meta property="og:description" content="Browse the full Afams lineup: GrowBag (from KES 550), FarmBag Classic, FarmBag Vertical, and Afams ProSoil. Pre-order and ship in 3–5 days."/>
   <meta property="og:type" content="website"/>
-  <title>Products — Afams FarmBag</title>
+  <title>Products — Afams | GrowBag, FarmBag &amp; ProSoil</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -70,10 +70,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: none;
     }
-    .product-image img.loaded { display: block; }
-    .product-emoji { font-size: 4rem; transition: opacity 0.3s; }
+    .product-image img.failed { display: none; }
     .product-badge-pill {
       position: absolute;
       top: 0.85rem;
@@ -90,6 +88,7 @@
     .badge-premium    { background: #7B1FA2; color: #fff; }
     .badge-preorder   { background: #F57C00; color: #fff; }
     .badge-prosoil    { background: #2D6A4F; color: #fff; }
+    .badge-popular    { background: linear-gradient(135deg,#2D6A4F,#52B788); color: #fff; }
     .badge-indoor-safe { background: #1E7D34; color: #fff; left: auto; right: 0.85rem; }
     .product-body {
       padding: 1.5rem;
@@ -231,7 +230,7 @@
 
 <!-- HERO -->
 <div class="products-hero">
-  <h1>FarmBag Products</h1>
+  <h1>Afams Products</h1>
   <p>Choose your urban farming system. Pre-order today — ships within 3–5 business days.</p>
 </div>
 
@@ -272,14 +271,14 @@ const STATIC_PRODUCTS = [
     desc: 'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately.',
     features: ['pH 6.2–6.8','Sterilised','Ready to plant','Made in Kenya'], priceKES: 399, image: 'assets/images/prosoil-front.jpg',
     promoBadge: '🎁 Every 3 bags, 1 free',
-    type: 'prosoil', link: 'prosoil.html' },
+    type: 'prosoil', link: null, detailsLink: 'prosoil.html' },
 ];
 
 function renderProducts(products) {
   const grid = document.getElementById('products-grid');
   grid.innerHTML = products.map(p => {
     const badgeHtml = p.badge
-      ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : 'Pre-order'}</span>`
+      ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : p.badge === 'popular' ? 'Most Popular' : 'Pre-order'}</span>`
       : '';
     const indoorSafe = (p.features || []).some(f => f.toLowerCase() === 'indoor safe');
     const indoorBadgeHtml = indoorSafe
@@ -289,13 +288,16 @@ function renderProducts(products) {
       `<span class="product-feature">${f}</span>`
     ).join('');
     const imageHtml = p.image
-      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded');this.parentElement.querySelector('.product-emoji').style.opacity='0';"/><span class="product-emoji">${p.emoji || '🌿'}</span>`
+      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.classList.add('failed');" />`
       : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
 
-    // ProSoil links to its product page; FarmBags get Add-to-Cart + Order Now
+    // All products get Add-to-Cart; products with detailsLink also get a secondary "View Details" link
     const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.priceKES || p.unit_price || 0, qty: 1, image: p.image || '', type: p.type || 'product' });
-    const actionHtml = p.link
-      ? `<a href="${p.link}" class="btn-order">View &amp; Order</a>`
+    const actionHtml = p.detailsLink
+      ? `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
+           <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
+           <a href="${p.detailsLink}" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">View Details →</a>
+         </div>`
       : `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
            <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
            <a href="checkout.html?sku=${p.sku}&qty=1" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">Order Now →</a>
@@ -326,8 +328,158 @@ function renderProducts(products) {
     `;
   }).join('');
 }
+
+function renderGrowBagCard(grid) {
+  const GB_DATA = {
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 99,   volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 59,   volume: '6 L'  },
+                crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 199,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 159,  volume: '14 L' },
+                crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 299,  volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 259,  volume: '28 L' },
+                crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 699,  volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 659,  volume: '44 L' },
+                vertical: { sku: 'GB-LRG-V',  price: 799,  volume: '50 L' },
+                crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1099, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 999,  volume: '62 L' },
+                vertical: { sku: 'GB-XL-V',   price: 1399, volume: '70 L' },
+                crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
+  };
+  const VERTICAL_SIZES = new Set(['Large', 'XL']);
+  const GB_VARIANT_DESC = {
+    Wide:     'Broad and squat. Best for balconies and rooftops.',
+    Compact:  'Narrower and taller. Best for tight corners and small spaces.',
+    Vertical: 'Tall and upright. Maximises vertical growing on small balconies.',
+  };
+
+  let gbSize = 'Standard', gbVariant = 'Wide', gbQty = 5;
+
+  function getCurrent() { return gbVariant === 'Wide' ? (GB_DATA[gbSize] || GB_DATA['Standard']).wide : gbVariant === 'Compact' ? (GB_DATA[gbSize] || GB_DATA['Standard']).compact : ((GB_DATA[gbSize] || GB_DATA['Standard']).vertical || (GB_DATA[gbSize] || GB_DATA['Standard']).wide); }
+
+  function updateGBCard() {
+    const cur = getCurrent();
+    const el = id => document.getElementById(id);
+    if (el('pg-name'))    el('pg-name').textContent = `GrowBag ${gbSize} \u2014 ${gbVariant}`;
+    if (el('pg-volume'))  el('pg-volume').textContent = `${cur.volume} · PP geotextile · Bonded liner`;
+    if (el('pg-price'))   el('pg-price').textContent = `KES ${cur.price.toLocaleString()}`;
+    const badge = el('pg-badge');
+    if (badge) {
+      const show = gbSize === 'Standard' && gbVariant === 'Wide';
+      badge.style.display = show ? 'inline-block' : 'none';
+    }
+    if (el('pg-vdesc')) el('pg-vdesc').textContent = GB_VARIANT_DESC[gbVariant];
+    if (el('pg-crops')) {
+      el('pg-crops').innerHTML = GB_DATA[gbSize].crops
+        .map(c => `<span class="product-feature" style="background:#E6F0E7;color:#155D27;">${c}</span>`).join('');
+    }
+  }
+
+  window.pgSelectSize = function(size) {
+    gbSize = size; gbQty = GB_DATA[size].defaultQty;
+    if (gbVariant === 'Vertical' && !VERTICAL_SIZES.has(size)) gbVariant = 'Wide';
+    const qEl = document.getElementById('pg-qty');
+    if (qEl) qEl.textContent = gbQty;
+    document.querySelectorAll('.pg-size-btn').forEach(b => b.classList.toggle('pg-active', b.dataset.size === size));
+    document.querySelectorAll('.pg-variant-btn').forEach(b => {
+      const v = b.dataset.v;
+      b.classList.toggle('pg-active', v === gbVariant);
+      if (v === 'Vertical') b.style.display = VERTICAL_SIZES.has(size) ? '' : 'none';
+    });
+    updateGBCard();
+  };
+  window.pgSelectVariant = function(v) {
+    gbVariant = v;
+    document.querySelectorAll('.pg-variant-btn').forEach(b => b.classList.toggle('pg-active', b.dataset.v === v));
+    updateGBCard();
+  };
+  window.pgChangeQty = function(d) {
+    gbQty = Math.max(1, gbQty + d);
+    const qEl = document.getElementById('pg-qty');
+    if (qEl) qEl.textContent = gbQty;
+  };
+  window.pgAddToCart = function() {
+    const cur = getCurrent();
+    addToCart({ sku: cur.sku, name: `GrowBag ${gbSize} \u2014 ${gbVariant}`, unit_price: cur.price, qty: gbQty, image: 'assets/images/growbag-hero.jpg', type: 'growbag' });
+  };
+
+  const btns = s => `<button class="pg-size-btn${s==='Standard'?' pg-active':''}" data-size="${s}" onclick="pgSelectSize('${s}')">${s}</button>`;
+  const vBtns = v => `<button class="pg-variant-btn${v==='Wide'?' pg-active':''}" data-v="${v}" onclick="pgSelectVariant('${v}')" title="${v==='Wide'?'Broad and squat':v==='Compact'?'Narrower and taller':'Tall and upright'}"${v==='Vertical'?' style="display:none"':''}>${v}</button>`;
+
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.id = 'growbag-products-card';
+  card.innerHTML = `
+    <div class="product-image" style="position:relative;">
+      <img src="assets/images/growbag-hero.jpg" alt="Afams GrowBag" loading="lazy" onerror="this.classList.add('failed');" />
+      <span id="pg-badge" class="product-badge-pill" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;top:0.85rem;left:0.85rem;">Most Popular</span>
+    </div>
+    <div class="gb-img-strip">
+      <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" loading="lazy"/>
+      <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" loading="lazy"/>
+      <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" loading="lazy"/>
+      <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" loading="lazy"/>
+    </div>
+    <div class="product-body">
+      <div class="product-category">GrowBag · Basic Range</div>
+      <h2 class="product-name" id="pg-name">GrowBag Standard — Wide</h2>
+      <p class="product-desc" style="font-size:0.82rem;color:#718096;margin-bottom:0.75rem" id="pg-volume">32 L · PP geotextile · Bonded liner</p>
+
+      <div style="margin-bottom:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Size</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['Mini','Medium','Standard','Large','XL'].map(btns).join('')}
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['Wide','Compact','Vertical'].map(vBtns).join('')}
+        </div>
+        <p id="pg-vdesc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
+      </div>
+
+      <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0">Qty</p>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="pgChangeQty(-1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">−</button>
+          <span id="pg-qty" style="font-size:0.95rem;font-weight:700;color:#071A0B;min-width:24px;text-align:center">5</span>
+          <button onclick="pgChangeQty(1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">+</button>
+        </div>
+      </div>
+
+      <div id="pg-crops" class="product-features" style="margin-bottom:1rem"></div>
+
+      <div class="product-footer">
+        <div>
+          <div class="product-price" id="pg-price">KES 1,050</div>
+          <div class="product-price-sub">Basic range · Ships in 3–5 days</div>
+        </div>
+        <button class="btn-order" onclick="pgAddToCart()">Add to Cart</button>
+      </div>
+    </div>
+  `;
+  grid.insertAdjacentElement('afterbegin', card);
+
+  // Inject selector button styles
+  if (!document.getElementById('pg-styles')) {
+    const style = document.createElement('style');
+    style.id = 'pg-styles';
+    style.textContent = `.pg-size-btn,.pg-variant-btn{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;color:#4A5568;cursor:pointer;font-family:inherit;transition:all 0.15s;}.pg-size-btn:hover,.pg-variant-btn:hover{border-color:#1E7D34;color:#155D27;}.pg-size-btn.pg-active,.pg-variant-btn.pg-active{background:#155D27;border-color:#155D27;color:#fff;}`;
+    document.head.appendChild(style);
+  }
+
+  updateGBCard();
+}
+
 function loadProducts() {
+  const grid = document.getElementById('products-grid');
   renderProducts(STATIC_PRODUCTS);
+  renderGrowBagCard(grid);
 }
 
 // Add-to-cart via event delegation (avoids inline onclick with user data)
@@ -352,5 +504,20 @@ window.addEventListener('scroll', () => {
 
 loadProducts();
 </script>
+
+<!-- ── WHATSAPP BUSINESS FAB ── -->
+<a href="https://wa.me/254714128514?text=Hi%20Afams%21%20I%27d%20like%20to%20know%20more%20about%20your%20products."
+   target="_blank" rel="noopener noreferrer"
+   class="wa-fab" aria-label="Chat on WhatsApp Business">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+  </svg>
+  <div class="wa-fab-label">
+    Chat with us
+    <span>WhatsApp Business</span>
+  </div>
+</a>
+<!-- ── END WHATSAPP FAB ── -->
+
 </body>
 </html>
