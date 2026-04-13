@@ -1914,18 +1914,51 @@ async function saveOrderUpdate() {
 }
 
 function openMailtoFallback(orderSnapshot, emailType) {
-  // Build mailto: URL from template content so admin can send manually
-  currentOrder = orderSnapshot;
-  var content  = buildEmailContent(emailType);
-  currentOrder = null;
+  // Build subject and body directly from the snapshot — no global mutation needed
+  var ref         = orderSnapshot.order_number || orderSnapshot.id;
+  var name        = orderSnapshot.customer_name  || 'Customer';
+  var product     = orderSnapshot.product_name   || orderSnapshot.product_sku || '—';
+  var qty         = String(orderSnapshot.quantity || 1);
+  var total       = 'KES ' + Number(orderSnapshot.total_amount || 0).toLocaleString('en-KE');
+  var trackingNo  = orderSnapshot.tracking_number || '—';
+  var deliveredAt = orderSnapshot.delivered_at
+    ? new Date(orderSnapshot.delivered_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+
+  var subject, body;
+  if (emailType === 'order_dispatched') {
+    subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
+      + 'Order Number:       ' + ref + '\n'
+      + 'Product:            ' + product + '\n'
+      + 'Quantity:           ' + qty + '\n'
+      + 'Tracking Number:    ' + trackingNo + '\n'
+      + 'Estimated Delivery: 2\u20135 business days\n\n'
+      + 'Our delivery partner may contact you when your package is near. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else {
+    subject = '[Afams Order ' + ref + '] Order Delivered';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Your Afams order has been marked as delivered. '
+      + 'Thank you for trusting us to support your growing journey!\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Product:       ' + product + '\n'
+      + 'Quantity:      ' + qty + '\n'
+      + 'Delivered At:  ' + deliveredAt + '\n\n'
+      + 'We hope you enjoy your purchase! Feel free to share your experience with us. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  }
 
   var to        = orderSnapshot.customer_email || '';
   var mailtoUrl = 'mailto:' + to
-    + '?subject=' + encodeURIComponent(content.subject)
-    + '&body='    + encodeURIComponent(content.body);
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body='    + encodeURIComponent(body);
 
   showToast('⚠️ Automated email failed — opening local email client for manual send.', 'error');
-  setTimeout(function () { window.open(mailtoUrl, '_blank'); }, 1500);
+  window.open(mailtoUrl, '_blank');
 }
 
 function emailCustomer() {
