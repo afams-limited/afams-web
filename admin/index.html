@@ -2370,12 +2370,17 @@ function getDispatchOrders() {
   });
 }
 
+function getOrderReference(order) {
+  if (order.order_number) return order.order_number;
+  if (order.id) return String(order.id).substring(0, 8);
+  return '—';
+}
+
 function summarizeAddonItems(items) {
   if (!Array.isArray(items) || !items.length) return '';
   var counts = {};
   items.forEach(function (item) {
-    var key = (item && (item.name || item.slug) ? (item.name || item.slug) : 'Seed').trim();
-    if (!key) key = 'Seed';
+    var key = String(item && (item.name || item.slug) || 'Seed').trim() || 'Seed';
     counts[key] = (counts[key] || 0) + 1;
   });
   return Object.keys(counts).map(function (name) {
@@ -2431,7 +2436,7 @@ function buildDispatchListCSV(orders) {
   ].join(',');
 
   var rows = orders.map(function (o) {
-    var ref = o.order_number || (o.id ? o.id.slice(0, 8) : '—');
+    var ref = getOrderReference(o);
     var shipDate = new Date(o.shipped_at || o.created_at).toLocaleDateString('en-KE', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
@@ -2460,7 +2465,7 @@ function buildDispatchListHTML(orders) {
   });
 
   var rowsHtml = orders.map(function (o, index) {
-    var ref = escapeHtml(o.order_number || (o.id ? o.id.slice(0, 8) : '—'));
+    var ref = escapeHtml(getOrderReference(o));
     var shipDate = escapeHtml(new Date(o.shipped_at || o.created_at).toLocaleDateString('en-KE', {
       day: '2-digit', month: 'short', year: 'numeric'
     }));
