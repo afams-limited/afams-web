@@ -2376,11 +2376,21 @@ function getOrderReference(order) {
   return '—';
 }
 
+function formatDispatchDate(order) {
+  var raw = order.shipped_at || order.created_at;
+  if (!raw) return '—';
+  var d = new Date(raw);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-KE', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+}
+
 function summarizeAddonItems(items) {
   if (!Array.isArray(items) || !items.length) return '';
   var counts = {};
   items.forEach(function (item) {
-    var key = String(item && (item.name || item.slug) || 'Seed').trim() || 'Seed';
+    var key = String((item && (item.name || item.slug)) || 'Seed').trim() || 'Seed';
     counts[key] = (counts[key] || 0) + 1;
   });
   return Object.keys(counts).map(function (name) {
@@ -2437,9 +2447,7 @@ function buildDispatchListCSV(orders) {
 
   var rows = orders.map(function (o) {
     var ref = getOrderReference(o);
-    var shipDate = new Date(o.shipped_at || o.created_at).toLocaleDateString('en-KE', {
-      day: '2-digit', month: 'short', year: 'numeric'
-    });
+    var shipDate = formatDispatchDate(o);
     var products = getDispatchProductLines(o).join(' | ');
     return [
       escapeCsvValue(ref),
@@ -2466,9 +2474,7 @@ function buildDispatchListHTML(orders) {
 
   var rowsHtml = orders.map(function (o, index) {
     var ref = escapeHtml(getOrderReference(o));
-    var shipDate = escapeHtml(new Date(o.shipped_at || o.created_at).toLocaleDateString('en-KE', {
-      day: '2-digit', month: 'short', year: 'numeric'
-    }));
+    var shipDate = escapeHtml(formatDispatchDate(o));
     var customer = '<div style="font-weight:700;">' + escapeHtml(o.customer_name || '—') + '</div>'
       + '<div style="font-size:11px;color:#4b5563;margin-top:2px;">📞 ' + escapeHtml(o.customer_phone || '—') + '</div>'
       + '<div style="font-size:11px;color:#6b7280;">✉️ ' + escapeHtml(o.customer_email || '—') + '</div>'
