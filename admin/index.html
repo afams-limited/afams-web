@@ -1429,8 +1429,11 @@
         <option value="order_received">Order Confirmed</option>
         <option value="payment_success">Payment Received</option>
         <option value="payment_failed">Payment Incomplete — Action Required</option>
+        <option value="order_processing">Order Processing</option>
         <option value="order_dispatched">Order Dispatched / On Its Way</option>
         <option value="order_delivered">Order Delivered</option>
+        <option value="order_cancelled">Order Cancelled</option>
+        <option value="order_refunded">Order Refunded</option>
       </select>
     </div>
 
@@ -1881,23 +1884,26 @@ async function saveOrderUpdate() {
   if (newStatus === 'delivered')  emailType = 'order_delivered';
 
   if (emailType && currentOrder.customer_email) {
+    // Capture snapshot before modal closes and currentOrder is cleared
+    var _orderSnapshot = Object.assign({}, currentOrder, updatePayload);
+    var _emailType     = emailType;
     sb.functions.invoke('send-order-email', {
       body: { orderId: currentOrder.id, emailType: emailType }
     }).then(function (res) {
       if (res.error) {
         console.warn('[Admin] Email function error:', res.error.message);
-        showToast('⚠️ Order saved. Email notification failed — check logs.', 'error');
+        openMailtoFallback(_orderSnapshot, _emailType);
       } else {
         var d = res.data;
         if (d && d.sent) {
-          showToast('📧 Customer notified (' + emailType + ')', 'success');
+          showToast('📧 Customer notified (' + _emailType + ')', 'success');
         } else {
-          showToast('⚠️ Order saved. Email not delivered — ' + (d && d.reason || 'check logs') + '.', 'error');
+          openMailtoFallback(_orderSnapshot, _emailType);
         }
       }
     }).catch(function (e) {
       console.warn('[Admin] Email invoke failed:', e);
-      showToast('⚠️ Order saved. Email notification could not be sent.', 'error');
+      openMailtoFallback(_orderSnapshot, _emailType);
     });
   }
 
@@ -1905,6 +1911,54 @@ async function saveOrderUpdate() {
 
   btn.disabled    = false;
   btn.textContent = 'Save Changes';
+}
+
+function openMailtoFallback(orderSnapshot, emailType) {
+  // Build subject and body directly from the snapshot — no global mutation needed
+  var ref         = orderSnapshot.order_number || orderSnapshot.id;
+  var name        = orderSnapshot.customer_name  || 'Customer';
+  var product     = orderSnapshot.product_name   || orderSnapshot.product_sku || '—';
+  var qty         = String(orderSnapshot.quantity || 1);
+  var total       = 'KES ' + Number(orderSnapshot.total_amount || 0).toLocaleString('en-KE');
+  var trackingNo  = orderSnapshot.tracking_number || '—';
+  var deliveredAt = orderSnapshot.delivered_at
+    ? new Date(orderSnapshot.delivered_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+
+  var subject, body;
+  if (emailType === 'order_dispatched') {
+    subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
+      + 'Order Number:       ' + ref + '\n'
+      + 'Product:            ' + product + '\n'
+      + 'Quantity:           ' + qty + '\n'
+      + 'Tracking Number:    ' + trackingNo + '\n'
+      + 'Estimated Delivery: 2\u20135 business days\n\n'
+      + 'Our delivery partner may contact you when your package is near. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  } else {
+    subject = '[Afams Order ' + ref + '] Order Delivered';
+    body = 'Hello ' + name + ',\n\n'
+      + 'Your Afams order has been marked as delivered. '
+      + 'Thank you for trusting us to support your growing journey!\n\n'
+      + 'Order Number:  ' + ref + '\n'
+      + 'Product:       ' + product + '\n'
+      + 'Quantity:      ' + qty + '\n'
+      + 'Delivered At:  ' + deliveredAt + '\n\n'
+      + 'We hope you enjoy your purchase! Feel free to share your experience with us. '
+      + 'Questions? Email orders@afams.co.ke'
+      + EMAIL_SIGNATURE;
+  }
+
+  var to        = orderSnapshot.customer_email || '';
+  var mailtoUrl = 'mailto:' + to
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body='    + encodeURIComponent(body);
+
+  showToast('⚠️ Automated email failed — opening local email client for manual send.', 'error');
+  window.open(mailtoUrl, '_blank');
 }
 
 function emailCustomer() {
@@ -1930,6 +1984,20 @@ function whatsappCustomer() {
   if (!phone) { alert('No customer phone number on this order.'); return; }
   document.getElementById('waPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
   document.getElementById('waModal').dataset.phone = phone;
+
+  // Pre-select message template matching the current order status
+  var statusToTemplate = {
+    'pending':    'order_received',
+    'paid':       'payment_success',
+    'processing': 'order_processing',
+    'shipped':    'order_dispatched',
+    'delivered':  'order_delivered',
+    'cancelled':  'order_cancelled',
+    'refunded':   'order_refunded'
+  };
+  var tplKey = statusToTemplate[o.status] || 'order_received';
+  document.getElementById('waTemplateSelect').value = tplKey;
+
   onWATemplateChange();
   document.getElementById('waModal').style.display = 'block';
   setTimeout(function () { document.getElementById('waTemplateSelect').focus(); }, 50);
@@ -2001,6 +2069,33 @@ function buildWhatsAppContent(templateKey, o) {
       + '🕐 *Delivered At:* ' + delivAt + '\n\n'
       + 'Thank you for choosing Afams! We would love to hear your feedback. 😊\n'
       + 'Check out our other products at afams.co.ke'
+      + sig,
+
+    order_processing:
+      'Hello *' + name + '* 👋\n\n'
+      + '⚙️ *Your order is now being processed!*\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🛒 *Product:* ' + prod + '\n'
+      + '🔢 *Qty:* ' + qty + '\n'
+      + '💰 *Total:* ' + amt + '\n\n'
+      + 'We are preparing your order and will notify you once it is dispatched. Reply here if you have any questions!'
+      + sig,
+
+    order_cancelled:
+      'Hello *' + name + '* 👋\n\n'
+      + '❌ *Your order has been cancelled.*\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '🛒 *Product:* ' + prod + '\n'
+      + '💰 *Amount:* ' + amt + '\n\n'
+      + 'If you believe this is a mistake or would like to place a new order, please reply here or visit afams.co.ke'
+      + sig,
+
+    order_refunded:
+      'Hello *' + name + '* 👋\n\n'
+      + '💸 *Your refund has been processed.*\n\n'
+      + '📦 *Order:* ' + ref + '\n'
+      + '💰 *Refunded Amount:* ' + amt + '\n\n'
+      + 'Your refund should reflect within 5–7 business days depending on your payment provider. Reply here if you have any queries!'
       + sig
   };
 
@@ -2581,18 +2676,21 @@ async function sendEmailViaBrevo() {
       body: { orderId: currentOrder.id, emailType: tpl }
     });
     if (res.error) {
-      showToast('⚠️ Email failed: ' + res.error.message, 'error');
+      showToast('⚠️ Brevo failed — falling back to local email client.', 'error');
+      openEmailClient();
     } else {
       var d = res.data;
       if (d && d.sent) {
         showToast('📧 Email sent to customer!', 'success');
         closeEmailModal();
       } else {
-        showToast('⚠️ Email not delivered — ' + (d && (d.reason || d.error) || 'check logs'), 'error');
+        showToast('⚠️ Email not delivered — ' + (d && (d.reason || d.error) || 'check logs') + '. Opening local client.', 'error');
+        openEmailClient();
       }
     }
   } catch (e) {
-    showToast('⚠️ Email could not be sent.', 'error');
+    showToast('⚠️ Could not reach email service — opening local email client.', 'error');
+    openEmailClient();
   }
   btn.disabled    = false;
   btn.textContent = '✉️ Send via Brevo';
