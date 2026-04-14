@@ -268,11 +268,15 @@ Deno.serve(async (req: Request) => {
 
       const sharedParams = {
         order_number:   orderRef,
+        order_ref:      orderRef,
+        order_reference: orderRef,
         customer_name:  custName,
         product_name:   prodName,
         quantity:       qty,
         total_amount:   totalStr,
         payment_method: "Paystack",
+        payment_reference: reference,
+        paystack_reference: reference,
         paid_at:        paidAtStr,
       };
 

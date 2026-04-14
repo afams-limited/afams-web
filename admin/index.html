@@ -75,6 +75,33 @@
       --input-focus:  #74C69D;
     }
 
+    [data-theme="sunrise"] {
+      --bg-base:      #FFF8EF;
+      --bg-card:      #FFFFFF;
+      --bg-sidebar:   #7A3E1D;
+      --sidebar-text: #FFF7ED;
+      --text-primary: #2F1F17;
+      --text-muted:   #7C5B49;
+      --border:       #F0DFC8;
+      --accent:       #C56A1D;
+      --accent-light: #F6B26B;
+      --stat-bg:      #FFFFFF;
+      --table-header: #FFF1E2;
+      --table-alt:    #FFFAF4;
+      --shadow:       0 2px 12px rgba(197,106,29,0.12);
+      --modal-overlay: rgba(0,0,0,0.4);
+
+      --sidebar-active-bg:   rgba(246,178,107,0.24);
+      --sidebar-hover-bg:    rgba(255,255,255,0.12);
+      --sidebar-muted:       rgba(255,247,237,0.72);
+
+      --auth-bg:      #FFF8EF;
+
+      --input-bg:     #FFFFFF;
+      --input-border: #E9D2B6;
+      --input-focus:  #C56A1D;
+    }
+
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]):not([data-theme="dark"]) {
         --bg-base:      #0F1F17;
@@ -1364,6 +1391,7 @@
       <div class="modal-section-title">Actions</div>
       <div class="modal-actions">
         <button class="btn-save" id="modal-save-btn" onclick="saveOrderUpdate()">Save Changes</button>
+        <button class="btn-outlined" onclick="smsCustomer()">📱 SMS</button>
         <button class="btn-outlined" onclick="emailCustomer()">📧 Email Customer</button>
         <button class="btn-outlined" onclick="whatsappCustomer()">💬 WhatsApp</button>
         <button class="btn-outlined" onclick="generateAndPrintReceipt(currentOrder)">🖨️ Generate Receipt</button>
@@ -1406,6 +1434,7 @@
         <button class="btn-outlined"                        onclick="openEmailClient()">📨 Open Email Client</button>
         <button class="btn-outlined"                        onclick="closeEmailModal()">Cancel</button>
       </div>
+      <div id="email-send-status" style="margin-top:0.9rem;font-size:0.82rem;color:var(--text-muted);"></div>
     </div>
   </div>
 </div>
@@ -1447,6 +1476,45 @@
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <button onclick="closeWAModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
       <button onclick="sendWAFromModal()" style="background:#25d366;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">Open in WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- SMS Template Modal -->
+<div id="smsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="smsModalTitle">
+  <div style="background:#fff;border-radius:12px;max-width:600px;margin:40px auto;padding:28px 28px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:relative;">
+    <h2 id="smsModalTitle" style="font-size:18px;font-weight:800;color:#7A3E1D;margin:0 0 4px;">📱 SMS Customer</h2>
+    <p style="font-size:12px;color:#6b7280;margin:0 0 18px;">Prepare message for WebSMS manual send. Copy, paste, and send from your WebSMS Afams account.</p>
+
+    <div style="margin-bottom:14px;">
+      <label for="smsPhone" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">To (Customer Phone)</label>
+      <input id="smsPhone" type="text" readonly style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;background:#f9fafb;color:#374151;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label for="smsTemplateSelect" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message Template</label>
+      <select id="smsTemplateSelect" onchange="onSMSTemplateChange()" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;background:#fff;">
+        <option value="order_received">Order Confirmed</option>
+        <option value="payment_success">Payment Received</option>
+        <option value="payment_failed">Payment Incomplete</option>
+        <option value="order_processing">Order Processing</option>
+        <option value="order_dispatched">Order Dispatched</option>
+        <option value="order_delivered">Order Delivered</option>
+        <option value="order_cancelled">Order Cancelled</option>
+        <option value="order_refunded">Order Refunded</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label for="smsBody" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message</label>
+      <textarea id="smsBody" rows="10" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;font-family:inherit;resize:vertical;"></textarea>
+      <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">Review before copying to WebSMS platform.</p>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeSMSModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+      <button onclick="openWebSMSPortal()" style="background:#fbbf24;color:#2f1f17;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">Open WebSMS</button>
+      <button onclick="copySMSFromModal()" style="background:#7A3E1D;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">Copy SMS</button>
     </div>
   </div>
 </div>
@@ -1493,13 +1561,17 @@ function renderStatusBadge(status) {
   return '<span class="badge badge-' + s + '" style="text-transform:capitalize">' + s + '</span>';
 }
 
+function normalizeKenyanPhone(phone) {
+  return String(phone || '').replace(/\D/g, '').replace(/^0/, '254');
+}
+
 // ════════════════════════════════════════════════════
 // THEME TOGGLE  ☀️ / 🖥 / 🌙
 // ════════════════════════════════════════════════════
 (function initTheme() {
   const btn    = document.getElementById('theme-toggle');
-  const themes = ['light', 'system', 'dark'];
-  const icons  = { light: '☀️', system: '🖥', dark: '🌙' };
+  const themes = ['light', 'sunrise', 'system', 'dark'];
+  const icons  = { light: '☀️', sunrise: '🌤️', system: '🖥', dark: '🌙' };
   let current  = localStorage.getItem('afams-theme') || 'system';
 
   function applyTheme(t) {
@@ -1891,11 +1963,14 @@ async function saveOrderUpdate() {
     sb.functions.invoke('send-order-email', {
       body: { order_id: currentOrder.id, email_type: emailType }
     }).then(function (res) {
+      var d = res.data;
+      if (typeof d === 'string') {
+        try { d = JSON.parse(d); } catch (_) {}
+      }
       if (res.error) {
         console.warn('[Admin] Email function error:', res.error.message);
         openMailtoFallback(_orderSnapshot, _emailType);
       } else {
-        var d = res.data;
         if (d && d.sent) {
           showToast('📧 Customer notified (' + _emailType + ')', 'success');
         } else {
@@ -1931,7 +2006,7 @@ function openMailtoFallback(orderSnapshot, emailType) {
     subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
     body = 'Hello ' + name + ',\n\n'
       + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
-      + 'Order Number:       ' + ref + '\n'
+      + 'Order REF:          ' + ref + '\n'
       + 'Product:            ' + product + '\n'
       + 'Quantity:           ' + qty + '\n'
       + 'Tracking Number:    ' + trackingNo + '\n'
@@ -1944,7 +2019,7 @@ function openMailtoFallback(orderSnapshot, emailType) {
     body = 'Hello ' + name + ',\n\n'
       + 'Your Afams order has been marked as delivered. '
       + 'Thank you for trusting us to support your growing journey!\n\n'
-      + 'Order Number:  ' + ref + '\n'
+      + 'Order REF:     ' + ref + '\n'
       + 'Product:       ' + product + '\n'
       + 'Quantity:      ' + qty + '\n'
       + 'Delivered At:  ' + deliveredAt + '\n\n'
@@ -1958,14 +2033,15 @@ function openMailtoFallback(orderSnapshot, emailType) {
     + '?subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
-  showToast('⚠️ Automated email failed — opening local email client for manual send.', 'error');
-  window.open(mailtoUrl, '_blank');
+  showToast('⚠️ Automated email failed. Use "Open Email Client" in Email Customer to send manually.', 'error');
+  console.warn('[Admin] Manual mailto fallback prepared:', mailtoUrl);
 }
 
 function emailCustomer() {
   if (!currentOrder) return;
   var o = currentOrder;
   document.getElementById('email-modal-recipient').textContent = o.customer_email || '(no email on file)';
+  document.getElementById('email-send-status').textContent = '';
   var statusTemplateMap = {
     'pending': 'order_received', 'paid': 'payment_success',
     'processing': 'order_received', 'shipped': 'order_dispatched',
@@ -1981,7 +2057,7 @@ function emailCustomer() {
 function whatsappCustomer() {
   if (!currentOrder) return;
   var o     = currentOrder;
-  var phone = (o.customer_phone || '').replace(/\D/g, '').replace(/^0/, '254');
+  var phone = normalizeKenyanPhone(o.customer_phone);
   if (!phone) { alert('No customer phone number on this order.'); return; }
   document.getElementById('waPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
   document.getElementById('waModal').dataset.phone = phone;
@@ -2004,12 +2080,41 @@ function whatsappCustomer() {
   setTimeout(function () { document.getElementById('waTemplateSelect').focus(); }, 50);
 }
 
+function smsCustomer() {
+  if (!currentOrder) return;
+  var o     = currentOrder;
+  var phone = normalizeKenyanPhone(o.customer_phone);
+  if (!phone) { alert('No customer phone number on this order.'); return; }
+  document.getElementById('smsPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
+  document.getElementById('smsModal').dataset.phone = phone;
+
+  var statusToTemplate = {
+    'pending':    'order_received',
+    'paid':       'payment_success',
+    'processing': 'order_processing',
+    'shipped':    'order_dispatched',
+    'delivered':  'order_delivered',
+    'cancelled':  'order_cancelled',
+    'refunded':   'order_refunded'
+  };
+  var tplKey = statusToTemplate[o.status] || 'order_received';
+  document.getElementById('smsTemplateSelect').value = tplKey;
+  onSMSTemplateChange();
+  document.getElementById('smsModal').style.display = 'block';
+  setTimeout(function () { document.getElementById('smsTemplateSelect').focus(); }, 50);
+}
+
 function closeWAModal() {
   document.getElementById('waModal').style.display = 'none';
 }
 
+function closeSMSModal() {
+  document.getElementById('smsModal').style.display = 'none';
+}
+
 function buildWhatsAppContent(templateKey, o) {
   var ref   = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
+  var payRef = o.paystack_ref || '—';
   var name  = o.customer_name  || 'there';
   var prod  = o.product_name   || o.product_sku || 'FarmBag';
   var qty   = o.quantity       || 1;
@@ -2025,7 +2130,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_received:
       'Hello *' + name + '* 👋\n\n'
       + 'Your Afams order has been *confirmed*!\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '🛒 *Product:* ' + prod + '\n'
       + '🔢 *Qty:* ' + qty + '\n'
       + '💰 *Total:* ' + amt + '\n\n'
@@ -2035,7 +2140,8 @@ function buildWhatsAppContent(templateKey, o) {
     payment_success:
       'Hello *' + name + '* 👋\n\n'
       + '✅ *Payment received!* Your order is secured and we are preparing it.\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
+      + '🧾 *Paystack REF:* ' + payRef + '\n'
       + '🕐 *Paid At:* ' + paidAt + '\n'
       + '💰 *Amount:* ' + amt + '\n\n'
       + 'We will notify you once your order is dispatched. Reply here for any queries!'
@@ -2044,6 +2150,7 @@ function buildWhatsAppContent(templateKey, o) {
     payment_failed:
       'Hello *' + name + '* 👋\n\n'
       + '⚠️ We noticed your payment for order *' + ref + '* was *not completed*.\n\n'
+      + '🧾 *Paystack REF:* ' + payRef + '\n'
       + '💰 *Amount:* ' + amt + '\n\n'
       + 'Please complete your payment here to secure your order:\n'
       + checkoutUrl + '\n\n'
@@ -2053,7 +2160,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_dispatched:
       'Hello *' + name + '* 🎉\n\n'
       + '🚚 *Great news — your order is on its way!*\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '🛒 *Product:* ' + prod + '\n'
       + '🔢 *Qty:* ' + qty + '\n'
       + '📅 *Est. Delivery:* ' + estDelivery + '\n'
@@ -2064,7 +2171,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_delivered:
       'Hello *' + name + '* 🌿\n\n'
       + '📬 *Your order has been delivered!*\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '🛒 *Product:* ' + prod + '\n'
       + '🔢 *Qty:* ' + qty + '\n'
       + '🕐 *Delivered At:* ' + delivAt + '\n\n'
@@ -2075,7 +2182,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_processing:
       'Hello *' + name + '* 👋\n\n'
       + '⚙️ *Your order is now being processed!*\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '🛒 *Product:* ' + prod + '\n'
       + '🔢 *Qty:* ' + qty + '\n'
       + '💰 *Total:* ' + amt + '\n\n'
@@ -2085,7 +2192,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_cancelled:
       'Hello *' + name + '* 👋\n\n'
       + '❌ *Your order has been cancelled.*\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '🛒 *Product:* ' + prod + '\n'
       + '💰 *Amount:* ' + amt + '\n\n'
       + 'If you believe this is a mistake or would like to place a new order, please reply here or visit afams.co.ke'
@@ -2094,7 +2201,7 @@ function buildWhatsAppContent(templateKey, o) {
     order_refunded:
       'Hello *' + name + '* 👋\n\n'
       + '💸 *Your refund has been processed.*\n\n'
-      + '📦 *Order:* ' + ref + '\n'
+      + '📦 *Order REF:* ' + ref + '\n'
       + '💰 *Refunded Amount:* ' + amt + '\n\n'
       + 'Your refund should reflect within 5–7 business days depending on your payment provider. Reply here if you have any queries!'
       + sig
@@ -2103,10 +2210,40 @@ function buildWhatsAppContent(templateKey, o) {
   return messages[templateKey] || messages.order_received;
 }
 
+function buildSMSContent(templateKey, o) {
+  var ref      = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
+  var payRef   = o.paystack_ref || '—';
+  var name     = o.customer_name || 'Customer';
+  var amt      = o.total_amount ? 'KES ' + Number(o.total_amount).toLocaleString('en-KE') : '—';
+  var paidAt   = o.paid_at ? new Date(o.paid_at).toLocaleDateString('en-KE') : '—';
+  var tracking = o.tracking_number || '—';
+
+  var messages = {
+    order_received:  'Dear ' + name + ', your Afams order is confirmed. Order REF: ' + ref + '. Thank you for choosing us.',
+    payment_success: 'Dear ' + name + ', payment received for Order REF ' + ref + '. Paystack REF: ' + payRef + '. Amount: ' + amt + '.',
+    payment_failed:  'Dear ' + name + ', payment is incomplete for Order REF ' + ref + '. Paystack REF: ' + payRef + '. Kindly complete payment.',
+    order_processing:'Dear ' + name + ', your order is being prepared. Order REF: ' + ref + '.',
+    order_dispatched:'Dear ' + name + ', your order has been dispatched. Order REF: ' + ref + '. Tracking: ' + tracking + '.',
+    order_delivered: 'Dear ' + name + ', your order has been delivered. Order REF: ' + ref + '. Thank you for trusting Afams.',
+    order_cancelled: 'Dear ' + name + ', your order has been cancelled. Order REF: ' + ref + '. Please contact us if this is unexpected.',
+    order_refunded:  'Dear ' + name + ', your refund has been processed for Order REF ' + ref + '. Amount: ' + amt + '.'
+  };
+
+  var content = messages[templateKey] || messages.order_received;
+  if (templateKey === 'payment_success' && paidAt !== '—') content += ' Paid on: ' + paidAt + '.';
+  return content + ' - Afams';
+}
+
 function onWATemplateChange() {
   if (!currentOrder) return;
   var key = document.getElementById('waTemplateSelect').value;
   document.getElementById('waBody').value = buildWhatsAppContent(key, currentOrder);
+}
+
+function onSMSTemplateChange() {
+  if (!currentOrder) return;
+  var key = document.getElementById('smsTemplateSelect').value;
+  document.getElementById('smsBody').value = buildSMSContent(key, currentOrder);
 }
 
 function sendWAFromModal() {
@@ -2116,6 +2253,21 @@ function sendWAFromModal() {
   if (!body)  { alert('Message cannot be empty.'); return; }
   window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(body), '_blank');
   closeWAModal();
+}
+
+async function copySMSFromModal() {
+  var body = document.getElementById('smsBody').value.trim();
+  if (!body) { alert('Message cannot be empty.'); return; }
+  try {
+    await navigator.clipboard.writeText(body);
+    showToast('📱 SMS copied. Paste into WebSMS and send.', 'success');
+  } catch (_) {
+    alert('Could not copy automatically. Please copy manually.');
+  }
+}
+
+function openWebSMSPortal() {
+  window.open('https://www.websms.co.ke', '_blank', 'noopener,noreferrer');
 }
 
 // ════════════════════════════════════════════════════
@@ -2767,10 +2919,14 @@ document.getElementById('email-modal').addEventListener('click', function (e) {
 document.getElementById('waModal').addEventListener('click', function (e) {
   if (e.target === this) closeWAModal();
 });
+document.getElementById('smsModal').addEventListener('click', function (e) {
+  if (e.target === this) closeSMSModal();
+});
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     if (document.getElementById('email-modal').style.display !== 'none') closeEmailModal();
     if (document.getElementById('waModal').style.display    !== 'none') closeWAModal();
+    if (document.getElementById('smsModal').style.display   !== 'none') closeSMSModal();
   }
 });
 
@@ -2779,6 +2935,7 @@ document.addEventListener('keydown', function (e) {
 // ════════════════════════════════════════════════════
 function closeEmailModal() {
   document.getElementById('email-modal').style.display = 'none';
+  document.getElementById('email-send-status').textContent = '';
   document.body.style.overflow = '';
 }
 
@@ -2789,6 +2946,7 @@ function buildEmailContent(templateType) {
   var product     = o.product_name   || o.product_sku || '—';
   var qty         = String(o.quantity || 1);
   var total       = 'KES ' + Number(o.total_amount || 0).toLocaleString('en-KE');
+  var payRef      = o.paystack_ref || '—';
   var payMethod   = o.payment_method || 'Paystack';
   var trackingNo  = o.tracking_number || '—';
   var paidAt      = o.paid_at
@@ -2805,19 +2963,20 @@ function buildEmailContent(templateType) {
     body = 'Hello ' + name + ',\n\n'
       + 'Thank you for shopping with Afams. We\'ve received your order and it is now in our queue. '
       + 'We will send you another update once the order is dispatched.\n\n'
-      + 'Order Number:    ' + ref + '\n'
+      + 'Order REF:       ' + ref + '\n'
       + 'Product:         ' + product + '\n'
       + 'Quantity:        ' + qty + '\n'
       + 'Payment Method:  ' + payMethod + '\n'
       + 'Total Amount:    ' + total + '\n\n'
-      + 'Our team will process your order and reach out to confirm your delivery details. '
+      + 'Our team will process your order with care and confirm delivery details shortly. '
       + 'Questions? Email us at orders@afams.co.ke'
       + EMAIL_SIGNATURE;
   } else if (templateType === 'payment_success') {
     subject = '[Afams Order ' + ref + '] Payment Confirmed';
     body = 'Hello ' + name + ',\n\n'
       + 'We have successfully received your payment. Your order is secured and our team is preparing it.\n\n'
-      + 'Order Number:    ' + ref + '\n'
+      + 'Order REF:       ' + ref + '\n'
+      + 'Paystack REF:    ' + payRef + '\n'
       + 'Paid At:         ' + paidAt + '\n'
       + 'Amount Paid:     ' + total + '\n\n'
       + 'We\'ll notify you again when the order is dispatched. '
@@ -2828,8 +2987,9 @@ function buildEmailContent(templateType) {
     body = 'Hello ' + name + ',\n\n'
       + 'We could not confirm payment for your Afams order. '
       + 'Your items may not be reserved until checkout is completed.\n\n'
-      + 'Order Number:  ' + ref + '\n'
-      + 'Amount:        ' + total + '\n\n'
+      + 'Order REF:       ' + ref + '\n'
+      + 'Paystack REF:    ' + payRef + '\n'
+      + 'Amount:          ' + total + '\n\n'
       + 'Please visit afams.co.ke to complete your payment. '
       + 'Questions? Email orders@afams.co.ke'
       + EMAIL_SIGNATURE;
@@ -2837,7 +2997,7 @@ function buildEmailContent(templateType) {
     subject = '[Afams Order ' + ref + '] Your Order Is On Its Way!';
     body = 'Hello ' + name + ',\n\n'
       + 'Great news! Your Afams order has been dispatched and is on its way to you.\n\n'
-      + 'Order Number:       ' + ref + '\n'
+      + 'Order REF:          ' + ref + '\n'
       + 'Product:            ' + product + '\n'
       + 'Quantity:           ' + qty + '\n'
       + 'Tracking Number:    ' + trackingNo + '\n'
@@ -2850,7 +3010,7 @@ function buildEmailContent(templateType) {
     body = 'Hello ' + name + ',\n\n'
       + 'Your Afams order has been marked as delivered. '
       + 'Thank you for trusting us to support your growing journey!\n\n'
-      + 'Order Number:  ' + ref + '\n'
+      + 'Order REF:     ' + ref + '\n'
       + 'Product:       ' + product + '\n'
       + 'Quantity:      ' + qty + '\n'
       + 'Delivered At:  ' + deliveredAt + '\n\n'
@@ -2887,28 +3047,34 @@ async function sendEmailViaBrevo() {
   if (!currentOrder) return;
   var tpl = document.getElementById('email-template-select').value;
   var btn = document.getElementById('email-brevo-btn');
+  var statusEl = document.getElementById('email-send-status');
   btn.disabled    = true;
   btn.textContent = 'Sending…';
+  statusEl.textContent = 'Sending via Brevo…';
   try {
     var res = await sb.functions.invoke('send-order-email', {
       body: { order_id: currentOrder.id, email_type: tpl }
     });
+    var d = res.data;
+    if (typeof d === 'string') {
+      try { d = JSON.parse(d); } catch (_) {}
+    }
     if (res.error) {
-      showToast('⚠️ Brevo failed — falling back to local email client.', 'error');
-      openEmailClient();
+      statusEl.textContent = 'Brevo send failed. You can use "Open Email Client" for manual follow-up.';
+      showToast('⚠️ Brevo failed. Please send manually from the Email Client button.', 'error');
     } else {
-      var d = res.data;
       if (d && d.sent) {
+        statusEl.textContent = '✅ Sent successfully to ' + (currentOrder.customer_email || 'customer') + ' at ' + new Date().toLocaleTimeString('en-KE') + '.';
         showToast('📧 Email sent to customer!', 'success');
         closeEmailModal();
       } else {
-        showToast('⚠️ Email not delivered — ' + (d && (d.reason || d.error) || 'check logs') + '. Opening local client.', 'error');
-        openEmailClient();
+        statusEl.textContent = 'Email not confirmed by Brevo: ' + (d && (d.reason || d.error) || 'check logs');
+        showToast('⚠️ Email not confirmed by Brevo. Please review and send manually if needed.', 'error');
       }
     }
   } catch (e) {
-    showToast('⚠️ Could not reach email service — opening local email client.', 'error');
-    openEmailClient();
+    statusEl.textContent = 'Could not reach Brevo service. Use "Open Email Client" for manual send.';
+    showToast('⚠️ Could not reach email service.', 'error');
   }
   btn.disabled    = false;
   btn.textContent = '✉️ Send via Brevo';

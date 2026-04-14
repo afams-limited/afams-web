@@ -35,8 +35,8 @@
                   <td colspan="2" style="padding:16px 18px;font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#2D6A4F;font-weight:bold;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #E0D9CE;">Order Summary</td>
                 </tr>
                 <tr>
-                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Order Number</td>
-                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.order_number}}</td>
+                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Order REF</td>
+                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.order_ref}}</td>
                 </tr>
                 <tr>
                   <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Product</td>
