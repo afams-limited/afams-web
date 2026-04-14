@@ -1487,12 +1487,12 @@
     <p style="font-size:12px;color:#6b7280;margin:0 0 18px;">Prepare message for WebSMS manual send. Copy, paste, and send from your WebSMS Afams account.</p>
 
     <div style="margin-bottom:14px;">
-      <label style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">To (Customer Phone)</label>
+      <label for="smsPhone" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">To (Customer Phone)</label>
       <input id="smsPhone" type="text" readonly style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;background:#f9fafb;color:#374151;">
     </div>
 
     <div style="margin-bottom:14px;">
-      <label style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message Template</label>
+      <label for="smsTemplateSelect" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message Template</label>
       <select id="smsTemplateSelect" onchange="onSMSTemplateChange()" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;background:#fff;">
         <option value="order_received">Order Confirmed</option>
         <option value="payment_success">Payment Received</option>
@@ -1506,7 +1506,7 @@
     </div>
 
     <div style="margin-bottom:18px;">
-      <label style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message</label>
+      <label for="smsBody" style="font-size:11px;font-weight:700;color:#7A3E1D;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Message</label>
       <textarea id="smsBody" rows="10" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;font-size:13px;color:#374151;font-family:inherit;resize:vertical;"></textarea>
       <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">Review before copying to WebSMS platform.</p>
     </div>
@@ -1559,6 +1559,10 @@ function renderStatusBadge(status) {
   var s = (status || 'pending').toLowerCase();
   if (!ORDER_STATUSES.includes(s)) s = 'pending';
   return '<span class="badge badge-' + s + '" style="text-transform:capitalize">' + s + '</span>';
+}
+
+function normalizeKenyanPhone(phone) {
+  return String(phone || '').replace(/\D/g, '').replace(/^0/, '254');
 }
 
 // ════════════════════════════════════════════════════
@@ -2053,7 +2057,7 @@ function emailCustomer() {
 function whatsappCustomer() {
   if (!currentOrder) return;
   var o     = currentOrder;
-  var phone = (o.customer_phone || '').replace(/\D/g, '').replace(/^0/, '254');
+  var phone = normalizeKenyanPhone(o.customer_phone);
   if (!phone) { alert('No customer phone number on this order.'); return; }
   document.getElementById('waPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
   document.getElementById('waModal').dataset.phone = phone;
@@ -2079,7 +2083,7 @@ function whatsappCustomer() {
 function smsCustomer() {
   if (!currentOrder) return;
   var o     = currentOrder;
-  var phone = (o.customer_phone || '').replace(/\D/g, '').replace(/^0/, '254');
+  var phone = normalizeKenyanPhone(o.customer_phone);
   if (!phone) { alert('No customer phone number on this order.'); return; }
   document.getElementById('smsPhone').value = '+' + phone + (o.customer_phone ? ' (' + o.customer_phone + ')' : '');
   document.getElementById('smsModal').dataset.phone = phone;
@@ -2263,7 +2267,7 @@ async function copySMSFromModal() {
 }
 
 function openWebSMSPortal() {
-  window.open('https://www.websms.co.ke', '_blank');
+  window.open('https://www.websms.co.ke', '_blank', 'noopener,noreferrer');
 }
 
 // ════════════════════════════════════════════════════
