@@ -1317,8 +1317,8 @@
       btn.setAttribute('title', 'Switch to light theme');
     }
   }
-  var stored = 'default';
-  try { stored = localStorage.getItem(key) || 'default'; } catch (_) {}
+  var stored;
+  try { stored = localStorage.getItem(key) || 'default'; } catch (_) { stored = 'default'; }
   applyTheme(stored);
   btn.addEventListener('click', function() {
     var next = document.body.getAttribute('data-theme') === 'light' ? 'default' : 'light';
