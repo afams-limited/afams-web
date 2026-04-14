@@ -1889,7 +1889,7 @@ async function saveOrderUpdate() {
     var _orderSnapshot = Object.assign({}, currentOrder, updatePayload);
     var _emailType     = emailType;
     sb.functions.invoke('send-order-email', {
-      body: { orderId: currentOrder.id, emailType: emailType }
+      body: { order_id: currentOrder.id, email_type: emailType }
     }).then(function (res) {
       if (res.error) {
         console.warn('[Admin] Email function error:', res.error.message);
@@ -2891,7 +2891,7 @@ async function sendEmailViaBrevo() {
   btn.textContent = 'Sending…';
   try {
     var res = await sb.functions.invoke('send-order-email', {
-      body: { orderId: currentOrder.id, emailType: tpl }
+      body: { order_id: currentOrder.id, email_type: tpl }
     });
     if (res.error) {
       showToast('⚠️ Brevo failed — falling back to local email client.', 'error');
