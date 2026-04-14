@@ -64,11 +64,11 @@
 
     /* ── LAYOUT ── */
     .checkout-wrap {
-      max-width: 900px;
+      max-width: 980px;
       margin: 2.5rem auto;
       padding: 0 1.25rem 5rem;
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 420px;
       gap: 2rem;
       align-items: start;
     }
@@ -1027,9 +1027,7 @@ function renderSeedGroups(seeds) {
       + '</div>';
   }).join('');
 
-  // Open the first group by default
-  var firstGroup = container.querySelector('.seed-group');
-  if (firstGroup) firstGroup.classList.add('sg-open');
+  // Keep groups collapsed by default; groups with selected seeds are auto-opened by refreshAllPillLabels().
 }
 
 function toggleSeedGroup(group) {
@@ -1079,9 +1077,11 @@ function refreshAllPillLabels() {
     if (names.length === 0) {
       el.textContent = 'None selected';
       el.className = 'seed-group-status';
+      grp.classList.remove('sg-open');
     } else {
       el.textContent = names.join(', ');
       el.className = 'seed-group-status selected';
+      grp.classList.add('sg-open');
     }
   });
 }
@@ -1098,6 +1098,8 @@ function toggleSeed(btn) {
     window.seedState.ordered.splice(idx, 1);
   } else {
     window.seedState.ordered.push({ key: key, slug: slug, name: name, category: category, weight: weight, price: price });
+    var grp = btn.closest('.seed-group');
+    if (grp) grp.classList.add('sg-open');
   }
   refreshAllPillLabels();
   recalculateSeedState();
