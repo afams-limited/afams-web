@@ -33,7 +33,7 @@ async function sendBrevoTemplate(
   toEmail: string,
   toName: string,
   params: Record<string, string | number>,
-): Promise<void> {
+): Promise<{ messageId?: string }> {
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -53,6 +53,14 @@ async function sendBrevoTemplate(
     const text = await res.text();
     throw new Error(`Brevo API error (template ${templateId}): ${res.status} ${text}`);
   }
+
+  let payload: { messageId?: string } = {};
+  try {
+    payload = await res.json();
+  } catch {
+    // ignore non-json response
+  }
+  return payload;
 }
 
 // ── Valid admin-triggered email types ────────────────────────
@@ -173,6 +181,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    let providerMessageId: string | undefined;
     if (emailType === "order_dispatched") {
       const templateId = parseInt(
         Deno.env.get("BREVO_TEMPLATE_ORDER_DISPATCHED") ?? String(BREVO_TEMPLATES.order_dispatched),
@@ -186,16 +195,21 @@ Deno.serve(async (req: Request) => {
             day: "numeric", month: "long", year: "numeric",
           });
 
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, templateId, customerEmail, customerName, {
+      const result = await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, templateId, customerEmail, customerName, {
         order_number:       orderRef,
+        order_ref:          orderRef,
+        order_reference:    orderRef,
         customer_name:      customerName,
         product_name:       productName,
         quantity:           quantity,
         total_amount:       totalKES,
+        paystack_reference: order.paystack_ref ?? "—",
+        payment_reference:  order.paystack_ref ?? "—",
         estimated_delivery: "2–5 business days",
         tracking_number:    order.tracking_number ?? "—",
         dispatched_at:      dispatchedAt,
       });
+      providerMessageId = result.messageId;
 
       console.log(`[send-order-email] order_dispatched → ${customerEmail} (order ${orderRef})`);
 
@@ -212,19 +226,24 @@ Deno.serve(async (req: Request) => {
             day: "numeric", month: "long", year: "numeric",
           });
 
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, templateId, customerEmail, customerName, {
+      const result = await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, templateId, customerEmail, customerName, {
         order_number:  orderRef,
+        order_ref:     orderRef,
+        order_reference: orderRef,
         customer_name: customerName,
         product_name:  productName,
         quantity:      quantity,
         total_amount:  totalKES,
+        paystack_reference: order.paystack_ref ?? "—",
+        payment_reference:  order.paystack_ref ?? "—",
         delivered_at:  deliveredAt,
       });
+      providerMessageId = result.messageId;
 
       console.log(`[send-order-email] order_delivered → ${customerEmail} (order ${orderRef})`);
     }
 
-    return new Response(JSON.stringify({ sent: true, emailType, orderRef }), {
+    return new Response(JSON.stringify({ sent: true, emailType, orderRef, providerMessageId }), {
       status: 200,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
