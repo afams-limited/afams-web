@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
   const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
 
   // Parse request body
-  let body: { orderId?: string; emailType?: string };
+  let body: { order_id?: string; email_type?: string };
   try {
     body = await req.json();
   } catch {
@@ -105,10 +105,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const { orderId, emailType } = body;
+  const { order_id: orderId, email_type: emailType } = body;
 
   if (!orderId || typeof orderId !== "string") {
-    return new Response(JSON.stringify({ error: "Missing orderId" }), {
+    return new Response(JSON.stringify({ error: "Missing order_id" }), {
       status: 400,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
@@ -116,7 +116,7 @@ Deno.serve(async (req: Request) => {
 
   if (!emailType || !ADMIN_EMAIL_TYPES.includes(emailType as AdminEmailType)) {
     return new Response(
-      JSON.stringify({ error: `Invalid emailType. Must be one of: ${ADMIN_EMAIL_TYPES.join(", ")}` }),
+      JSON.stringify({ error: `Invalid email_type. Must be one of: ${ADMIN_EMAIL_TYPES.join(", ")}` }),
       { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }
