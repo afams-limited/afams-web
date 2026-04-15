@@ -13,7 +13,7 @@
   <meta property="og:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony, office or school. Vertical gardening &amp; indoor gardening made easy. Pre-order yours today."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://afams.co.ke"/>
-  <meta property="og:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <meta property="og:image" content="https://afams.co.ke/assets/images/afams_logo_horizontal.png"/>
   <meta property="og:image:alt" content="Afams FarmBag — Urban Farming Grow Bags Kenya"/>
   <meta property="og:site_name" content="Afams"/>
   <meta property="og:locale" content="en_KE"/>
@@ -22,9 +22,11 @@
   <meta name="twitter:site" content="@afams"/>
   <meta name="twitter:title" content="Afams FarmBag — Urban Farming &amp; Grow Bags in Nairobi, Kenya"/>
   <meta name="twitter:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony or school. Pre-order today."/>
-  <meta name="twitter:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <meta name="twitter:image" content="https://afams.co.ke/assets/images/afams_logo_horizontal.png"/>
   <title>Afams FarmBag — Urban Farming &amp; Grow Bags Nairobi, Kenya</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/afams_favicon_32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/afams_favicon_512.svg"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/afams_favicon_512.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -107,7 +109,7 @@
         "@type": "Organization",
         "name": "Afams Ltd",
         "url": "https://afams.co.ke",
-        "logo": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "logo": "https://afams.co.ke/assets/images/afams_logo_horizontal.png",
         "description": "Afams is an urban AgriTech company registered in Kenya in 2021, building innovative grow bag systems for cities, homes, schools and institutions.",
         "foundingDate": "2021",
         "foundingLocation": "Nairobi, Kenya",
@@ -130,7 +132,7 @@
         "description": "Innovative urban farming grow bag for vertical gardening, indoor gardening, rooftop and balcony gardens in Nairobi, Kenya.",
         "category": "Urban Farming / Grow Bags",
         "url": "https://afams.co.ke/#products",
-        "image": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "image": "https://afams.co.ke/assets/images/afams_logo_horizontal.png",
         "offers": {
           "@type": "AggregateOffer",
           "priceCurrency": "KES",
@@ -155,7 +157,7 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#" class="nav-logo">
-      <img src="assets/images/afams-logo.jpg" alt="Afams Logo" class="nav-logo-img"/>
+      <img src="assets/images/afams_logo_stacked.png" alt="Afams Logo" class="nav-logo-img"/>
       Afams
     </a>
     <div class="nav-links">
@@ -630,6 +632,25 @@
   </div>
 </section>
 
+<!-- TRUST / PARTNERS -->
+<section class="section" id="partners" style="padding:3rem 2rem">
+  <div class="section-inner">
+    <div class="section-center" style="margin-bottom:1.5rem">
+      <div class="section-label">Partners &amp; ecosystem</div>
+    </div>
+    <div class="trust-logos">
+      <div class="trust-item">
+        <div class="trust-icon">💳</div>
+        <span>Paystack Payments</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <p style="font-size:0.95rem;color:var(--gray-dark);margin-bottom:1rem">Interested in partnering with Afams?</p>
+      <a href="#contact" class="btn-preorder-nav" onclick="goToPartnerContact(event)">Become a Partner →</a>
+    </div>
+  </div>
+</section>
+
 <!-- STORY -->
 <section class="accordion-section section--gray" id="story">
   <button class="accordion-toggle" id="story-toggle" aria-expanded="false" aria-controls="story-body">
@@ -678,25 +699,6 @@
     </div>
   </div>
   </div><!-- /.accordion-body -->
-</section>
-
-<!-- TRUST / PARTNERS -->
-<section class="section" id="partners" style="padding:3rem 2rem">
-  <div class="section-inner">
-    <div class="section-center" style="margin-bottom:1.5rem">
-      <div class="section-label">Partners &amp; ecosystem</div>
-    </div>
-    <div class="trust-logos">
-      <div class="trust-item">
-        <div class="trust-icon">💳</div>
-        <span>Paystack Payments</span>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:2rem">
-      <p style="font-size:0.95rem;color:var(--gray-dark);margin-bottom:1rem">Interested in partnering with Afams?</p>
-      <a href="mailto:partner@afams.co.ke?subject=Partnership%20Enquiry" class="btn-preorder-nav">Become a Partner →</a>
-    </div>
-  </div>
 </section>
 
 <!-- ACCORDION GROUP — near footer -->
@@ -971,7 +973,7 @@
         </div>
       </a>
       <!-- Partnerships & B2B -->
-      <a class="contact-email-card fade-up"
+      <a class="contact-email-card fade-up" id="contact-partner"
          href="mailto:partner@afams.co.ke?subject=%5BPARTNERSHIP%20ENQUIRY%5D&body=Hi%20Afams%20Partnerships%20Team%2C%0A%0AOrganisation%3A%20%0AType%3A%20School%20%2F%20Restaurant%20%2F%20Hotel%20%2F%20Corporate%20%2F%20Distributor%0A%0AWhat%20we%E2%80%99re%20looking%20for%3A%20%0A%0AThank%20you"
          target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">🤝</div>
@@ -1063,7 +1065,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="assets/images/afams-logo.jpg" alt="Afams Logo" class="nav-logo-img"/>
+          <img src="assets/images/afams_logo_stacked.png" alt="Afams Logo" class="nav-logo-img"/>
           Afams
         </div>
         <p class="footer-desc">
@@ -1379,6 +1381,21 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
     }
   });
 });
+
+function goToPartnerContact(event) {
+  var ACCORDION_ANIMATION_DURATION_MS = 420;
+  if (event) event.preventDefault();
+  var contact = document.getElementById('contact');
+  var toggle = document.getElementById('contact-toggle');
+  if (toggle && toggle.getAttribute('aria-expanded') === 'false') {
+    toggle.click();
+  }
+  setTimeout(function() {
+    if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var card = document.getElementById('contact-partner');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, ACCORDION_ANIMATION_DURATION_MS);
+}
 
 // Hero product slider — highlight active slide on interval
 (function() {
