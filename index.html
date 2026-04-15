@@ -646,7 +646,7 @@
     </div>
     <div style="text-align:center;margin-top:2rem">
       <p style="font-size:0.95rem;color:var(--gray-dark);margin-bottom:1rem">Interested in partnering with Afams?</p>
-      <a href="#contact-partner" class="btn-preorder-nav" onclick="goToPartnerContact(event)">Become a Partner →</a>
+      <a href="#contact" class="btn-preorder-nav" onclick="goToPartnerContact(event)">Become a Partner →</a>
     </div>
   </div>
 </section>
@@ -1383,6 +1383,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
 });
 
 function goToPartnerContact(event) {
+  var ACCORDION_ANIMATION_DURATION_MS = 420;
   if (event) event.preventDefault();
   var contact = document.getElementById('contact');
   var toggle = document.getElementById('contact-toggle');
@@ -1393,7 +1394,7 @@ function goToPartnerContact(event) {
     if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var card = document.getElementById('contact-partner');
     if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 420);
+  }, ACCORDION_ANIMATION_DURATION_MS);
 }
 
 // Hero product slider — highlight active slide on interval
