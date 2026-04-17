@@ -664,8 +664,8 @@ const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M
 const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
 const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
 const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
-var paystackLaunchInProgress = false;
-var paystackLaunchWatchdog = null;
+let paystackLaunchInProgress = false;
+let paystackLaunchWatchdog = null;
 
 function createCheckoutAttemptId() {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -1309,6 +1309,16 @@ function hideError() {
   document.getElementById('form-error').style.display = 'none';
 }
 
+function mapSeedPacket(seed) {
+  return {
+    slug: seed.slug,
+    name: seed.name + ' (' + seed.weight + ')',
+    category: seed.category,
+    weight: seed.weight,
+    price: seed.price
+  };
+}
+
 function launchPaystack() {
   hideError();
   if (paystackLaunchInProgress || getCheckoutLock()) {
@@ -1351,8 +1361,8 @@ function launchPaystack() {
   const seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
   const grandTotal   = totals.grandTotal + seedsTotal;
 
-  const freeSeeds      = (window.seedState?.freePackets  || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
-  const extraSeeds     = (window.seedState?.extraPackets || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
+  const freeSeeds      = (window.seedState?.freePackets  || []).map(mapSeedPacket);
+  const extraSeeds     = (window.seedState?.extraPackets || []).map(mapSeedPacket);
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
@@ -1432,6 +1442,7 @@ function launchPaystack() {
     },
   });
 
+    // Safety reset: if payment iframe fails to open/return under poor network conditions, unlock checkout state.
     paystackLaunchWatchdog = setTimeout(function() {
       releaseCheckoutState();
     }, 45000);
