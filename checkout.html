@@ -664,6 +664,7 @@ const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M
 const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
 const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
 const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
+const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
 let paystackLaunchInProgress = false;
 let paystackLaunchWatchdog = null;
 
@@ -1445,7 +1446,7 @@ function launchPaystack() {
     // Safety reset: if payment iframe fails to open/return under poor network conditions, unlock checkout state.
     paystackLaunchWatchdog = setTimeout(function() {
       releaseCheckoutState();
-    }, 45000);
+    }, CHECKOUT_WATCHDOG_TIMEOUT_MS);
     handler.openIframe();
   } catch (err) {
     console.error('[Afams] Paystack setup error:', err);
