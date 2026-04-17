@@ -665,6 +665,7 @@ const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
 const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
 const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
 const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
+const SEED_FETCH_TIMEOUT_MS = 8000;
 let paystackLaunchInProgress = false;
 let paystackLaunchWatchdog = null;
 
@@ -975,7 +976,7 @@ var _seedsRendered = false;
 async function loadSeeds() {
   if (_seedsRendered) return; // Already rendered — don't wipe user selections
   var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 8000) : null;
+  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, SEED_FETCH_TIMEOUT_MS) : null;
   try {
     const res = await fetch(
       `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=category,variety`,
@@ -1327,7 +1328,7 @@ function launchPaystack() {
   }
 
   if (typeof PaystackPop === 'undefined' || !PaystackPop || typeof PaystackPop.setup !== 'function') {
-    return showError('Payment gateway is temporarily unavailable. Please check your connection and retry.');
+    return showError('Payment system failed to load. Please refresh the page and try again.');
   }
 
   const name    = document.getElementById('f-name').value.trim();
