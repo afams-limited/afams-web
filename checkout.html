@@ -662,6 +662,45 @@ const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
 const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
+const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
+const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
+const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
+const SEED_FETCH_TIMEOUT_MS = 8000;
+let paystackLaunchInProgress = false;
+let paystackLaunchWatchdog = null;
+
+function createCheckoutAttemptId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return 'chk-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+function getCheckoutLock() {
+  try {
+    var raw = sessionStorage.getItem(CHECKOUT_LOCK_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || !parsed.id || !parsed.ts) return null;
+    if ((Date.now() - parsed.ts) > CHECKOUT_LOCK_TTL_MS) {
+      sessionStorage.removeItem(CHECKOUT_LOCK_KEY);
+      return null;
+    }
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+function setCheckoutLock(id) {
+  try {
+    sessionStorage.setItem(CHECKOUT_LOCK_KEY, JSON.stringify({ id: id, ts: Date.now() }));
+  } catch (_) {}
+}
+
+function clearCheckoutLock() {
+  try { sessionStorage.removeItem(CHECKOUT_LOCK_KEY); } catch (_) {}
+}
 
 function getFreeSeeds() {
   var FARMBAG_SKUS_ALL = ['FB-CLS-01','FB-GRW-01','FB-HYD-01','FB-HYP-01','FB-AQA-01','FB-AHP-01'];
@@ -936,6 +975,8 @@ var _seedsRendered = false;
 
 async function loadSeeds() {
   if (_seedsRendered) return; // Already rendered — don't wipe user selections
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, SEED_FETCH_TIMEOUT_MS) : null;
   try {
     const res = await fetch(
       `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=category,variety`,
@@ -944,7 +985,8 @@ async function loadSeeds() {
           apikey: SUPABASE_ANON_KEY_CHECKOUT,
           Authorization: 'Bearer ' + SUPABASE_ANON_KEY_CHECKOUT,
           'Content-Type': 'application/json',
-        }
+        },
+        signal: controller ? controller.signal : undefined,
       }
     );
     if (!res.ok) throw new Error('Fetch failed ' + res.status);
@@ -958,6 +1000,8 @@ async function loadSeeds() {
   } catch (err) {
     console.warn('[Afams] loadSeeds error, using static fallback:', err);
     renderStaticSeedGroups();
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 
@@ -1267,8 +1311,29 @@ function hideError() {
   document.getElementById('form-error').style.display = 'none';
 }
 
+function mapSeedPacket(seed) {
+  var safeSeed = seed || {};
+  var safeName = safeSeed.name || 'Seed packet';
+  var safeWeight = safeSeed.weight || '';
+  return {
+    slug: safeSeed.slug || '',
+    name: safeWeight ? (safeName + ' (' + safeWeight + ')') : safeName,
+    category: safeSeed.category || 'Other',
+    weight: safeWeight,
+    price: safeSeed.price || 0
+  };
+}
+
 function launchPaystack() {
   hideError();
+  if (paystackLaunchInProgress || getCheckoutLock()) {
+    return showError('Your payment request is already being processed. Please wait a few seconds.');
+  }
+
+  if (typeof PaystackPop === 'undefined' || !PaystackPop || typeof PaystackPop.setup !== 'function') {
+    return showError('Payment system failed to load. Please refresh the page and try again.');
+  }
+
   const name    = document.getElementById('f-name').value.trim();
   const phone   = document.getElementById('f-phone').value.trim();
   const email   = document.getElementById('f-email').value.trim();
@@ -1301,9 +1366,8 @@ function launchPaystack() {
   const seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
   const grandTotal   = totals.grandTotal + seedsTotal;
 
-  const hasFarmBag     = cartHasFarmBag();
-  const freeSeeds      = (window.seedState?.freePackets  || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
-  const extraSeeds     = (window.seedState?.extraPackets || []).map(function(s) { return { slug: s.slug, name: s.name + ' (' + s.weight + ')', category: s.category, weight: s.weight, price: s.price }; });
+  const freeSeeds      = (window.seedState?.freePackets  || []).map(mapSeedPacket);
+  const extraSeeds     = (window.seedState?.extraPackets || []).map(mapSeedPacket);
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
@@ -1315,9 +1379,29 @@ function launchPaystack() {
   const primaryItem    = cart.items.find(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); }) || cart.items[0];
 
   const btn = document.getElementById('pay-btn');
+  const checkoutAttemptId = createCheckoutAttemptId();
+  paystackLaunchInProgress = true;
+  setCheckoutLock(checkoutAttemptId);
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  btn.setAttribute('aria-label', 'Opening secure payment');
+  btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Opening secure payment…';
 
-  const handler = PaystackPop.setup({
+  var releaseCheckoutState = function() {
+    paystackLaunchInProgress = false;
+    clearCheckoutLock();
+    if (paystackLaunchWatchdog) {
+      clearTimeout(paystackLaunchWatchdog);
+      paystackLaunchWatchdog = null;
+    }
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    btn.removeAttribute('aria-label');
+    updateOrderTotals();
+  };
+
+  try {
+    const handler = PaystackPop.setup({
     key:      paystackKey,
     email:    email,
     amount:   grandTotal * 100,
@@ -1343,6 +1427,7 @@ function launchPaystack() {
       prosoil_promo_bag: prosoilPromo,
       prosoil_promo_qty: prosoilPromoQty,
       addons_total:     addonTotal,
+      checkout_attempt_id: checkoutAttemptId,
       custom_fields: [
         { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
         { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
@@ -1354,6 +1439,7 @@ function launchPaystack() {
       ],
     },
     callback: function(response) {
+      releaseCheckoutState();
       clearCart();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference)
         + '&name=' + encodeURIComponent(name)
@@ -1361,11 +1447,20 @@ function launchPaystack() {
         + '&amount=' + grandTotal;
     },
     onClose: function() {
-      btn.disabled = false;
+      releaseCheckoutState();
     },
   });
 
-  handler.openIframe();
+    // Safety reset: if payment iframe fails to open/return under poor network conditions, unlock checkout state.
+    paystackLaunchWatchdog = setTimeout(function() {
+      releaseCheckoutState();
+    }, CHECKOUT_WATCHDOG_TIMEOUT_MS);
+    handler.openIframe();
+  } catch (err) {
+    console.error('[Afams] Paystack setup error:', err);
+    releaseCheckoutState();
+    showError('Unable to start payment right now. Please check your connection and try again.');
+  }
 }
 
 // ── URL params — pre-load cart from ?sku= and ?qty= (deep-link from product pages)
@@ -1395,7 +1490,7 @@ document.getElementById('checkout-form').addEventListener('submit', function (e)
     <a href="terms.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Terms &amp; Conditions</a>·
     <a href="returns-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Returns Policy</a>
   </div>
-  <p>© 2026 Afams Ltd · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved</p>
+  <p>© 2026 Afams Limited · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved</p>
 </footer>
 
 </body>
