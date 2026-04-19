@@ -181,6 +181,12 @@
       align-items: center;
       gap: 0.4rem;
     }
+    .auth-logo-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
 
     .auth-subtitle {
       color: var(--text-muted);
@@ -294,7 +300,10 @@
     }
 
     .topbar-brand-logo {
-      font-size: 1.4rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: cover;
     }
 
     .topbar-brand-sub {
@@ -1038,7 +1047,7 @@
 ══════════════════════════════════════════════════════════════ -->
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">🌿 <span>Afams LTD</span></div>
+    <div class="auth-logo"><img src="../assets/images/afams_favicon_32.png" alt="Afams icon" class="auth-logo-icon"/> <span>Afams LTD</span></div>
     <div class="auth-subtitle">Admin Operations Dashboard</div>
 
     <div id="login-view">
@@ -1078,7 +1087,7 @@
   <!-- Header -->
   <header class="topbar">
     <div class="topbar-brand">
-      <span class="topbar-brand-logo">🌿</span>
+      <img src="../assets/images/afams_favicon_32.png" alt="Afams icon" class="topbar-brand-logo"/>
       Afams
       <span class="topbar-brand-sub">Operations</span>
     </div>
@@ -1555,6 +1564,16 @@ const ORDER_STATUSES = [
 // Statuses where payment is considered confirmed (paid_at will be set)
 const PAID_STATUSES = ['paid', 'processing', 'shipped', 'delivered', 'refunded'];
 
+function formatPaymentMethodLabel(raw) {
+  var val = String(raw || '').trim().toLowerCase();
+  if (!val || val === 'paystack') return 'M-Pesa / M-Pesa Till / Airtel Money / Card';
+  if (val.indexOf('till') >= 0) return 'M-Pesa Till';
+  if (val.indexOf('mpesa') >= 0 || val.indexOf('m-pesa') >= 0) return 'M-Pesa';
+  if (val.indexOf('airtel') >= 0) return 'Airtel Money';
+  if (val.indexOf('card') >= 0) return 'Card';
+  return String(raw);
+}
+
 function renderStatusBadge(status) {
   var s = (status || 'pending').toLowerCase();
   if (!ORDER_STATUSES.includes(s)) s = 'pending';
@@ -1805,7 +1824,7 @@ function openOrderModal(id) {
     + '<div class="val">' + escapeHtml(o.delivery_address || '—') + '</div></div>'
     + '<div class="detail-field"><label>Order Date</label>'
     + '<div class="val" style="font-size:0.82rem">' + date + '</div></div>'
-    + '<div class="detail-field"><label>Paystack Ref</label>'
+    + '<div class="detail-field"><label>Payment Ref</label>'
     + '<div class="val" style="font-size:0.82rem;font-family:monospace">'
     + escapeHtml(o.paystack_ref || '—') + '</div></div>'
     + (o.notes
@@ -2115,6 +2134,7 @@ function closeSMSModal() {
 function buildWhatsAppContent(templateKey, o) {
   var ref   = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
   var payRef = o.paystack_ref || '—';
+  var payMethod = formatPaymentMethodLabel(o.payment_method);
   var name  = o.customer_name  || 'there';
   var prod  = o.product_name   || o.product_sku || 'FarmBag';
   var qty   = o.quantity       || 1;
@@ -2141,7 +2161,8 @@ function buildWhatsAppContent(templateKey, o) {
       'Hello *' + name + '* 👋\n\n'
       + '✅ *Payment received!* Your order is secured and we are preparing it.\n\n'
       + '📦 *Order REF:* ' + ref + '\n'
-      + '🧾 *Paystack REF:* ' + payRef + '\n'
+      + '💳 *Payment Method:* ' + payMethod + '\n'
+      + '🧾 *Payment REF:* ' + payRef + '\n'
       + '🕐 *Paid At:* ' + paidAt + '\n'
       + '💰 *Amount:* ' + amt + '\n\n'
       + 'We will notify you once your order is dispatched. Reply here for any queries!'
@@ -2150,7 +2171,7 @@ function buildWhatsAppContent(templateKey, o) {
     payment_failed:
       'Hello *' + name + '* 👋\n\n'
       + '⚠️ We noticed your payment for order *' + ref + '* was *not completed*.\n\n'
-      + '🧾 *Paystack REF:* ' + payRef + '\n'
+      + '🧾 *Payment REF:* ' + payRef + '\n'
       + '💰 *Amount:* ' + amt + '\n\n'
       + 'Please complete your payment here to secure your order:\n'
       + checkoutUrl + '\n\n'
@@ -2213,6 +2234,7 @@ function buildWhatsAppContent(templateKey, o) {
 function buildSMSContent(templateKey, o) {
   var ref      = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
   var payRef   = o.paystack_ref || '—';
+  var payMethod = formatPaymentMethodLabel(o.payment_method);
   var name     = o.customer_name || 'Customer';
   var amt      = o.total_amount ? 'KES ' + Number(o.total_amount).toLocaleString('en-KE') : '—';
   var paidAt   = o.paid_at ? new Date(o.paid_at).toLocaleDateString('en-KE') : '—';
@@ -2220,8 +2242,8 @@ function buildSMSContent(templateKey, o) {
 
   var messages = {
     order_received:  'Dear ' + name + ', your Afams order is confirmed. Order REF: ' + ref + '. Thank you for choosing us.',
-    payment_success: 'Dear ' + name + ', payment received for Order REF ' + ref + '. Paystack REF: ' + payRef + '. Amount: ' + amt + '.',
-    payment_failed:  'Dear ' + name + ', payment is incomplete for Order REF ' + ref + '. Paystack REF: ' + payRef + '. Kindly complete payment.',
+    payment_success: 'Dear ' + name + ', payment received for Order REF ' + ref + '. Method: ' + payMethod + '. Payment REF: ' + payRef + '. Amount: ' + amt + '.',
+    payment_failed:  'Dear ' + name + ', payment is incomplete for Order REF ' + ref + '. Payment REF: ' + payRef + '. Kindly complete payment.',
     order_processing:'Dear ' + name + ', your order is being prepared. Order REF: ' + ref + '.',
     order_dispatched:'Dear ' + name + ', your order has been dispatched. Order REF: ' + ref + '. Tracking: ' + tracking + '.',
     order_delivered: 'Dear ' + name + ', your order has been delivered. Order REF: ' + ref + '. Thank you for trusting Afams.',
@@ -2309,7 +2331,7 @@ function buildReceiptHTML(order) {
   var subtotal    = unitPrice * qty;
   var productName = escapeHtml(o.product_name || o.product_sku || '—');
   var payRef      = escapeHtml(o.paystack_ref || '—');
-  var payMethod   = escapeHtml(o.payment_method || 'Paystack');
+  var payMethod   = escapeHtml(formatPaymentMethodLabel(o.payment_method));
   var now         = formatReceiptDateTime(new Date().toISOString());
   var receiptNo   = 'RCP-' + ref + '-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
 
@@ -2322,8 +2344,7 @@ function buildReceiptHTML(order) {
   var notesBlock    = o.notes
     ? '<div class="delivery-notes">Customer note: ' + escapeHtml(o.notes) + '</div>'
     : '';
-  var FREE_DELIVERY_COUNTIES = ['Nairobi', 'Nairobi (Free delivery)'];
-  var deliveryLabel = FREE_DELIVERY_COUNTIES.indexOf(o.county) !== -1 ? 'FREE (Nairobi)' : 'As quoted';
+  var deliveryLabel = Number(total || 0) >= 2499 ? 'FREE (Order ≥ KES 2,499)' : 'Charged (Order < KES 2,499)';
 
   return '<!DOCTYPE html>\n'
     + '<html lang="en">\n'
@@ -2947,7 +2968,7 @@ function buildEmailContent(templateType) {
   var qty         = String(o.quantity || 1);
   var total       = 'KES ' + Number(o.total_amount || 0).toLocaleString('en-KE');
   var payRef      = o.paystack_ref || '—';
-  var payMethod   = o.payment_method || 'Paystack';
+  var payMethod   = formatPaymentMethodLabel(o.payment_method);
   var trackingNo  = o.tracking_number || '—';
   var paidAt      = o.paid_at
     ? new Date(o.paid_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -2976,7 +2997,8 @@ function buildEmailContent(templateType) {
     body = 'Hello ' + name + ',\n\n'
       + 'We have successfully received your payment. Your order is secured and our team is preparing it.\n\n'
       + 'Order REF:       ' + ref + '\n'
-      + 'Paystack REF:    ' + payRef + '\n'
+      + 'Payment Method:  ' + payMethod + '\n'
+      + 'Payment REF:     ' + payRef + '\n'
       + 'Paid At:         ' + paidAt + '\n'
       + 'Amount Paid:     ' + total + '\n\n'
       + 'We\'ll notify you again when the order is dispatched. '
@@ -2988,7 +3010,7 @@ function buildEmailContent(templateType) {
       + 'We could not confirm payment for your Afams order. '
       + 'Your items may not be reserved until checkout is completed.\n\n'
       + 'Order REF:       ' + ref + '\n'
-      + 'Paystack REF:    ' + payRef + '\n'
+      + 'Payment REF:     ' + payRef + '\n'
       + 'Amount:          ' + total + '\n\n'
       + 'Please visit afams.co.ke to complete your payment. '
       + 'Questions? Email orders@afams.co.ke'

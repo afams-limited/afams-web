@@ -67,6 +67,16 @@ async function sendBrevoTemplate(
 const ADMIN_EMAIL_TYPES = ["order_dispatched", "order_delivered"] as const;
 type AdminEmailType = (typeof ADMIN_EMAIL_TYPES)[number];
 
+function formatPaymentMethod(raw: unknown): string {
+  const val = String(raw ?? "").trim().toLowerCase();
+  if (!val || val === "paystack") return "M-Pesa / M-Pesa Till / Airtel Money / Card";
+  if (val.includes("mpesa till") || val.includes("mpesa_till") || val.includes("till")) return "M-Pesa Till";
+  if (val.includes("mpesa") || val.includes("m-pesa")) return "M-Pesa";
+  if (val.includes("airtel")) return "Airtel Money";
+  if (val.includes("card")) return "Card";
+  return String(raw);
+}
+
 // ── Main handler ──────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
@@ -171,6 +181,11 @@ Deno.serve(async (req: Request) => {
   const productName    = order.product_name   ?? order.product_sku ?? "—";
   const quantity       = String(order.quantity ?? 1);
   const totalKES       = `KES ${(order.total_amount ?? 0).toLocaleString("en-KE")}`;
+  const paymentMethod  = formatPaymentMethod(order.payment_method);
+  const paymentRef     = order.paystack_ref ?? "—";
+  const customerPhone  = order.customer_phone ?? "—";
+  const deliveryAddress = order.delivery_address ?? "—";
+  const county         = order.county ?? "—";
 
   if (!customerEmail) {
     console.warn(`[send-order-email] Order ${orderRef} has no customer_email — skipping`);
@@ -200,11 +215,18 @@ Deno.serve(async (req: Request) => {
         order_ref:          orderRef,
         order_reference:    orderRef,
         customer_name:      customerName,
+        customer_email:     customerEmail,
+        customer_phone:     customerPhone,
+        delivery_address:   deliveryAddress,
+        county:             county,
         product_name:       productName,
         quantity:           quantity,
         total_amount:       totalKES,
-        paystack_reference: order.paystack_ref ?? "—",
-        payment_reference:  order.paystack_ref ?? "—",
+        payment_method:     paymentMethod,
+        paystack_reference: paymentRef,
+        payment_reference:  paymentRef,
+        brand_logo_url:     "https://afams.co.ke/assets/images/afams_logo_stacked.png",
+        brand_icon_url:     "https://afams.co.ke/assets/images/afams_favicon_512.png",
         estimated_delivery: "2–5 business days",
         tracking_number:    order.tracking_number ?? "—",
         dispatched_at:      dispatchedAt,
@@ -231,11 +253,18 @@ Deno.serve(async (req: Request) => {
         order_ref:     orderRef,
         order_reference: orderRef,
         customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        delivery_address: deliveryAddress,
+        county:       county,
         product_name:  productName,
         quantity:      quantity,
         total_amount:  totalKES,
-        paystack_reference: order.paystack_ref ?? "—",
-        payment_reference:  order.paystack_ref ?? "—",
+        payment_method: paymentMethod,
+        paystack_reference: paymentRef,
+        payment_reference:  paymentRef,
+        brand_logo_url:  "https://afams.co.ke/assets/images/afams_logo_stacked.png",
+        brand_icon_url:  "https://afams.co.ke/assets/images/afams_favicon_512.png",
         delivered_at:  deliveredAt,
       });
       providerMessageId = result.messageId;
