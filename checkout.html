@@ -711,7 +711,7 @@ function syncLocationSelectors() {
     countyGroup.style.display = 'none';
     countyEl.required = false;
     if (countyVal === 'Outside Kenya') {
-      countryEl.value = countryVal === 'Kenya' ? '' : countryVal;
+      if (!countryVal || countryVal === 'Kenya') countryEl.value = '';
     }
     countryGroup.style.display = '';
     countryEl.required = true;
