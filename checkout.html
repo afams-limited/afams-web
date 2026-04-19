@@ -693,7 +693,7 @@ function getDeliveryLabel(total) {
   var threshold = FREE_DELIVERY_MIN_KES.toLocaleString('en-KE');
   return total >= FREE_DELIVERY_MIN_KES
     ? 'Free (orders KES ' + threshold + '+)'
-    : 'Calculated after checkout (below KES ' + threshold + ')';
+    : 'Charged (orders below KES ' + threshold + ')';
 }
 
 function syncLocationSelectors() {
