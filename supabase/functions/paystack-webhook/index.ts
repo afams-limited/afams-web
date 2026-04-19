@@ -73,6 +73,16 @@ async function verifySignature(
   return hex === signature;
 }
 
+function formatPaymentMethod(raw: unknown): string {
+  const val = String(raw ?? "").trim().toLowerCase();
+  if (val === "mobile_money_mtn" || val.includes("airtel")) return "Airtel Money";
+  if (val === "mobile_money" || val.includes("mpesa") || val.includes("m-pesa")) return "M-Pesa";
+  if (val.includes("till")) return "M-Pesa Till";
+  if (val.includes("card")) return "Card";
+  if (!val || val === "paystack") return "M-Pesa / M-Pesa Till / Airtel Money / Card";
+  return String(raw);
+}
+
 // ── Main handler ─────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -124,6 +134,8 @@ Deno.serve(async (req: Request) => {
     const customer = data.customer as Record<string, string> | undefined;
     const metadata = (data.metadata ?? {}) as Record<string, unknown>;
     const paid_at = data.paid_at as string | undefined;
+    const paymentChannel = data.channel as string | undefined;
+    const paymentMethodLabel = formatPaymentMethod(paymentChannel || metadata.payment_method);
 
     if (!reference) {
       console.error("[Webhook] charge.success missing reference");
@@ -274,10 +286,15 @@ Deno.serve(async (req: Request) => {
         product_name:   prodName,
         quantity:       qty,
         total_amount:   totalStr,
-        payment_method: "Paystack",
+        payment_method: paymentMethodLabel,
         payment_reference: reference,
         paystack_reference: reference,
         paid_at:        paidAtStr,
+        customer_phone: customer_phone ?? "—",
+        delivery_address: delivery_address ?? "—",
+        county:         county ?? "—",
+        brand_logo_url: "https://afams.co.ke/assets/images/afams_logo_stacked.png",
+        brand_icon_url: "https://afams.co.ke/assets/images/afams_favicon_512.png",
       };
 
       // #1 Order Received — confirm the order is in our queue
@@ -301,8 +318,6 @@ Deno.serve(async (req: Request) => {
       await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplAdminOrder, adminEmail, "Afams Admin", {
         ...sharedParams,
         customer_email: custEmail,
-        customer_phone: customer_phone ?? "—",
-        county:         county ?? "—",
       }).catch((e) => console.error("[Webhook] admin_new_order email failed:", e));
 
       console.log(`[Webhook] Brevo emails dispatched for order ${orderRef}`);

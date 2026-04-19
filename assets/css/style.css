@@ -534,8 +534,8 @@ body[data-theme="light"] .mobile-menu a:hover {
 }
 .hero-img-float {
   position: absolute;
-  bottom: -24px;
-  left: -24px;
+  bottom: 12px;
+  left: 12px;
   width: 170px;
   background: white;
   border-radius: var(--radius-md);
@@ -1698,13 +1698,17 @@ body[data-theme="light"] .mobile-menu a:hover {
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
   .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
-  .hero-visual { display: none; }
+  .hero-visual { display: flex; }
+  .hero-img-wrap { max-width: 420px; }
   .story-grid { grid-template-columns: 1fr; gap: 3rem; }
   .footer-top { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 768px) {
   .nav-links, .btn-preorder-nav { display: none; }
   .nav-hamburger { display: flex; }
+  .hero-visual { display: none; }
+  .hero-stats { flex-wrap: wrap; gap: 1rem 1.2rem; }
+  .hero-stat { min-width: 140px; }
   .section { padding: 4.5rem 1.25rem; }
   .preorder-banner { grid-template-columns: 1fr; margin: 0 1rem; padding: 2.25rem; }
   .preorder-banner::after { display: none; }

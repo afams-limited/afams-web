@@ -217,7 +217,7 @@
 
 <!-- ANNOUNCE BAR -->
 <div class="announce">
-  🌿 Pre-orders now open — ships within 3–5 days · Free delivery in Nairobi ·
+  🌿 Pre-orders now open — ships within 3–5 days · Free delivery on orders KES 2,499+ ·
   <a href="checkout.html">Order yours →</a>
 </div>
 
@@ -347,7 +347,7 @@ function renderProducts(products) {
           <div class="product-footer">
             <div>
               <div class="product-price">KES ${(p.priceKES || p.unit_price || 0).toLocaleString()}</div>
-              <div class="product-price-sub">${p.sku === 'PS-25KG' ? 'Per bag · Free delivery in Nairobi' : 'Pre-order · Ships in 3–5 days'}</div>
+              <div class="product-price-sub">${p.sku === 'PS-25KG' ? 'Per bag · Free delivery on orders KES 2,499+' : 'Pre-order · Ships in 3–5 days'}</div>
               ${p.promoBadge ? `<span class="product-promo-badge">${p.promoBadge}</span>` : ''}
             </div>
             ${actionHtml}
@@ -555,8 +555,8 @@ function renderPremiumRange(grid) {
     card.className = 'product-card';
     card.innerHTML = `
       <div class="product-image" style="${p.bgStyle};display:flex;align-items:center;justify-content:center;">
-        <span style="font-size:4rem">${p.emoji}</span>
         <span class="product-badge-pill badge-premium" style="position:absolute;top:0.85rem;left:0.85rem;">Premium</span>
+        <span style="color:rgba(255,255,255,0.82);font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">Official reveal coming soon</span>
         <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch-September 1st 2026</span>
       </div>
       <div class="product-body">

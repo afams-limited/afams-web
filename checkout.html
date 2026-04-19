@@ -496,32 +496,51 @@
       </div>
 
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" id="f-county-group">
           <label for="f-county">County</label>
           <select id="f-county" autocomplete="address-level1">
             <option value="">Select county…</option>
-            <option>Nairobi</option><option>Mombasa</option><option>Kisumu</option>
-            <option>Nakuru</option><option>Eldoret</option><option>Thika</option>
-            <option>Kiambu</option><option>Machakos</option><option>Nyeri</option>
-            <option>Meru</option><option>Kakamega</option><option>Kisii</option>
-            <option>Other (Kenya)</option><option>Outside Kenya</option>
+            <option>Baringo</option><option>Bomet</option><option>Bungoma</option><option>Busia</option>
+            <option>Elgeyo-Marakwet</option><option>Embu</option><option>Garissa</option><option>Homa Bay</option>
+            <option>Isiolo</option><option>Kajiado</option><option>Kakamega</option><option>Kericho</option>
+            <option>Kiambu</option><option>Kilifi</option><option>Kirinyaga</option><option>Kisii</option>
+            <option>Kisumu</option><option>Kitui</option><option>Kwale</option><option>Laikipia</option>
+            <option>Lamu</option><option>Machakos</option><option>Makueni</option><option>Mandera</option>
+            <option>Marsabit</option><option>Meru</option><option>Migori</option><option>Mombasa</option>
+            <option>Murang'a</option><option>Nairobi</option><option>Nakuru</option><option>Nandi</option>
+            <option>Narok</option><option>Nyamira</option><option>Nyandarua</option><option>Nyeri</option>
+            <option>Samburu</option><option>Siaya</option><option>Taita-Taveta</option><option>Tana River</option>
+            <option>Tharaka-Nithi</option><option>Trans Nzoia</option><option>Turkana</option><option>Uasin Gishu</option>
+            <option>Vihiga</option><option>Wajir</option><option>West Pokot</option>
+            <option>Outside Kenya</option>
+          </select>
+        </div>
+        <div class="form-group" id="f-country-group" style="display:none">
+          <label for="f-country">Country</label>
+          <select id="f-country" autocomplete="country">
+            <option value="">Select country…</option>
+            <option>Kenya</option><option>Uganda</option><option>Tanzania</option><option>Rwanda</option>
+            <option>Burundi</option><option>Ethiopia</option><option>South Sudan</option><option>Somalia</option>
+            <option>Democratic Republic of the Congo</option><option>Nigeria</option><option>South Africa</option><option>Ghana</option>
+            <option>India</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option>
+            <option>Canada</option><option>Australia</option><option>Germany</option><option>France</option>
           </select>
         </div>
       </div>
 
       <div class="delivery-badge">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        Free delivery within Nairobi · 3–5 business days
+        Free delivery for orders KES 2,499+ · 3–5 business days
       </div>
 
       <button class="btn-pay" id="pay-btn" type="submit">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Pay with M-Pesa / Card
+        Pay with M-Pesa / Airtel Money / Card
       </button>
 
       <p class="secure-note">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Secured by Paystack · 256-bit SSL encryption
+        Secure checkout · 256-bit SSL encryption
       </p>
 
       <p style="text-align:center;font-size:0.72rem;color:#718096;margin-top:0.5rem;line-height:1.6">
@@ -639,7 +658,7 @@
       </div>
       <div class="summary-line">
         <span class="label">Delivery</span>
-        <span>Free</span>
+        <span id="delivery-display">Free (orders KES 2,499+)</span>
       </div>
       <div class="summary-total">
         <span>Total</span>
@@ -662,12 +681,50 @@ const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
 const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
+const FREE_DELIVERY_MIN_KES = 2499;
 const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
 const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
 const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
 const SEED_FETCH_TIMEOUT_MS = 8000;
 let paystackLaunchInProgress = false;
 let paystackLaunchWatchdog = null;
+
+function getDeliveryLabel(total) {
+  var threshold = FREE_DELIVERY_MIN_KES.toLocaleString('en-KE');
+  return total >= FREE_DELIVERY_MIN_KES
+    ? 'Free (orders KES ' + threshold + '+)'
+    : 'Charged (orders below KES ' + threshold + ')';
+}
+
+function syncLocationSelectors() {
+  var countyGroup = document.getElementById('f-county-group');
+  var countryGroup = document.getElementById('f-country-group');
+  var countyEl = document.getElementById('f-county');
+  var countryEl = document.getElementById('f-country');
+  if (!countyGroup || !countryGroup || !countyEl || !countryEl) return;
+
+  var countyVal = countyEl.value.trim();
+  var countryVal = countryEl.value.trim();
+  var countryDriven = countryGroup.style.display !== 'none' && countryVal;
+  var outsideKenya = countryDriven ? (countryVal !== 'Kenya') : (countyVal === 'Outside Kenya');
+
+  if (outsideKenya) {
+    countyGroup.style.display = 'none';
+    countyEl.required = false;
+    if (countyVal === 'Outside Kenya') {
+      if (!countryVal || countryVal === 'Kenya') countryEl.value = '';
+    }
+    countryGroup.style.display = '';
+    countryEl.required = true;
+  } else {
+    if (countyVal === 'Outside Kenya') countyEl.value = '';
+    countryGroup.style.display = 'none';
+    countryEl.required = false;
+    countryEl.value = 'Kenya';
+    countyGroup.style.display = '';
+    countyEl.required = true;
+  }
+}
 
 function createCheckoutAttemptId() {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -1290,12 +1347,14 @@ function updateOrderTotals() {
 
   // Grand total display
   document.getElementById('total-display').textContent = 'KES ' + grandTotal.toLocaleString();
+  var deliveryDisplay = document.getElementById('delivery-display');
+  if (deliveryDisplay) deliveryDisplay.textContent = getDeliveryLabel(grandTotal);
 
   // Pay button
   var btn = document.getElementById('pay-btn');
   if (btn) {
     btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'
-      + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Card';
+      + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Airtel Money / Card';
   }
   window.currentOrderAmount = grandTotal * 100;
 }
@@ -1338,7 +1397,11 @@ function launchPaystack() {
   const phone   = document.getElementById('f-phone').value.trim();
   const email   = document.getElementById('f-email').value.trim();
   const address = document.getElementById('f-address').value.trim();
-  const county  = document.getElementById('f-county').value.trim();
+  const countyInput  = document.getElementById('f-county').value.trim();
+  const countryInput = document.getElementById('f-country').value.trim() || 'Kenya';
+  const outsideKenya = countyInput === 'Outside Kenya' || (countryInput && countryInput !== 'Kenya');
+  const country = outsideKenya ? countryInput : 'Kenya';
+  const county = outsideKenya ? ('Outside Kenya — ' + (country || 'Unspecified')) : countyInput;
 
   if (!name)  { return showError('Please enter your full name.'); }
   if (!phone) { return showError('Please enter your phone number.'); }
@@ -1349,6 +1412,12 @@ function launchPaystack() {
     return showError('Please enter a valid email address.');
   }
   if (!address) { return showError('Please enter your delivery address.'); }
+  if (outsideKenya && !countryInput) {
+    return showError('Please select your country.');
+  }
+  if (!outsideKenya && !countyInput) {
+    return showError('Please select your county.');
+  }
 
   const cart = getCart();
   if (!cart.items || cart.items.length === 0) {
@@ -1417,6 +1486,7 @@ function launchPaystack() {
       unit_price:       primaryItem.unit_price,
       delivery_address: address,
       county:           county,
+      country:          country,
       cart_items:       JSON.stringify(cart.items),
       free_seeds:       JSON.stringify(freeSeeds),
       extra_seeds:      JSON.stringify(extraSeeds),
@@ -1432,6 +1502,7 @@ function launchPaystack() {
         { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
         { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
         { display_name: 'Delivery County',  variable_name: 'county',           value: county  },
+        { display_name: 'Country',          variable_name: 'country',          value: country },
         { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
         { display_name: 'Cart Items',       variable_name: 'cart_items',       value: cart.items.map(function(i) { return i.name + ' ×' + i.qty; }).join(', ') },
         { display_name: 'Add-ons Total',    variable_name: 'addons_total',     value: addonTotal > 0 ? 'KES ' + addonTotal : 'None' },
@@ -1475,6 +1546,9 @@ function launchPaystack() {
 })();
 
 // Initial render
+document.getElementById('f-county').addEventListener('change', syncLocationSelectors);
+document.getElementById('f-country').addEventListener('change', syncLocationSelectors);
+syncLocationSelectors();
 renderCartItems();
 
 document.getElementById('checkout-form').addEventListener('submit', function (e) {
