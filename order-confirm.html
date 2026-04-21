@@ -426,11 +426,20 @@ function buildReceiptLines(receipt) {
   const extraSeedCount = Number(receipt?.extra_seeds_count || 0);
   const extraSeedTotal = Number(receipt?.extra_seeds_total || 0);
   if (extraSeedCount > 0 || extraSeedTotal > 0) {
-    rows.push({
-      name: 'Certified Seeds (Paid Add-on)',
-      qty: extraSeedCount || 1,
-      unit: extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : extraSeedTotal,
-    });
+    if (extraSeedCount > 0) {
+      rows.push({
+        name: 'Certified Seeds (Paid Add-on)',
+        qty: extraSeedCount,
+        unit: Math.round(extraSeedTotal / extraSeedCount),
+      });
+    } else {
+      rows.push({
+        name: 'Certified Seeds (Paid Add-on) — Bundle',
+        qty: 1,
+        unit: 0,
+        subtotal: extraSeedTotal,
+      });
+    }
   }
 
   return rows;
@@ -450,7 +459,7 @@ function renderReceipt() {
     linesEl.innerHTML =
       '<div class="receipt-line head"><div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div></div>'
       + rows.map((row) => {
-        const subtotal = Number(row.qty || 0) * Number(row.unit || 0);
+        const subtotal = Number(row.subtotal != null ? row.subtotal : (Number(row.qty || 0) * Number(row.unit || 0)));
         return '<div class="receipt-line"><div>' + escapeHtml(row.name) + '</div><div class="num">' + escapeHtml(row.qty) + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
       }).join('');
   }
@@ -472,7 +481,8 @@ function downloadReceiptFile() {
     'Items:'
   ];
   rows.forEach((row) => {
-    lines.push('- ' + row.name + ' ×' + row.qty + ' @ ' + asKES(row.unit) + ' = ' + asKES(row.qty * row.unit));
+    const subtotal = Number(row.subtotal != null ? row.subtotal : (Number(row.qty || 0) * Number(row.unit || 0)));
+    lines.push('- ' + row.name + ' ×' + row.qty + ' @ ' + asKES(row.unit) + ' = ' + asKES(subtotal));
   });
   lines.push('', 'Total Paid: ' + asKES(total));
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
