@@ -18,6 +18,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BREVO_TEMPLATES } from "../_shared/types.ts";
 
+const DEFAULT_SEED_NAME = "Seed packet";
+
 // ── Brevo email helper ────────────────────────────────────────
 async function sendBrevoTemplate(
   apiKey: string,
@@ -110,7 +112,7 @@ function parseSeedMetadata(value: unknown): Array<Record<string, unknown>> {
       const p = packet as Record<string, unknown>;
       return {
         slug: typeof p.slug === "string" ? p.slug : "",
-        name: typeof p.name === "string" ? p.name : "Seed packet",
+        name: typeof p.name === "string" ? p.name : DEFAULT_SEED_NAME,
         category: typeof p.category === "string" ? p.category : "Other",
         weight: typeof p.weight === "string" ? p.weight : "",
         price: Number.isFinite(Number(p.price)) ? Number(p.price) : 0,

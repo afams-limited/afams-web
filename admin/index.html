@@ -1891,7 +1891,7 @@ function openOrderModal(id) {
         addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || DEFAULT_SEED_PRICE) + '</span>';
       });
       if (extraSeeds.length === 0 && extraSeedCount > 0) {
-        addonsHtml += '<span class="seed-chip extra">' + PAID_SEED_ADDON_LABEL + ' x' + extraSeedCount + ' +KES ' + extraSeedTotal + '</span>';
+        addonsHtml += '<span class="seed-chip extra">' + PAID_SEED_ADDON_LABEL + ' · x' + extraSeedCount + ' +KES ' + extraSeedTotal + '</span>';
       }
       addonsHtml += '</div>';
       if (extraSeedCount > 0 || extraSeedTotal > 0) {
