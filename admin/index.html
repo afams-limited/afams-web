@@ -1854,9 +1854,13 @@ function openOrderModal(id) {
   var addonsWrap = document.getElementById('modal-addons-wrap');
   var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
   var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
+  var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
+  var extraSeedTotal = Number(
+    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || 150); }, 0) || 0
+  );
   var prosoilQty  = o.prosoil_qty  || 0;
   var prosoilTot  = o.prosoil_total || 0;
-  var hasSeeds    = freeSeeds.length > 0 || extraSeeds.length > 0;
+  var hasSeeds    = freeSeeds.length > 0 || extraSeeds.length > 0 || extraSeedCount > 0 || extraSeedTotal > 0;
   var hasProsoil  = prosoilQty > 0;
 
   if (hasSeeds || hasProsoil) {
@@ -1872,11 +1876,14 @@ function openOrderModal(id) {
       extraSeeds.forEach(function(s) {
         addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || 150) + '</span>';
       });
+      if (extraSeeds.length === 0 && extraSeedCount > 0) {
+        addonsHtml += '<span class="seed-chip extra">Paid seed add-on(s) ×' + extraSeedCount + '</span>';
+      }
       addonsHtml += '</div>';
-      if (extraSeeds.length > 0) {
+      if (extraSeedCount > 0 || extraSeedTotal > 0) {
         addonsHtml += '<div style="margin-top:8px;font-size:0.82rem;color:var(--text-muted)">'
-          + extraSeeds.length + ' extra packet' + (extraSeeds.length > 1 ? 's' : '') + ' — KES '
-          + (o.extra_seeds_total || extraSeeds.reduce(function(s,x){return s+(x.price||150);},0)).toLocaleString() + '</div>';
+          + extraSeedCount + ' extra packet' + (extraSeedCount > 1 ? 's' : '') + ' — KES '
+          + extraSeedTotal.toLocaleString() + '</div>';
       }
       addonsHtml += '</div>';
     }
@@ -2330,6 +2337,56 @@ function buildReceiptHTML(order) {
   var qty         = o.quantity     || 1;
   var subtotal    = unitPrice * qty;
   var productName = escapeHtml(o.product_name || o.product_sku || '—');
+  var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
+  var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
+  var freeSeedSummary = summarizeAddonItems(freeSeeds);
+  var extraSeedSummary = summarizeAddonItems(extraSeeds);
+  var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
+  var extraSeedTotal = Number(
+    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || 150); }, 0) || 0
+  );
+  var prosoilQty = Number(o.prosoil_qty || 0);
+  var prosoilTotal = Number(o.prosoil_total || 0);
+  var prosoilPromoQty = Number(o.prosoil_promo_qty || 0);
+  var receiptItemRows = ''
+    + '      <tr>'
+    + '<td class="td-product">' + productName + '</td>'
+    + '<td class="td-center">' + qty + '</td>'
+    + '<td class="td-right">' + formatReceiptKES(unitPrice) + '</td>'
+    + '<td class="td-right td-bold">' + formatReceiptKES(subtotal) + '</td>'
+    + '</tr>\n';
+  if (freeSeeds.length > 0) {
+    receiptItemRows += '      <tr>'
+      + '<td class="td-product">Certified Seeds (Free)'
+      + (freeSeedSummary ? ' — ' + escapeHtml(freeSeedSummary) : '')
+      + '</td>'
+      + '<td class="td-center">' + freeSeeds.length + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(0) + '</td>'
+      + '<td class="td-right td-bold">' + formatReceiptKES(0) + '</td>'
+      + '</tr>\n';
+  }
+  if (extraSeedCount > 0 || extraSeedTotal > 0) {
+    var extraSeedUnit = extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : 0;
+    receiptItemRows += '      <tr>'
+      + '<td class="td-product">Certified Seeds (Paid Add-on)'
+      + (extraSeedSummary ? ' — ' + escapeHtml(extraSeedSummary) : '')
+      + '</td>'
+      + '<td class="td-center">' + extraSeedCount + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(extraSeedUnit) + '</td>'
+      + '<td class="td-right td-bold">' + formatReceiptKES(extraSeedTotal) + '</td>'
+      + '</tr>\n';
+  }
+  if (prosoilQty > 0) {
+    var prosoilUnit = prosoilQty > 0 ? Math.round(prosoilTotal / prosoilQty) : 0;
+    receiptItemRows += '      <tr>'
+      + '<td class="td-product">Afams ProSoil 25kg'
+      + (prosoilPromoQty > 0 ? ' — ' + prosoilQty + ' paid + ' + prosoilPromoQty + ' free' : '')
+      + '</td>'
+      + '<td class="td-center">' + prosoilQty + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(prosoilUnit) + '</td>'
+      + '<td class="td-right td-bold">' + formatReceiptKES(prosoilTotal) + '</td>'
+      + '</tr>\n';
+  }
   var payRef      = escapeHtml(o.paystack_ref || '—');
   var payMethod   = escapeHtml(formatPaymentMethodLabel(o.payment_method));
   var now         = formatReceiptDateTime(new Date().toISOString());
@@ -2499,12 +2556,7 @@ function buildReceiptHTML(order) {
     + '<th style="text-align:right;">Subtotal</th>'
     + '</tr></thead>\n'
     + '    <tbody>\n'
-    + '      <tr>'
-    + '<td class="td-product">' + productName + '</td>'
-    + '<td class="td-center">' + qty + '</td>'
-    + '<td class="td-right">' + formatReceiptKES(unitPrice) + '</td>'
-    + '<td class="td-right td-bold">' + formatReceiptKES(subtotal) + '</td>'
-    + '</tr>\n'
+    + receiptItemRows
     + '    </tbody>\n'
     + '    <tfoot><tr>'
     + '<td colspan="3" class="total-label">TOTAL PAID</td>'
