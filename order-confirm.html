@@ -332,11 +332,7 @@
     <p style="font-size:0.82rem;color:var(--gray-mid);margin-bottom:1rem">
       Print this page or download your receipt copy.
     </p>
-    <div id="receipt-lines">
-      <div class="receipt-line head">
-        <div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div>
-      </div>
-    </div>
+    <div id="receipt-lines"></div>
     <div class="receipt-total">
       <span>Total paid</span>
       <span id="receipt-total">KES 0</span>
@@ -455,7 +451,7 @@ function renderReceipt() {
       '<div class="receipt-line head"><div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div></div>'
       + rows.map((row) => {
         const subtotal = Number(row.qty || 0) * Number(row.unit || 0);
-        return '<div class="receipt-line"><div>' + escapeHtml(row.name) + '</div><div class="num">' + row.qty + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
+        return '<div class="receipt-line"><div>' + escapeHtml(row.name) + '</div><div class="num">' + escapeHtml(row.qty) + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
       }).join('');
   }
 
