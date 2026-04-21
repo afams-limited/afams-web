@@ -375,9 +375,19 @@ const ref     = params.get('ref')    || '';
 const name    = params.get('name')   || '';
 const email   = params.get('email')  || '';
 const amount  = params.get('amount') || '';
+let receiptCache = null;
 
 function asKES(value) {
   return 'KES ' + Number(value || 0).toLocaleString('en-KE');
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function readStoredReceipt(ref) {
@@ -432,25 +442,29 @@ function buildReceiptLines(receipt) {
 
 function renderReceipt() {
   const receipt = readStoredReceipt(ref);
+  if (receipt) {
+    receiptCache = receipt;
+    try { sessionStorage.removeItem('afams_last_order_receipt'); } catch (_) {}
+  }
   const linesEl = document.getElementById('receipt-lines');
   const totalEl = document.getElementById('receipt-total');
-  const rows = buildReceiptLines(receipt || {});
+  const rows = buildReceiptLines(receiptCache || {});
 
   if (rows.length > 0) {
     linesEl.innerHTML =
       '<div class="receipt-line head"><div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div></div>'
       + rows.map((row) => {
         const subtotal = Number(row.qty || 0) * Number(row.unit || 0);
-        return '<div class="receipt-line"><div>' + row.name + '</div><div class="num">' + row.qty + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
+        return '<div class="receipt-line"><div>' + escapeHtml(row.name) + '</div><div class="num">' + row.qty + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
       }).join('');
   }
 
-  const paid = receipt ? Number(receipt.total_amount || amount || 0) : Number(amount || 0);
+  const paid = receiptCache ? Number(receiptCache.total_amount || amount || 0) : Number(amount || 0);
   totalEl.textContent = asKES(paid);
 }
 
 function downloadReceiptFile() {
-  const receipt = readStoredReceipt(ref) || {};
+  const receipt = receiptCache || readStoredReceipt(ref) || {};
   const rows = buildReceiptLines(receipt);
   const total = Number(receipt.total_amount || amount || 0);
   const lines = [

@@ -1891,9 +1891,12 @@ function openOrderModal(id) {
       + '<td>KES 0</td></tr>';
   }
   if (extraSeedCount > 0 || extraSeedTotal > 0) {
-    var extraUnitPrice = calculateUnitPrice(extraSeedTotal, extraSeedCount);
+    var extraQtyDisplay = extraSeedCount > 0 ? extraSeedCount : 1;
+    var extraUnitPrice = extraSeedCount > 0
+      ? calculateUnitPrice(extraSeedTotal, extraSeedCount)
+      : extraSeedTotal;
     rowsHtml += '<tr><td>' + PAID_SEED_ADDON_LABEL + '</td>'
-      + '<td>' + (extraSeedCount || 1) + '</td>'
+      + '<td>' + extraQtyDisplay + '</td>'
       + '<td>KES ' + extraUnitPrice.toLocaleString() + '</td>'
       + '<td>KES ' + extraSeedTotal.toLocaleString() + '</td></tr>';
   }
