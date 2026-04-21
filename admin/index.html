@@ -1589,6 +1589,28 @@ function calculateUnitPrice(total, quantity) {
   return quantity > 0 ? Math.round(Number(total || 0) / Number(quantity || 0)) : 0;
 }
 
+function buildOrderProductSummary(order) {
+  var summary = [];
+  var baseName = order.product_name || order.product_sku || '—';
+  var baseQty = Number(order.quantity || 1);
+  summary.push(baseName + ' ×' + baseQty);
+
+  var freeSeeds = Array.isArray(order.free_seeds) ? order.free_seeds : [];
+  if (freeSeeds.length > 0) summary.push('Certified Seeds (Free) ×' + freeSeeds.length);
+
+  var extraSeedSummary = getExtraSeedSummary(order);
+  if (extraSeedSummary.extraSeedCount > 0) {
+    summary.push(PAID_SEED_ADDON_LABEL + ' ×' + extraSeedSummary.extraSeedCount);
+  }
+
+  var prosoilQty = Number(order.prosoil_qty || 0);
+  var prosoilPromoQty = Number(order.prosoil_promo_qty || 0);
+  var prosoilDispatchQty = prosoilQty + prosoilPromoQty;
+  if (prosoilDispatchQty > 0) summary.push('Afams ProSoil 25kg ×' + prosoilDispatchQty);
+
+  return summary.join(' + ');
+}
+
 function renderStatusBadge(status) {
   var s = (status || 'pending').toLowerCase();
   if (!ORDER_STATUSES.includes(s)) s = 'pending';
@@ -1766,8 +1788,7 @@ function renderOrders(orders) {
   tbody.innerHTML = orders.map(function (o) {
     var name     = escapeHtml(o.customer_name || '—');
     var email    = escapeHtml(o.customer_email || '');
-    var product  = escapeHtml(o.product_name || o.product_sku || '—');
-    var qty      = o.quantity || 1;
+    var product  = escapeHtml(buildOrderProductSummary(o));
     var ref      = escapeHtml(o.order_number || (o.id ? o.id.slice(0, 8) : '—'));
     var amount   = (o.total_amount || 0).toLocaleString();
     var status   = o.status || 'pending';
@@ -1782,7 +1803,7 @@ function renderOrders(orders) {
       +   '<div style="font-weight:600">' + name + '</div>'
       +   '<div style="color:var(--text-muted);font-size:0.78rem;">' + email + '</div>'
       + '</td>'
-      + '<td style="color:var(--text-muted);font-size:0.82rem;">' + product + ' ×' + qty + '</td>'
+      + '<td style="color:var(--text-muted);font-size:0.82rem;">' + product + '</td>'
       + '<td style="font-weight:600">KES ' + amount + '</td>'
       + '<td><span class="badge badge-' + escapeHtml(payStatus) + '">' + escapeHtml(payStatus) + '</span></td>'
       + '<td>' + renderStatusBadge(status) + '</td>'
@@ -1848,32 +1869,58 @@ function openOrderModal(id) {
         : '');
 
   // Items table
-  var qty        = o.quantity   || 1;
-  var unitPrice  = o.unit_price || 0;
-  var total      = o.total_amount || (qty * unitPrice);
+  var qty        = Number(o.quantity || 1);
+  var unitPrice  = Number(o.unit_price || 0);
+  var total      = Number(o.total_amount || (qty * unitPrice));
   var productName = escapeHtml(o.product_name || o.product_sku || '—');
+  var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
+  var extraSeedSummary = getExtraSeedSummary(o);
+  var extraSeedCount = extraSeedSummary.extraSeedCount;
+  var extraSeedTotal = extraSeedSummary.extraSeedTotal;
+  var prosoilQty  = Number(o.prosoil_qty  || 0);
+  var prosoilTot  = Number(o.prosoil_total || 0);
+  var prosoilPromoQty = Number(o.prosoil_promo_qty || 0);
+  var rowsHtml = '<tr><td>' + productName + '</td>'
+    + '<td>' + qty + '</td>'
+    + '<td>KES ' + unitPrice.toLocaleString() + '</td>'
+    + '<td>KES ' + (unitPrice * qty).toLocaleString() + '</td></tr>';
+  if (freeSeeds.length > 0) {
+    rowsHtml += '<tr><td>Certified Seeds (Free)</td>'
+      + '<td>' + freeSeeds.length + '</td>'
+      + '<td>KES 0</td>'
+      + '<td>KES 0</td></tr>';
+  }
+  if (extraSeedCount > 0 || extraSeedTotal > 0) {
+    var extraUnitPrice = calculateUnitPrice(extraSeedTotal, extraSeedCount);
+    rowsHtml += '<tr><td>' + PAID_SEED_ADDON_LABEL + '</td>'
+      + '<td>' + (extraSeedCount || 1) + '</td>'
+      + '<td>KES ' + extraUnitPrice.toLocaleString() + '</td>'
+      + '<td>KES ' + extraSeedTotal.toLocaleString() + '</td></tr>';
+  }
+  if (prosoilQty > 0) {
+    var prosoilUnitPrice = calculateUnitPrice(prosoilTot, prosoilQty);
+    var prosoilLineName = 'Afams ProSoil 25kg';
+    if (prosoilPromoQty > 0) {
+      prosoilLineName += ' (' + prosoilQty + ' paid + ' + prosoilPromoQty + ' free)';
+    }
+    rowsHtml += '<tr><td>' + prosoilLineName + '</td>'
+      + '<td>' + prosoilQty + '</td>'
+      + '<td>KES ' + prosoilUnitPrice.toLocaleString() + '</td>'
+      + '<td>KES ' + prosoilTot.toLocaleString() + '</td></tr>';
+  }
 
   document.getElementById('modal-items-wrap').innerHTML =
     '<table class="items-table">'
     + '<thead><tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead>'
     + '<tbody>'
-    + '<tr><td>' + productName + '</td>'
-    + '<td>' + qty + '</td>'
-    + '<td>KES ' + unitPrice.toLocaleString() + '</td>'
-    + '<td>KES ' + (unitPrice * qty).toLocaleString() + '</td></tr>'
+    + rowsHtml
     + '<tr class="total-row"><td colspan="3" style="text-align:right;font-weight:700">Total</td>'
     + '<td>KES ' + total.toLocaleString() + '</td></tr>'
     + '</tbody></table>';
 
   // Add-ons section
   var addonsWrap = document.getElementById('modal-addons-wrap');
-  var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
-  var extraSeedSummary = getExtraSeedSummary(o);
   var extraSeeds = extraSeedSummary.extraSeeds;
-  var extraSeedCount = extraSeedSummary.extraSeedCount;
-  var extraSeedTotal = extraSeedSummary.extraSeedTotal;
-  var prosoilQty  = o.prosoil_qty  || 0;
-  var prosoilTot  = o.prosoil_total || 0;
   var hasSeeds    = freeSeeds.length > 0 || extraSeeds.length > 0 || extraSeedCount > 0 || extraSeedTotal > 0;
   var hasProsoil  = prosoilQty > 0;
 
@@ -1903,7 +1950,6 @@ function openOrderModal(id) {
     }
 
     if (hasProsoil) {
-      var prosoilPromoQty = o.prosoil_promo_qty || 0;
       var dispatchQty     = prosoilQty + prosoilPromoQty;
       addonsHtml += '<div class="addons-subsection">'
         + '<div class="addons-subsection-title">🪴 Afams ProSoil 25kg</div>'

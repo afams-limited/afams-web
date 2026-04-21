@@ -1511,6 +1511,31 @@ function launchPaystack() {
     },
     callback: function(response) {
       releaseCheckoutState();
+      try {
+        sessionStorage.setItem('afams_last_order_receipt', JSON.stringify({
+          reference: response.reference,
+          customer_name: name,
+          customer_email: email,
+          customer_phone: phone,
+          delivery_address: address,
+          county: county,
+          payment_method: 'paystack',
+          paid_at: new Date().toISOString(),
+          product_name: primaryItem.name,
+          product_sku: primaryItem.sku,
+          quantity: primaryItem.qty,
+          unit_price: primaryItem.unit_price,
+          total_amount: grandTotal,
+          cart_items: cart.items,
+          free_seeds: freeSeeds,
+          extra_seeds: extraSeeds,
+          extra_seeds_count: extraSeeds.length,
+          extra_seeds_total: seedsTotal,
+          prosoil_qty: prosoilQty,
+          prosoil_total: prosoilTotal,
+          prosoil_promo_qty: prosoilPromoQty
+        }));
+      } catch (_) {}
       clearCart();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference)
         + '&name=' + encodeURIComponent(name)

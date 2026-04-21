@@ -231,6 +231,27 @@
       gap: 0.6rem;
       margin-bottom: 1.5rem;
     }
+    .receipt-line {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #EDF2F7;
+      font-size: 0.84rem;
+      align-items: center;
+    }
+    .receipt-line:last-child { border-bottom: none; }
+    .receipt-line.head { font-weight: 700; color: var(--gray-mid); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .receipt-line .num { text-align: right; white-space: nowrap; }
+    .receipt-total {
+      margin-top: 0.9rem;
+      padding-top: 0.9rem;
+      border-top: 2px solid #E2E8F0;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: var(--green-dark);
+    }
   </style>
 </head>
 <body>
@@ -307,6 +328,30 @@
 
   <!-- Actions -->
   <div class="card">
+    <h2>Your receipt</h2>
+    <p style="font-size:0.82rem;color:var(--gray-mid);margin-bottom:1rem">
+      Print this page or download your receipt copy.
+    </p>
+    <div id="receipt-lines">
+      <div class="receipt-line head">
+        <div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div>
+      </div>
+    </div>
+    <div class="receipt-total">
+      <span>Total paid</span>
+      <span id="receipt-total">KES 0</span>
+    </div>
+    <div class="actions" style="margin-top:1rem">
+      <button class="btn-primary" type="button" onclick="window.print()">
+        🖨️ Print / Save PDF
+      </button>
+      <button class="btn-secondary" type="button" onclick="downloadReceiptFile()">
+        ⬇ Download receipt
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>What's next?</h2>
     <p style="font-size:0.875rem;color:var(--gray-mid);margin-bottom:1.25rem">
       Keep an eye on your email and WhatsApp for dispatch notifications.
@@ -330,6 +375,106 @@ const ref     = params.get('ref')    || '';
 const name    = params.get('name')   || '';
 const email   = params.get('email')  || '';
 const amount  = params.get('amount') || '';
+
+function asKES(value) {
+  return 'KES ' + Number(value || 0).toLocaleString('en-KE');
+}
+
+function readStoredReceipt(ref) {
+  try {
+    const raw = sessionStorage.getItem('afams_last_order_receipt');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (ref && parsed.reference && parsed.reference !== ref) return null;
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+function buildReceiptLines(receipt) {
+  const rows = [];
+  const cartItems = Array.isArray(receipt?.cart_items) ? receipt.cart_items : [];
+  if (cartItems.length > 0) {
+    cartItems.forEach((item) => {
+      rows.push({
+        name: item.name || item.sku || 'Product',
+        qty: Number(item.qty || 1),
+        unit: Number(item.unit_price || 0),
+      });
+    });
+  } else {
+    rows.push({
+      name: receipt?.product_name || 'Product',
+      qty: Number(receipt?.quantity || 1),
+      unit: Number(receipt?.unit_price || 0),
+    });
+  }
+
+  const freeSeeds = Array.isArray(receipt?.free_seeds) ? receipt.free_seeds : [];
+  if (freeSeeds.length > 0) {
+    rows.push({ name: 'Certified Seeds (Free)', qty: freeSeeds.length, unit: 0 });
+  }
+
+  const extraSeedCount = Number(receipt?.extra_seeds_count || 0);
+  const extraSeedTotal = Number(receipt?.extra_seeds_total || 0);
+  if (extraSeedCount > 0 || extraSeedTotal > 0) {
+    rows.push({
+      name: 'Certified Seeds (Paid Add-on)',
+      qty: extraSeedCount || 1,
+      unit: extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : extraSeedTotal,
+    });
+  }
+
+  return rows;
+}
+
+function renderReceipt() {
+  const receipt = readStoredReceipt(ref);
+  const linesEl = document.getElementById('receipt-lines');
+  const totalEl = document.getElementById('receipt-total');
+  const rows = buildReceiptLines(receipt || {});
+
+  if (rows.length > 0) {
+    linesEl.innerHTML =
+      '<div class="receipt-line head"><div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div></div>'
+      + rows.map((row) => {
+        const subtotal = Number(row.qty || 0) * Number(row.unit || 0);
+        return '<div class="receipt-line"><div>' + row.name + '</div><div class="num">' + row.qty + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
+      }).join('');
+  }
+
+  const paid = receipt ? Number(receipt.total_amount || amount || 0) : Number(amount || 0);
+  totalEl.textContent = asKES(paid);
+}
+
+function downloadReceiptFile() {
+  const receipt = readStoredReceipt(ref) || {};
+  const rows = buildReceiptLines(receipt);
+  const total = Number(receipt.total_amount || amount || 0);
+  const lines = [
+    'AFAMS RECEIPT',
+    'Reference: ' + (ref || receipt.reference || '—'),
+    'Customer: ' + (name || receipt.customer_name || '—'),
+    'Email: ' + (email || receipt.customer_email || '—'),
+    '',
+    'Items:'
+  ];
+  rows.forEach((row) => {
+    lines.push('- ' + row.name + ' ×' + row.qty + ' @ ' + asKES(row.unit) + ' = ' + asKES(row.qty * row.unit));
+  });
+  lines.push('', 'Total Paid: ' + asKES(total));
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'afams-receipt-' + (ref || Date.now()) + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // Display reference
 document.getElementById('order-ref').textContent = ref || 'Check your email';
@@ -358,9 +503,11 @@ const dispatchDate = addBusinessDays(now, 2);
 const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
 document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
 document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
+renderReceipt();
 
 // Clear cart if using the localStorage cart from index.html
 try { localStorage.removeItem('afams_cart'); } catch(_) {}
+try { sessionStorage.removeItem('afams_cart'); } catch(_) {}
 
 // After successful order, silently add to subscribers list (buyer auto-enrolment)
 const orderData = { email: email, full_name: name };
