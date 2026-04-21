@@ -18,6 +18,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BREVO_TEMPLATES } from "../_shared/types.ts";
 
+const DEFAULT_SEED_NAME = "Seed packet";
+
 // ── Brevo email helper ────────────────────────────────────────
 async function sendBrevoTemplate(
   apiKey: string,
@@ -81,6 +83,41 @@ function formatPaymentMethod(raw: unknown): string {
   if (val.includes("card")) return "Card";
   if (!val || val === "paystack") return "M-Pesa / M-Pesa Till / Airtel Money / Card";
   return String(raw);
+}
+
+function parseMetadataArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (value == null || value === "") return [];
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+      return typeof parsed === "object" && parsed !== null ? [parsed] : [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof value === "object") return [value];
+  return [];
+}
+
+function parseSeedMetadata(value: unknown): Array<Record<string, unknown>> {
+  return parseMetadataArray(value)
+    .filter((packet) => {
+      if (!packet || typeof packet !== "object" || Array.isArray(packet)) return false;
+      const p = packet as Record<string, unknown>;
+      return typeof p.slug === "string" || typeof p.name === "string";
+    })
+    .map((packet) => {
+      const p = packet as Record<string, unknown>;
+      return {
+        slug: typeof p.slug === "string" ? p.slug : "",
+        name: typeof p.name === "string" ? p.name : DEFAULT_SEED_NAME,
+        category: typeof p.category === "string" ? p.category : "Other",
+        weight: typeof p.weight === "string" ? p.weight : "",
+        price: Number.isFinite(Number(p.price)) ? Number(p.price) : 0,
+      };
+    });
 }
 
 // ── Main handler ─────────────────────────────────────────────
@@ -164,8 +201,8 @@ Deno.serve(async (req: Request) => {
     const county = metadata.county as string | undefined;
 
     // Add-on fields (set by checkout.html for FarmBag orders)
-    const rawFreeSeeds   = metadata.free_seeds   as string | undefined;
-    const rawExtraSeeds  = metadata.extra_seeds  as string | undefined;
+    const rawFreeSeeds   = metadata.free_seeds;
+    const rawExtraSeeds  = metadata.extra_seeds;
     const extra_seeds_count = parseInt(String(metadata.extra_seeds_count  ?? "0"), 10) || 0;
     const extra_seeds_total = parseInt(String(metadata.extra_seeds_total  ?? "0"), 10) || 0;
     const prosoil_qty       = parseInt(String(metadata.prosoil_qty        ?? "0"), 10) || 0;
@@ -177,7 +214,9 @@ Deno.serve(async (req: Request) => {
     let prosoil_promo_qty   = parseInt(String(metadata.prosoil_promo_qty  ?? "0"), 10) || 0;
     if (!prosoil_promo_qty && metadata.cart_items) {
       try {
-        const cartItems = JSON.parse(String(metadata.cart_items));
+        const cartItems = Array.isArray(metadata.cart_items)
+          ? metadata.cart_items
+          : JSON.parse(String(metadata.cart_items));
         const hasFarmBag = Array.isArray(cartItems) &&
           cartItems.some((i: any) => ["FB-CLS-01", "FB-GRW-01"].includes(i.sku));
         if (hasFarmBag && prosoil_qty >= 3) {
@@ -186,10 +225,8 @@ Deno.serve(async (req: Request) => {
       } catch { /* ignore parse errors */ }
     }
 
-    let free_seeds: unknown[] = [];
-    let extra_seeds: unknown[] = [];
-    try { free_seeds  = rawFreeSeeds  ? JSON.parse(rawFreeSeeds)  : []; } catch { free_seeds  = []; }
-    try { extra_seeds = rawExtraSeeds ? JSON.parse(rawExtraSeeds) : []; } catch { extra_seeds = []; }
+    const free_seeds = parseSeedMetadata(rawFreeSeeds);
+    const extra_seeds = parseSeedMetadata(rawExtraSeeds);
 
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(
