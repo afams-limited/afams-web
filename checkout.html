@@ -1514,8 +1514,6 @@ function launchPaystack() {
       try {
         sessionStorage.setItem('afams_last_order_receipt', JSON.stringify({
           reference: response.reference,
-          customer_name: name,
-          customer_email: email,
           payment_method: 'paystack',
           paid_at: new Date().toISOString(),
           product_name: primaryItem.name,

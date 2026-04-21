@@ -338,10 +338,10 @@
       <span id="receipt-total">KES 0</span>
     </div>
     <div class="actions" style="margin-top:1rem">
-      <button class="btn-primary" type="button" onclick="window.print()">
+      <button class="btn-primary" type="button" onclick="window.print()" aria-label="Print or save receipt as PDF">
         🖨️ Print / Save PDF
       </button>
-      <button class="btn-secondary" type="button" onclick="downloadReceiptFile()">
+      <button class="btn-secondary" type="button" onclick="downloadReceiptFile()" aria-label="Download receipt as text file">
         ⬇ Download receipt
       </button>
     </div>
@@ -430,7 +430,7 @@ function buildReceiptLines(receipt) {
       rows.push({
         name: 'Certified Seeds (Paid Add-on)',
         qty: extraSeedCount,
-        unit: Math.round(extraSeedTotal / extraSeedCount),
+        unit: extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : 0,
       });
     } else {
       rows.push({
@@ -443,6 +443,12 @@ function buildReceiptLines(receipt) {
   }
 
   return rows;
+}
+
+function calculateRowSubtotal(row) {
+  return Number(row && row.subtotal != null
+    ? row.subtotal
+    : (Number(row && row.qty || 0) * Number(row && row.unit || 0)));
 }
 
 function renderReceipt() {
@@ -459,7 +465,7 @@ function renderReceipt() {
     linesEl.innerHTML =
       '<div class="receipt-line head"><div>Item</div><div class="num">Qty</div><div class="num">Unit</div><div class="num">Subtotal</div></div>'
       + rows.map((row) => {
-        const subtotal = Number(row.subtotal != null ? row.subtotal : (Number(row.qty || 0) * Number(row.unit || 0)));
+        const subtotal = calculateRowSubtotal(row);
         return '<div class="receipt-line"><div>' + escapeHtml(row.name) + '</div><div class="num">' + escapeHtml(row.qty) + '</div><div class="num">' + asKES(row.unit) + '</div><div class="num">' + asKES(subtotal) + '</div></div>';
       }).join('');
   }
@@ -481,7 +487,7 @@ function downloadReceiptFile() {
     'Items:'
   ];
   rows.forEach((row) => {
-    const subtotal = Number(row.subtotal != null ? row.subtotal : (Number(row.qty || 0) * Number(row.unit || 0)));
+    const subtotal = calculateRowSubtotal(row);
     lines.push('- ' + row.name + ' ×' + row.qty + ' @ ' + asKES(row.unit) + ' = ' + asKES(subtotal));
   });
   lines.push('', 'Total Paid: ' + asKES(total));

@@ -1892,7 +1892,7 @@ function openOrderModal(id) {
   }
   if (extraSeedCount > 0 || extraSeedTotal > 0) {
     var extraQtyDisplay = extraSeedCount > 0 ? extraSeedCount : 1;
-    var extraUnitPrice = extraSeedCount > 0 ? calculateUnitPrice(extraSeedTotal, extraSeedCount) : 0;
+    var extraUnitPrice = calculateUnitPrice(extraSeedTotal, extraSeedCount);
     var extraSeedLabel = extraSeedCount > 0 ? PAID_SEED_ADDON_LABEL : (PAID_SEED_ADDON_LABEL + ' (Bundle)');
     rowsHtml += '<tr><td>' + extraSeedLabel + '</td>'
       + '<td>' + extraQtyDisplay + '</td>'
