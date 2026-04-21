@@ -99,6 +99,25 @@ function parseMetadataArray(value: unknown): unknown[] {
   return [];
 }
 
+function parseSeedMetadata(value: unknown): Array<Record<string, unknown>> {
+  return parseMetadataArray(value)
+    .filter((packet) => {
+      if (!packet || typeof packet !== "object" || Array.isArray(packet)) return false;
+      const p = packet as Record<string, unknown>;
+      return typeof p.slug === "string" || typeof p.name === "string";
+    })
+    .map((packet) => {
+      const p = packet as Record<string, unknown>;
+      return {
+        slug: typeof p.slug === "string" ? p.slug : "",
+        name: typeof p.name === "string" ? p.name : "Seed packet",
+        category: typeof p.category === "string" ? p.category : "Other",
+        weight: typeof p.weight === "string" ? p.weight : "",
+        price: Number.isFinite(Number(p.price)) ? Number(p.price) : 0,
+      };
+    });
+}
+
 // ── Main handler ─────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -204,8 +223,8 @@ Deno.serve(async (req: Request) => {
       } catch { /* ignore parse errors */ }
     }
 
-    const free_seeds = parseMetadataArray(rawFreeSeeds);
-    const extra_seeds = parseMetadataArray(rawExtraSeeds);
+    const free_seeds = parseSeedMetadata(rawFreeSeeds);
+    const extra_seeds = parseSeedMetadata(rawExtraSeeds);
 
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(

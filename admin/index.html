@@ -1541,6 +1541,7 @@ const ADMIN_EMAIL      = 'iammwombe@gmail.com';
 const WA_NUMBER        = '254714128514';
 const EMAIL_SIGNATURE  = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
 const DEFAULT_SEED_PRICE = 150;
+const PAID_SEED_ADDON_LABEL = 'Certified Seeds (Paid Add-on)';
 
 // ════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1573,6 +1574,15 @@ function formatPaymentMethodLabel(raw) {
   if (val.indexOf('airtel') >= 0) return 'Airtel Money';
   if (val.indexOf('card') >= 0) return 'Card';
   return String(raw);
+}
+
+function getExtraSeedSummary(order) {
+  var extraSeeds = Array.isArray(order.extra_seeds) ? order.extra_seeds : [];
+  var extraSeedCount = Number(order.extra_seeds_count || extraSeeds.length || 0);
+  var extraSeedTotal = Number(
+    order.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || DEFAULT_SEED_PRICE); }, 0) || 0
+  );
+  return { extraSeeds: extraSeeds, extraSeedCount: extraSeedCount, extraSeedTotal: extraSeedTotal };
 }
 
 function renderStatusBadge(status) {
@@ -1854,11 +1864,10 @@ function openOrderModal(id) {
   // Add-ons section
   var addonsWrap = document.getElementById('modal-addons-wrap');
   var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
-  var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
-  var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
-  var extraSeedTotal = Number(
-    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || DEFAULT_SEED_PRICE); }, 0) || 0
-  );
+  var extraSeedSummary = getExtraSeedSummary(o);
+  var extraSeeds = extraSeedSummary.extraSeeds;
+  var extraSeedCount = extraSeedSummary.extraSeedCount;
+  var extraSeedTotal = extraSeedSummary.extraSeedTotal;
   var prosoilQty  = o.prosoil_qty  || 0;
   var prosoilTot  = o.prosoil_total || 0;
   var hasSeeds    = freeSeeds.length > 0 || extraSeeds.length > 0 || extraSeedCount > 0 || extraSeedTotal > 0;
@@ -1878,7 +1887,7 @@ function openOrderModal(id) {
         addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || DEFAULT_SEED_PRICE) + '</span>';
       });
       if (extraSeeds.length === 0 && extraSeedCount > 0) {
-        addonsHtml += '<span class="seed-chip extra">Paid seed add-on(s) x' + extraSeedCount + '</span>';
+        addonsHtml += '<span class="seed-chip extra">' + PAID_SEED_ADDON_LABEL + ' x' + extraSeedCount + '</span>';
       }
       addonsHtml += '</div>';
       if (extraSeedCount > 0 || extraSeedTotal > 0) {
@@ -2339,13 +2348,12 @@ function buildReceiptHTML(order) {
   var subtotal    = unitPrice * qty;
   var productName = escapeHtml(o.product_name || o.product_sku || '—');
   var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
-  var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
+  var extraSeedSummaryData = getExtraSeedSummary(o);
+  var extraSeeds  = extraSeedSummaryData.extraSeeds;
   var freeSeedSummary = summarizeAddonItems(freeSeeds);
   var extraSeedSummary = summarizeAddonItems(extraSeeds);
-  var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
-  var extraSeedTotal = Number(
-    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || DEFAULT_SEED_PRICE); }, 0) || 0
-  );
+  var extraSeedCount = extraSeedSummaryData.extraSeedCount;
+  var extraSeedTotal = extraSeedSummaryData.extraSeedTotal;
   var prosoilQty = Number(o.prosoil_qty || 0);
   var prosoilTotal = Number(o.prosoil_total || 0);
   var prosoilPromoQty = Number(o.prosoil_promo_qty || 0);
@@ -2369,7 +2377,7 @@ function buildReceiptHTML(order) {
   if (extraSeedCount > 0 || extraSeedTotal > 0) {
     var extraSeedUnit = extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : 0;
     receiptItemRows += '      <tr>'
-      + '<td class="td-product">Certified Seeds (Paid Add-on)'
+      + '<td class="td-product">' + PAID_SEED_ADDON_LABEL
       + (extraSeedSummary ? ' — ' + escapeHtml(extraSeedSummary) : '')
       + '</td>'
       + '<td class="td-center">' + extraSeedCount + '</td>'
