@@ -1540,6 +1540,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const ADMIN_EMAIL      = 'iammwombe@gmail.com';
 const WA_NUMBER        = '254714128514';
 const EMAIL_SIGNATURE  = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
+const DEFAULT_SEED_PRICE = 150;
 
 // ════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1856,7 +1857,7 @@ function openOrderModal(id) {
   var extraSeeds  = Array.isArray(o.extra_seeds) ? o.extra_seeds : [];
   var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
   var extraSeedTotal = Number(
-    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || 150); }, 0) || 0
+    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || DEFAULT_SEED_PRICE); }, 0) || 0
   );
   var prosoilQty  = o.prosoil_qty  || 0;
   var prosoilTot  = o.prosoil_total || 0;
@@ -1874,10 +1875,10 @@ function openOrderModal(id) {
         addonsHtml += '<span class="seed-chip free">' + escapeHtml(s.name || s.slug || '?') + ' ✓ Free</span>';
       });
       extraSeeds.forEach(function(s) {
-        addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || 150) + '</span>';
+        addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || DEFAULT_SEED_PRICE) + '</span>';
       });
       if (extraSeeds.length === 0 && extraSeedCount > 0) {
-        addonsHtml += '<span class="seed-chip extra">Paid seed add-on(s) ×' + extraSeedCount + '</span>';
+        addonsHtml += '<span class="seed-chip extra">Paid seed add-on(s) x' + extraSeedCount + '</span>';
       }
       addonsHtml += '</div>';
       if (extraSeedCount > 0 || extraSeedTotal > 0) {
@@ -2343,7 +2344,7 @@ function buildReceiptHTML(order) {
   var extraSeedSummary = summarizeAddonItems(extraSeeds);
   var extraSeedCount = Number(o.extra_seeds_count || extraSeeds.length || 0);
   var extraSeedTotal = Number(
-    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || 150); }, 0) || 0
+    o.extra_seeds_total || extraSeeds.reduce(function (s, x) { return s + (Number(x && x.price) || DEFAULT_SEED_PRICE); }, 0) || 0
   );
   var prosoilQty = Number(o.prosoil_qty || 0);
   var prosoilTotal = Number(o.prosoil_total || 0);

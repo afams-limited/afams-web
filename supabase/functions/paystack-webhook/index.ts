@@ -90,7 +90,7 @@ function parseMetadataArray(value: unknown): unknown[] {
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) return parsed;
-      return parsed && typeof parsed === "object" ? [parsed] : [];
+      return typeof parsed === "object" && parsed !== null ? [parsed] : [];
     } catch {
       return [];
     }
