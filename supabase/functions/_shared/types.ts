@@ -32,6 +32,7 @@ export interface Order {
   prosoil_unit_price: number;
   prosoil_total: number;
   prosoil_promo_bag: boolean;
+  prosoil_promo_qty: number;
   addons_total: number;
 }
 
