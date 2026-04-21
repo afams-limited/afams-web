@@ -1585,6 +1585,10 @@ function getExtraSeedSummary(order) {
   return { extraSeeds: extraSeeds, extraSeedCount: extraSeedCount, extraSeedTotal: extraSeedTotal };
 }
 
+function calculateUnitPrice(total, quantity) {
+  return quantity > 0 ? Math.round(Number(total || 0) / Number(quantity || 0)) : 0;
+}
+
 function renderStatusBadge(status) {
   var s = (status || 'pending').toLowerCase();
   if (!ORDER_STATUSES.includes(s)) s = 'pending';
@@ -1887,7 +1891,7 @@ function openOrderModal(id) {
         addonsHtml += '<span class="seed-chip extra">' + escapeHtml(s.name || s.slug || '?') + ' +KES ' + (s.price || DEFAULT_SEED_PRICE) + '</span>';
       });
       if (extraSeeds.length === 0 && extraSeedCount > 0) {
-        addonsHtml += '<span class="seed-chip extra">' + PAID_SEED_ADDON_LABEL + ' x' + extraSeedCount + '</span>';
+        addonsHtml += '<span class="seed-chip extra">' + PAID_SEED_ADDON_LABEL + ' x' + extraSeedCount + ' +KES ' + extraSeedTotal + '</span>';
       }
       addonsHtml += '</div>';
       if (extraSeedCount > 0 || extraSeedTotal > 0) {
@@ -2375,24 +2379,24 @@ function buildReceiptHTML(order) {
       + '</tr>\n';
   }
   if (extraSeedCount > 0 || extraSeedTotal > 0) {
-    var extraSeedUnit = extraSeedCount > 0 ? Math.round(extraSeedTotal / extraSeedCount) : 0;
+    var avgExtraSeedPrice = calculateUnitPrice(extraSeedTotal, extraSeedCount);
     receiptItemRows += '      <tr>'
       + '<td class="td-product">' + PAID_SEED_ADDON_LABEL
       + (extraSeedSummary ? ' — ' + escapeHtml(extraSeedSummary) : '')
       + '</td>'
       + '<td class="td-center">' + extraSeedCount + '</td>'
-      + '<td class="td-right">' + formatReceiptKES(extraSeedUnit) + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(avgExtraSeedPrice) + '</td>'
       + '<td class="td-right td-bold">' + formatReceiptKES(extraSeedTotal) + '</td>'
       + '</tr>\n';
   }
   if (prosoilQty > 0) {
-    var prosoilUnit = prosoilQty > 0 ? Math.round(prosoilTotal / prosoilQty) : 0;
+    var prosoilUnitPrice = calculateUnitPrice(prosoilTotal, prosoilQty);
     receiptItemRows += '      <tr>'
       + '<td class="td-product">Afams ProSoil 25kg'
       + (prosoilPromoQty > 0 ? ' — ' + prosoilQty + ' paid + ' + prosoilPromoQty + ' free' : '')
       + '</td>'
       + '<td class="td-center">' + prosoilQty + '</td>'
-      + '<td class="td-right">' + formatReceiptKES(prosoilUnit) + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(prosoilUnitPrice) + '</td>'
       + '<td class="td-right td-bold">' + formatReceiptKES(prosoilTotal) + '</td>'
       + '</tr>\n';
   }
