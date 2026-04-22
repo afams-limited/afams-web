@@ -1589,6 +1589,61 @@ function calculateUnitPrice(total, quantity) {
   return quantity > 0 ? Math.round(Number(total || 0) / Number(quantity || 0)) : 0;
 }
 
+function getOrderLineItems(order) {
+  var storedItems = Array.isArray(order && order.items) ? order.items : [];
+  if (storedItems.length > 0) {
+    return storedItems.map(function (item) {
+      var safeItem = item || {};
+      var qty = Math.max(1, parseInt(safeItem.qty || safeItem.quantity, 10) || 1);
+      var price = Number(safeItem.price);
+      if (!Number.isFinite(price)) price = Number(safeItem.unit_price);
+      if (!Number.isFinite(price) || price < 0) price = 0;
+      return {
+        name: String(safeItem.name || safeItem.sku || safeItem.slug || 'Product'),
+        qty: qty,
+        price: price,
+        type: String(safeItem.type || 'product'),
+        is_free: safeItem.is_free === true || safeItem.is_free === 'true'
+      };
+    });
+  }
+
+  var fallback = [];
+  var qty = Math.max(1, Number(order.quantity || 1));
+  var unitPrice = Math.max(0, Number(order.unit_price || 0));
+  fallback.push({
+    name: String(order.product_name || order.product_sku || 'Product'),
+    qty: qty,
+    price: unitPrice,
+    type: 'product',
+    is_free: false
+  });
+
+  var freeSeeds = Array.isArray(order.free_seeds) ? order.free_seeds : [];
+  freeSeeds.forEach(function (seed) {
+    fallback.push({
+      name: String((seed && (seed.name || seed.slug)) || 'Seed packet'),
+      qty: 1,
+      price: 0,
+      type: 'seed',
+      is_free: true
+    });
+  });
+
+  var extraSeeds = Array.isArray(order.extra_seeds) ? order.extra_seeds : [];
+  extraSeeds.forEach(function (seed) {
+    fallback.push({
+      name: String((seed && (seed.name || seed.slug)) || 'Seed packet'),
+      qty: 1,
+      price: Math.max(0, Number(seed && seed.price) || 0),
+      type: 'seed',
+      is_free: false
+    });
+  });
+
+  return fallback;
+}
+
 function renderStatusBadge(status) {
   var s = (status || 'pending').toLowerCase();
   if (!ORDER_STATUSES.includes(s)) s = 'pending';
@@ -1848,19 +1903,32 @@ function openOrderModal(id) {
         : '');
 
   // Items table
-  var qty        = o.quantity   || 1;
-  var unitPrice  = o.unit_price || 0;
-  var total      = o.total_amount || (qty * unitPrice);
-  var productName = escapeHtml(o.product_name || o.product_sku || '—');
+  var lineItems = getOrderLineItems(o);
+  var total = Number(o.total_amount || 0);
+  if (!total) {
+    total = lineItems.reduce(function (sum, item) {
+      return sum + ((Number(item.price) || 0) * (Number(item.qty) || 1));
+    }, 0);
+  }
+  var rowsHtml = lineItems.map(function (item) {
+    var qty = Math.max(1, Number(item.qty || 1));
+    var unitPrice = Math.max(0, Number(item.price || 0));
+    var subtotal = unitPrice * qty;
+    var label = escapeHtml(item.name || 'Product');
+    if (item.type === 'seed' && item.is_free) {
+      label += ' <span style="font-size:0.72rem;color:#2D6A4F;font-weight:700;">(Free)</span>';
+    }
+    return '<tr><td>' + label + '</td>'
+      + '<td>' + qty + '</td>'
+      + '<td>KES ' + unitPrice.toLocaleString() + '</td>'
+      + '<td>KES ' + subtotal.toLocaleString() + '</td></tr>';
+  }).join('');
 
   document.getElementById('modal-items-wrap').innerHTML =
     '<table class="items-table">'
     + '<thead><tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead>'
     + '<tbody>'
-    + '<tr><td>' + productName + '</td>'
-    + '<td>' + qty + '</td>'
-    + '<td>KES ' + unitPrice.toLocaleString() + '</td>'
-    + '<td>KES ' + (unitPrice * qty).toLocaleString() + '</td></tr>'
+    + rowsHtml
     + '<tr class="total-row"><td colspan="3" style="text-align:right;font-weight:700">Total</td>'
     + '<td>KES ' + total.toLocaleString() + '</td></tr>'
     + '</tbody></table>';

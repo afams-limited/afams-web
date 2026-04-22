@@ -120,6 +120,30 @@ function parseSeedMetadata(value: unknown): Array<Record<string, unknown>> {
     });
 }
 
+function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>> {
+  return parseMetadataArray(value)
+    .filter((item) => item && typeof item === "object" && !Array.isArray(item))
+    .map((item, index) => {
+      const i = item as Record<string, unknown>;
+      const qtyValue = Number(i.qty ?? i.quantity ?? 1);
+      const priceValue = Number(i.price ?? i.unit_price ?? 0);
+      const typeValue = typeof i.type === "string" && i.type ? i.type : "product";
+      const skuValue = typeof i.sku === "string" && i.sku ? i.sku : "na";
+      return {
+        id: typeof i.id === "string" && i.id ? i.id : `${typeValue}-${skuValue}-${index + 1}`,
+        sku: typeof i.sku === "string" ? i.sku : "",
+        slug: typeof i.slug === "string" ? i.slug : "",
+        name: typeof i.name === "string" && i.name ? i.name : "Product",
+        qty: Number.isFinite(qtyValue) && qtyValue > 0 ? Math.floor(qtyValue) : 1,
+        price: Number.isFinite(priceValue) && priceValue >= 0 ? priceValue : 0,
+        type: typeValue,
+        weight: typeof i.weight === "string" ? i.weight : "",
+        category: typeof i.category === "string" ? i.category : "",
+        is_free: i.is_free === true || i.is_free === "true",
+      };
+    });
+}
+
 // ── Main handler ─────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -227,6 +251,35 @@ Deno.serve(async (req: Request) => {
 
     const free_seeds = parseSeedMetadata(rawFreeSeeds);
     const extra_seeds = parseSeedMetadata(rawExtraSeeds);
+    const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
+
+    let orderItems = metadataCartItems;
+    if (!orderItems.length) {
+      const legacyCartItems = parseOrderItemsMetadata(metadata.cart_items);
+      const legacyFreeSeedItems = free_seeds.map((seed, index) => ({
+        id: `seed-free-${index + 1}`,
+        slug: String(seed.slug ?? ""),
+        name: String(seed.name ?? DEFAULT_SEED_NAME),
+        qty: 1,
+        price: 0,
+        type: "seed",
+        weight: String(seed.weight ?? ""),
+        category: String(seed.category ?? "Other"),
+        is_free: true,
+      }));
+      const legacyExtraSeedItems = extra_seeds.map((seed, index) => ({
+        id: `seed-paid-${index + 1}`,
+        slug: String(seed.slug ?? ""),
+        name: String(seed.name ?? DEFAULT_SEED_NAME),
+        qty: 1,
+        price: Number(seed.price ?? 0) || 0,
+        type: "seed",
+        weight: String(seed.weight ?? ""),
+        category: String(seed.category ?? "Other"),
+        is_free: false,
+      }));
+      orderItems = [...legacyCartItems, ...legacyFreeSeedItems, ...legacyExtraSeedItems];
+    }
 
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(
@@ -272,6 +325,7 @@ Deno.serve(async (req: Request) => {
       paid_at:          paid_at || new Date().toISOString(),
       free_seeds:       free_seeds,
       extra_seeds:      extra_seeds,
+      items:            orderItems,
       extra_seeds_count: extra_seeds_count,
       extra_seeds_total: extra_seeds_total,
       prosoil_qty:      prosoil_qty,
