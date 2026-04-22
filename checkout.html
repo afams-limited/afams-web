@@ -960,10 +960,16 @@ function buildUnifiedOrderItems(cart) {
     var safeItem = item || {};
     var qty = Math.max(1, parseInt(safeItem.qty, 10) || 1);
     var unitPrice = Number(safeItem.unit_price);
+    var fallbackId = 'product-'
+      + String(safeItem.name || safeItem.type || (index + 1))
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      + '-' + index;
     return {
-      id: safeItem.id || safeItem.sku || ('product-' + (index + 1)),
+      id: safeItem.id || safeItem.sku || fallbackId,
       sku: safeItem.sku || '',
-      slug: safeItem.id || '',
+      slug: safeItem.slug || safeItem.id || '',
       name: safeItem.name || 'Product',
       price: Number.isFinite(unitPrice) ? unitPrice : 0,
       qty: qty,

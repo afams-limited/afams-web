@@ -484,6 +484,7 @@ function groupSeedProductsBySubCategory() {
 
 function triggerFreeSeedsPicker(maxFree) {
   const modal = ensureFreeSeedsModal();
+  if (modal.style.display === 'flex') return;
   const groupsWrap = modal.querySelector('#free-seeds-groups');
   const counter = modal.querySelector('#free-seeds-counter');
   const grouped = groupSeedProductsBySubCategory();
@@ -531,13 +532,17 @@ function triggerFreeSeedsPicker(maxFree) {
   modal.querySelector('#free-seeds-skip').onclick = closeModal;
   modal.querySelector('#free-seeds-confirm').onclick = function() {
     const cart = getCart();
-    const now = Date.now();
     Array.from(selected).forEach(function(seedId, index) {
       const seed = SEED_PRODUCTS.find(function(s) { return s.id === seedId; });
       if (!seed) return;
+      const counterVal = (window.__afamsFreeSeedCounter = (window.__afamsFreeSeedCounter || 0) + 1);
+      const uniqueSuffix = (window.crypto && typeof window.crypto.randomUUID === 'function')
+        ? window.crypto.randomUUID()
+        : (Date.now() + '-' + counterVal + '-' + index);
       cart.items.push({
         id: seed.id,
-        sku: seed.sku + '-FREE-' + (now + index),
+        slug: seed.id,
+        sku: seed.sku + '-FREE-' + uniqueSuffix,
         name: seed.name,
         unit_price: 0,
         price: 0,

@@ -227,6 +227,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
+    // Backward compatibility: some in-flight/older checkouts may still send `cart_items`.
     const orderItems = metadataCartItems.length
       ? metadataCartItems
       : parseOrderItemsMetadata(metadata.cart_items);
