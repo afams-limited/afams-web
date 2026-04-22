@@ -317,6 +317,8 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
         Browse more products
       </a>
+      <button type="button" class="btn-secondary" id="print-receipt-btn">Print receipt</button>
+      <button type="button" class="btn-secondary" id="download-receipt-btn">Download receipt</button>
       <a href="index.html" class="btn-secondary">Back to home</a>
     </div>
   </div>
@@ -329,7 +331,8 @@ const params  = new URLSearchParams(window.location.search);
 const ref     = params.get('ref')    || '';
 const name    = params.get('name')   || '';
 const email   = params.get('email')  || '';
-const amount  = params.get('amount') || '';
+const amount  = Number(params.get('amount') || 0);
+const CURRENCY = 'KES';
 
 // Display reference
 document.getElementById('order-ref').textContent = ref || 'Check your email';
@@ -358,6 +361,53 @@ const dispatchDate = addBusinessDays(now, 2);
 const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
 document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
 document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
+
+function formatAmount(val) {
+  const safe = Number(val);
+  if (!Number.isFinite(safe) || safe <= 0) return CURRENCY + ' —';
+  return CURRENCY + ' ' + safe.toLocaleString('en-KE');
+}
+
+function buildReceiptText() {
+  const lines = [
+    'AFAMS LTD — PAYMENT RECEIPT',
+    '----------------------------------------',
+    'Order Reference: ' + (ref || '—'),
+    'Customer Name: ' + (name || '—'),
+    'Customer Email: ' + (email || '—'),
+    'Amount Paid: ' + formatAmount(amount),
+    'Payment Confirmed: ' + now.toLocaleString('en-KE'),
+    'Estimated Dispatch: ' + dispatchDate.toLocaleDateString('en-KE', fmt),
+    'Estimated Delivery: ' + deliveryDate.toLocaleDateString('en-KE', fmt),
+    '----------------------------------------',
+    'Thank you for ordering with Afams.',
+  ];
+  return lines.join('\n');
+}
+
+var printBtn = document.getElementById('print-receipt-btn');
+if (printBtn) {
+  printBtn.addEventListener('click', function() {
+    window.print();
+  });
+}
+
+var downloadBtn = document.getElementById('download-receipt-btn');
+if (downloadBtn) {
+  downloadBtn.addEventListener('click', function() {
+    const blob = new Blob([buildReceiptText()], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const cleanedRef = (ref || '').replace(/[^a-zA-Z0-9-_]/g, '');
+    const fileRef = cleanedRef || ('AFAMS-' + Date.now());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'afams-receipt-' + fileRef + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+}
 
 // Clear cart if using the localStorage cart from index.html
 try { localStorage.removeItem('afams_cart'); } catch(_) {}

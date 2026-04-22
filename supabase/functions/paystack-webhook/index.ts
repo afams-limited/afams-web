@@ -108,6 +108,12 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
       const priceValue = Number(i.price ?? i.unit_price ?? 0);
       const typeValue = typeof i.type === "string" && i.type ? i.type : "product";
       const skuValue = typeof i.sku === "string" && i.sku ? i.sku : "na";
+      let subcategoryValue = "";
+      if (typeof i.subcategory === "string") {
+        subcategoryValue = i.subcategory;
+      } else if (typeof i.seed_subcategory === "string") {
+        subcategoryValue = i.seed_subcategory;
+      }
       return {
         id: typeof i.id === "string" && i.id ? i.id : `${typeValue}-${skuValue}-${index + 1}`,
         sku: typeof i.sku === "string" ? i.sku : "",
@@ -118,6 +124,7 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
         type: typeValue,
         weight: typeof i.weight === "string" ? i.weight : "",
         category: typeof i.category === "string" ? i.category : "",
+        subcategory: subcategoryValue,
         is_free: i.is_free === true || i.is_free === "true",
       };
     });
