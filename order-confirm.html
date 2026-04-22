@@ -475,7 +475,7 @@ if (downloadBtn) {
     const fileRef = cleanedRef || ('AFAMS-' + Date.now());
     const pdf = buildReceiptPdf();
     if (!pdf) {
-      window.alert('Receipt PDF is temporarily unavailable. Please use Print receipt.');
+      window.alert('Receipt PDF could not be generated because the PDF library did not load. Please refresh the page or use Print receipt.');
       return;
     }
     pdf.save('afams-receipt-' + fileRef + '.pdf');
