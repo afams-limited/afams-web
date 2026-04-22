@@ -1599,7 +1599,7 @@ function getOrderLineItems(order) {
       if (!Number.isFinite(price)) price = Number(safeItem.unit_price);
       if (!Number.isFinite(price) || price < 0) price = 0;
       return {
-        name: String(safeItem.name || safeItem.sku || safeItem.slug || 'Item'),
+        name: String(safeItem.name || safeItem.sku || safeItem.slug || 'Product'),
         qty: qty,
         price: price,
         type: String(safeItem.type || 'product'),
@@ -1914,7 +1914,7 @@ function openOrderModal(id) {
     var qty = Math.max(1, Number(item.qty || 1));
     var unitPrice = Math.max(0, Number(item.price || 0));
     var subtotal = unitPrice * qty;
-    var label = escapeHtml(item.name || 'Item');
+    var label = escapeHtml(item.name || 'Product');
     if (item.type === 'seed' && item.is_free) {
       label += ' <span style="font-size:0.72rem;color:#2D6A4F;font-weight:700;">(Free)</span>';
     }

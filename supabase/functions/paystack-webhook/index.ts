@@ -131,7 +131,7 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
         id: typeof i.id === "string" && i.id ? i.id : `item-${index + 1}`,
         sku: typeof i.sku === "string" ? i.sku : "",
         slug: typeof i.slug === "string" ? i.slug : "",
-        name: typeof i.name === "string" && i.name ? i.name : "Item",
+        name: typeof i.name === "string" && i.name ? i.name : "Product",
         qty: Number.isFinite(qtyValue) && qtyValue > 0 ? Math.floor(qtyValue) : 1,
         price: Number.isFinite(priceValue) && priceValue >= 0 ? priceValue : 0,
         type: typeof i.type === "string" && i.type ? i.type : "product",

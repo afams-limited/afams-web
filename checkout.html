@@ -1385,12 +1385,12 @@ function mapSeedPacket(seed) {
 
 function buildUnifiedOrderItems(cart, freeSeeds, extraSeeds) {
   var cartItems = Array.isArray(cart && cart.items) ? cart.items : [];
-  var normalizedCartItems = cartItems.map(function(item) {
+  var normalizedCartItems = cartItems.map(function(item, index) {
     var safeItem = item || {};
     var qty = Math.max(1, parseInt(safeItem.qty, 10) || 1);
     var unitPrice = Number(safeItem.unit_price);
     return {
-      id: safeItem.sku || ('item-' + Math.random().toString(36).slice(2, 8)),
+      id: safeItem.sku || ('product-' + (index + 1)),
       sku: safeItem.sku || '',
       name: safeItem.name || 'Product',
       price: Number.isFinite(unitPrice) ? unitPrice : 0,
