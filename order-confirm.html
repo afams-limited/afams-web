@@ -332,6 +332,7 @@ const ref     = params.get('ref')    || '';
 const name    = params.get('name')   || '';
 const email   = params.get('email')  || '';
 const amount  = Number(params.get('amount') || 0);
+const CURRENCY = 'KES';
 
 // Display reference
 document.getElementById('order-ref').textContent = ref || 'Check your email';
@@ -363,8 +364,8 @@ document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLoca
 
 function formatAmount(val) {
   const safe = Number(val);
-  if (!Number.isFinite(safe) || safe <= 0) return 'KES —';
-  return 'KES ' + safe.toLocaleString('en-KE');
+  if (!Number.isFinite(safe) || safe <= 0) return CURRENCY + ' —';
+  return CURRENCY + ' ' + safe.toLocaleString('en-KE');
 }
 
 function buildReceiptText() {
@@ -396,7 +397,8 @@ if (downloadBtn) {
   downloadBtn.addEventListener('click', function() {
     const blob = new Blob([buildReceiptText()], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const fileRef = (ref || ('AFAMS-' + Date.now())).replace(/[^a-zA-Z0-9-_]/g, '');
+    const cleanedRef = (ref || '').replace(/[^a-zA-Z0-9-_]/g, '');
+    const fileRef = cleanedRef || ('AFAMS-' + Date.now());
     const a = document.createElement('a');
     a.href = url;
     a.download = 'afams-receipt-' + fileRef + '.txt';
