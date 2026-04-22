@@ -574,25 +574,6 @@
         🎁 <strong>Every 3 bags, 1 free (max 3 free bags)</strong> — Add a FarmBag to your order to activate this promo. <em style="font-size:0.78rem;color:#a05000">First-time customers only.</em>
       </div>
 
-      <!-- SEED SELECTOR — visible for all customers with items in cart -->
-      <section id="seed-selector" class="addon-section" style="display:none">
-        <div class="addon-header">
-          <span class="addon-badge free" id="seed-addon-badge">ADD-ON</span>
-          <h3>🌱 Certified Seeds — Choose Your Pack</h3>
-          <p class="addon-subtitle" id="seed-addon-subtitle">
-            Browse and select seed varieties below. Seeds are available as paid add-ons for all customers.
-            Additional packets at <strong>listed price</strong>.
-          </p>
-        </div>
-        <div id="seed-groups-container">
-          <div style="color:#888;font-size:0.82rem;padding:8px 0">Loading seeds…</div>
-        </div>
-        <div id="seed-summary" class="seed-summary hidden">
-          <span id="seed-summary-text"></span>
-          <span id="seed-extra-cost" class="extra-cost"></span>
-        </div>
-      </section>
-
       <!-- Add-ons — FarmBag orders only (ProSoil) -->
       <div id="farmbag-addons" style="display:none">
 
@@ -644,10 +625,6 @@
 
       </div><!-- /farmbag-addons -->
 
-      <div class="summary-line" id="addon-seeds-line" style="display:none">
-        <span class="label">Paid seeds</span>
-        <span id="addon-seeds-cost">KES 0</span>
-      </div>
       <div class="summary-line" id="addon-prosoil-line" style="display:none">
         <span class="label">ProSoil add-on</span>
         <span id="addon-prosoil-cost">KES 0</span>
@@ -677,15 +654,11 @@
 // ── Checkout logic — reads cart from sessionStorage via cart.js ────────────────
 
 const PROSOIL_PRICE_CHECKOUT = 399;
-const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-const FREE_SEEDS_PER_FARMBAG = 2; // free seed packets per FarmBag purchased
 const FREE_DELIVERY_MIN_KES = 2499;
 const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
 const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
 const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
-const SEED_FETCH_TIMEOUT_MS = 8000;
 let paystackLaunchInProgress = false;
 let paystackLaunchWatchdog = null;
 
@@ -759,138 +732,6 @@ function clearCheckoutLock() {
   try { sessionStorage.removeItem(CHECKOUT_LOCK_KEY); } catch (_) {}
 }
 
-function getFreeSeeds() {
-  var FARMBAG_SKUS_ALL = ['FB-CLS-01','FB-GRW-01','FB-HYD-01','FB-HYP-01','FB-AQA-01','FB-AHP-01'];
-  var cart = getCart();
-  var fbQty = cart.items
-    .filter(function(i) { return FARMBAG_SKUS_ALL.includes(i.sku); })
-    .reduce(function(sum, i) { return sum + i.qty; }, 0);
-  return fbQty * FREE_SEEDS_PER_FARMBAG;
-}
-
-// ── Maps each Simlaw crop-category to one of the 4 broad display groups ───────
-const SEED_GROUP_MAP = {
-  'Beetroot':              'Vegetables',
-  'Broccoli':              'Vegetables',
-  'Cabbage':               'Vegetables',
-  'Capsicum \u2014 Hot':   'Fruits',
-  'Capsicum \u2014 Sweet': 'Fruits',
-  'Carrot':                'Vegetables',
-  'Cauliflower':           'Vegetables',
-  'Celery':                'Vegetables',
-  'Collard (Sukuma Wiki)': 'Vegetables',
-  'Cucumber':              'Fruits',
-  'Eggplant (Brinjal)':   'Vegetables',
-  'Herbs':                 'Herbs',
-  'Indigenous Vegetables': 'Indigenous Vegetables',
-  'Kale':                  'Vegetables',
-  'Leeks':                 'Vegetables',
-  'Lettuce':               'Vegetables',
-  'Okra':                  'Vegetables',
-  'Onion':                 'Vegetables',
-  'Parsley':               'Herbs',
-  'Radish':                'Vegetables',
-  'Spinach':               'Vegetables',
-  'Squash':                'Fruits',
-  'Sweet Corn':            'Vegetables',
-  'Tomato':                'Fruits',
-  'Watermelon':            'Fruits',
-};
-const SEED_GROUP_ORDER = ['Vegetables', 'Fruits', 'Herbs', 'Indigenous Vegetables'];
-const SEED_GROUP_EMOJI = { 'Vegetables': '🥦', 'Fruits': '🍅', 'Herbs': '🌿', 'Indigenous Vegetables': '🌱' };
-
-// ── Static seed catalogue — fallback when Supabase seed_catalog is unreachable ─
-const STATIC_SEED_CATALOGUE = [
-  // BEETROOT
-  { category: 'Beetroot', variety: 'Crimson Globe / Detroit', seed_slug: 'beetroot-crimson-globe', price_10g: 70, price_25g: 145 },
-  // BROCCOLI
-  { category: 'Broccoli', variety: 'Calabrese', seed_slug: 'broccoli-calabrese', price_10g: 100, price_25g: 230 },
-  { category: 'Broccoli', variety: 'Green Sprouting', seed_slug: 'broccoli-green-sprouting', price_10g: 90, price_25g: 170 },
-  // CABBAGE
-  { category: 'Cabbage', variety: 'Chinese Cabbage (Michihili)', seed_slug: 'cabbage-chinese-michihili', price_10g: 55, price_25g: 95 },
-  { category: 'Cabbage', variety: 'Copenhagen Market', seed_slug: 'cabbage-copenhagen-market', price_10g: 65, price_25g: 145 },
-  { category: 'Cabbage', variety: 'Pack Choi Green', seed_slug: 'cabbage-pack-choi-green', price_10g: 65, price_25g: 130 },
-  { category: 'Cabbage', variety: 'Sugarloaf', seed_slug: 'cabbage-sugarloaf', price_10g: 70, price_25g: 145 },
-  // CAPSICUM - HOT
-  { category: 'Capsicum — Hot', variety: 'Long Cayenne', seed_slug: 'capsicum-hot-long-cayenne', price_10g: 170, price_25g: 400 },
-  // CAPSICUM - SWEET
-  { category: 'Capsicum — Sweet', variety: 'Super Wonder / California Wonder', seed_slug: 'capsicum-sweet-super-wonder', price_10g: 215, price_25g: 510 },
-  // CARROT
-  { category: 'Carrot', variety: 'Nantes', seed_slug: 'carrot-nantes', price_10g: 170, price_25g: 400 },
-  // CAULIFLOWER
-  { category: 'Cauliflower', variety: 'Early Snowball', seed_slug: 'cauliflower-early-snowball', price_10g: 85, price_25g: 145 },
-  // CELERY
-  { category: 'Celery', variety: 'Tall Utah', seed_slug: 'celery-tall-utah', price_10g: 140, price_25g: 270 },
-  // COLLARD (SUKUMA WIKI)
-  { category: 'Collard (Sukuma Wiki)', variety: 'Simlaw Select', seed_slug: 'collard-simlaw-select', price_10g: 170, price_25g: 395 },
-  { category: 'Collard (Sukuma Wiki)', variety: 'Southern Georgia', seed_slug: 'collard-southern-georgia', price_10g: 75, price_25g: 110 },
-  { category: 'Collard (Sukuma Wiki)', variety: 'Sukuma Siku', seed_slug: 'collard-sukuma-siku', price_10g: 60, price_25g: 125 },
-  // CUCUMBER
-  { category: 'Cucumber', variety: 'Ashley', seed_slug: 'cucumber-ashley', price_10g: 110, price_25g: 250 },
-  // EGGPLANT (BRINJAL)
-  { category: 'Eggplant (Brinjal)', variety: 'Black Beauty', seed_slug: 'eggplant-black-beauty', price_10g: 135, price_25g: 310 },
-  { category: 'Eggplant (Brinjal)', variety: 'Early Long Purple', seed_slug: 'eggplant-early-long-purple', price_10g: 100, price_25g: 235 },
-  // HERBS
-  { category: 'Herbs', variety: 'Chamomile', seed_slug: 'herbs-chamomile', price_10g: 435, price_25g: 1070 },
-  { category: 'Herbs', variety: 'Chives', seed_slug: 'herbs-chives', price_10g: 395, price_25g: 960 },
-  { category: 'Herbs', variety: 'Coriander (Dahnia)', seed_slug: 'herbs-coriander', price_10g: 55, price_25g: 90 },
-  { category: 'Herbs', variety: 'Dill', seed_slug: 'herbs-dill', price_10g: 100, price_25g: 215 },
-  { category: 'Herbs', variety: 'Fennel', seed_slug: 'herbs-fennel', price_10g: 200, price_25g: 470 },
-  { category: 'Herbs', variety: 'Sage', seed_slug: 'herbs-sage', price_10g: 615, price_25g: 1515 },
-  { category: 'Herbs', variety: 'Sweet Basil', seed_slug: 'herbs-sweet-basil', price_10g: 255, price_25g: 625 },
-  { category: 'Herbs', variety: 'Thyme', seed_slug: 'herbs-thyme', price_10g: 820, price_25g: 2020 },
-  // INDIGENOUS VEGETABLES
-  { category: 'Indigenous Vegetables', variety: 'Amaranthus / Terere', seed_slug: 'indig-amaranthus-terere', price_10g: 110, price_25g: 265 },
-  { category: 'Indigenous Vegetables', variety: 'Amaranthus Dubious', seed_slug: 'indig-amaranthus-dubious', price_10g: 60, price_25g: 100 },
-  { category: 'Indigenous Vegetables', variety: 'Common N. Shade / Managu', seed_slug: 'indig-common-nightshade', price_10g: 60, price_25g: 100 },
-  { category: 'Indigenous Vegetables', variety: 'Crotolaria (Mito/Miro)', seed_slug: 'indig-crotolaria', price_10g: 60, price_25g: 105 },
-  { category: 'Indigenous Vegetables', variety: 'Giant Night Shade / Managu', seed_slug: 'indig-giant-nightshade', price_10g: 65, price_25g: 120 },
-  { category: 'Indigenous Vegetables', variety: 'Jews Mallow / Sunhemp', seed_slug: 'indig-jews-mallow', price_10g: 60, price_25g: 75 },
-  { category: 'Indigenous Vegetables', variety: 'Kunde Mboga', seed_slug: 'indig-kunde-mboga', price_10g: 60, price_25g: 75 },
-  { category: 'Indigenous Vegetables', variety: 'Spider Plant (Saga/Saget)', seed_slug: 'indig-spider-plant', price_10g: 25, price_25g: 35 },
-  // KALE
-  { category: 'Kale', variety: 'Ethiopian Kale', seed_slug: 'kale-ethiopian', price_10g: 65, price_25g: 135 },
-  { category: 'Kale', variety: 'Thousand Headed', seed_slug: 'kale-thousand-headed', price_10g: 65, price_25g: 135 },
-  // LEEKS
-  { category: 'Leeks', variety: 'American Flag', seed_slug: 'leeks-american-flag', price_10g: 120, price_25g: 215 },
-  { category: 'Leeks', variety: 'Bulgarian Giant', seed_slug: 'leeks-bulgarian-giant', price_10g: 130, price_25g: 250 },
-  { category: 'Leeks', variety: 'Italian Giant', seed_slug: 'leeks-italian-giant', price_10g: 65, price_25g: 110 },
-  // LETTUCE
-  { category: 'Lettuce', variety: 'Great Lakes', seed_slug: 'lettuce-great-lakes', price_10g: 130, price_25g: 300 },
-  { category: 'Lettuce', variety: 'Red Salad', seed_slug: 'lettuce-red-salad', price_10g: 65, price_25g: 100 },
-  // OKRA
-  { category: 'Okra', variety: 'Carentan', seed_slug: 'okra-carentan', price_10g: 105, price_25g: 250 },
-  { category: 'Okra', variety: 'Pusa Sawani / Clemson Spineless', seed_slug: 'okra-pusa-sawani', price_10g: 40, price_25g: 55 },
-  // ONION
-  { category: 'Onion', variety: 'Bombay Red', seed_slug: 'onion-bombay-red', price_10g: 75, price_25g: 170 },
-  { category: 'Onion', variety: 'Improved Red Creole', seed_slug: 'onion-improved-red-creole', price_10g: 125, price_25g: 285 },
-  { category: 'Onion', variety: 'Spring Bunching', seed_slug: 'onion-spring-bunching', price_10g: 140, price_25g: 325 },
-  { category: 'Onion', variety: 'Texas Early Grano', seed_slug: 'onion-texas-early-grano', price_10g: 175, price_25g: 415 },
-  { category: 'Onion', variety: 'White Lisbon', seed_slug: 'onion-white-lisbon', price_10g: 125, price_25g: 300 },
-  // PARSLEY
-  { category: 'Parsley', variety: 'Champion Moss Curled', seed_slug: 'parsley-champion-moss-curled', price_10g: 110, price_25g: 205 },
-  // RADISH
-  { category: 'Radish', variety: 'Cherry Belle', seed_slug: 'radish-cherry-belle', price_10g: 70, price_25g: 160 },
-  // SPINACH
-  { category: 'Spinach', variety: 'Fordhook Giant', seed_slug: 'spinach-fordhook-giant', price_10g: 85, price_25g: 175 },
-  // SQUASH
-  { category: 'Squash', variety: 'Butternut — Waltham', seed_slug: 'squash-butternut-waltham', price_10g: 125, price_25g: 200 },
-  { category: 'Squash', variety: 'Zucchini / Black Beauty', seed_slug: 'squash-zucchini-black-beauty', price_10g: 210, price_25g: 360 },
-  // SWEET CORN
-  { category: 'Sweet Corn', variety: 'Golden Bantam', seed_slug: 'sweetcorn-golden-bantam', price_10g: 55, price_25g: 95 },
-  // TOMATO
-  { category: 'Tomato', variety: 'Cal J', seed_slug: 'tomato-cal-j', price_10g: 140, price_25g: 325 },
-  { category: 'Tomato', variety: 'M82', seed_slug: 'tomato-m82', price_10g: 135, price_25g: 250 },
-  { category: 'Tomato', variety: 'Marglobe', seed_slug: 'tomato-marglobe', price_10g: 220, price_25g: 530 },
-  { category: 'Tomato', variety: 'Money Maker', seed_slug: 'tomato-money-maker', price_10g: 175, price_25g: 420 },
-  { category: 'Tomato', variety: 'Rio Grande vF', seed_slug: 'tomato-rio-grande-vf', price_10g: 230, price_25g: 545 },
-  { category: 'Tomato', variety: 'Roma', seed_slug: 'tomato-roma', price_10g: 135, price_25g: 250 },
-  { category: 'Tomato', variety: 'Super Rio', seed_slug: 'tomato-super-rio', price_10g: 215, price_25g: 520 },
-  // WATERMELON
-  { category: 'Watermelon', variety: 'Crimson Sweet', seed_slug: 'watermelon-crimson-sweet', price_10g: 175, price_25g: 415 },
-  { category: 'Watermelon', variety: 'Sugar Baby', seed_slug: 'watermelon-sugar-baby', price_10g: 145, price_25g: 340 },
-];
-
 // ── Catalogue of products for URL-param pre-loading ──────────────────────────
 const CHECKOUT_PRODUCTS = {
   'FB-CLS-01': { name: 'FarmBag Classic',         unit_price:  7500, image: 'assets/images/farmbag-classic.jpg',  type: 'farmbag' },
@@ -902,18 +743,10 @@ const CHECKOUT_PRODUCTS = {
   'FB-AHP-01': { name: 'FarmBag Aqua-Hydro Pro',   unit_price: 39999, image: '',                                   type: 'farmbag' },
 };
 
-// ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
-window.seedState = { ordered: [], freePackets: [], extraPackets: [], extraTotal: 0 };
-
 function cartHasFarmBag() {
   var cart = getCart();
   var PREMIUM_FARMBAG_SKUS = ['FB-CLS-01','FB-GRW-01','FB-HYD-01','FB-HYP-01','FB-AQA-01','FB-AHP-01'];
   return cart.items.some(function(i) { return PREMIUM_FARMBAG_SKUS.includes(i.sku); });
-}
-
-function cartHasAnyItem() {
-  var cart = getCart();
-  return cart.items.length > 0;
 }
 
 // ── Render cart items list ────────────────────────────────────────────────────
@@ -961,40 +794,13 @@ function renderCartItems() {
   }).join('');
 
   // Show/hide add-ons and ProSoil promo notice
-  var seedSection        = document.getElementById('seed-selector');
   var farmBagAddons      = document.getElementById('farmbag-addons');
   var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
   var hasFarmBag         = cartHasFarmBag();
   var hasProsoilOnly     = !hasFarmBag && cart.items.some(function(i) { return i.sku === 'PS-25KG'; });
-  var hasItems           = cart.items.length > 0;
 
-  // Seeds always visible when cart has items
-  if (seedSection) seedSection.style.display = hasItems ? '' : 'none';
   if (farmBagAddons)      farmBagAddons.style.display       = hasFarmBag ? '' : 'none';
   if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', !hasProsoilOnly);
-
-  // Update seed section header based on FarmBag presence
-  var seedBadge    = document.getElementById('seed-addon-badge');
-  var seedSubtitle = document.getElementById('seed-addon-subtitle');
-  var freeCount    = getFreeSeeds();
-  if (seedBadge) {
-    seedBadge.textContent = freeCount > 0 ? 'FREE INCLUDED' : 'PAID ADD-ON';
-    seedBadge.className   = 'addon-badge ' + (freeCount > 0 ? 'free' : 'paid');
-  }
-  if (seedSubtitle) {
-    if (freeCount > 0) {
-      seedSubtitle.innerHTML = 'Choose any seed varieties below. <strong>' + freeCount + ' free seed packet' + (freeCount > 1 ? 's' : '') + '</strong> included (2 per FarmBag purchased). Additional packets at <strong>listed price</strong>.';
-    } else {
-      seedSubtitle.innerHTML = 'Seeds are available as paid add-ons. <strong>Add a FarmBag to unlock free seed packets</strong> (2 free per FarmBag). All packets at <strong>listed price</strong> without a FarmBag.';
-    }
-  }
-
-  // Seeds stay rendered; just recalculate allocation when cart changes
-  if (hasItems) {
-    loadSeeds();
-  }
-  // Re-run seed recalculation with updated free count based on current FarmBag qty
-  recalculateSeedState();
 
   // Sync ProSoil add-on qty with cart
   var prosoilItemInCart = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
@@ -1026,220 +832,6 @@ function adjustCartQty(sku, delta) {
 window.addEventListener('afams:cart-updated', function() {
   renderCartItems();
 });
-
-// ── Seed Selector ─────────────────────────────────────────────────────────────
-var _seedsRendered = false;
-
-async function loadSeeds() {
-  if (_seedsRendered) return; // Already rendered — don't wipe user selections
-  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, SEED_FETCH_TIMEOUT_MS) : null;
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=category,variety`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY_CHECKOUT,
-          Authorization: 'Bearer ' + SUPABASE_ANON_KEY_CHECKOUT,
-          'Content-Type': 'application/json',
-        },
-        signal: controller ? controller.signal : undefined,
-      }
-    );
-    if (!res.ok) throw new Error('Fetch failed ' + res.status);
-    const seeds = await res.json();
-    if (Array.isArray(seeds) && seeds.length > 0) {
-      renderSeedGroups(seeds);
-      _seedsRendered = true;
-    } else {
-      renderStaticSeedGroups();
-    }
-  } catch (err) {
-    console.warn('[Afams] loadSeeds error, using static fallback:', err);
-    renderStaticSeedGroups();
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
-}
-
-function renderStaticSeedGroups() {
-  renderSeedGroups(STATIC_SEED_CATALOGUE);
-  _seedsRendered = true;
-}
-
-function renderSeedGroups(seeds) {
-  var container = document.getElementById('seed-groups-container');
-  // Build: broad group → crop category → varieties
-  var groups = {};
-  seeds.forEach(function(s) {
-    var cat   = s.category || 'Other';
-    var group = SEED_GROUP_MAP[cat] || cat;
-    if (!groups[group]) groups[group] = {};
-    if (!groups[group][cat]) groups[group][cat] = [];
-    groups[group][cat].push(s);
-  });
-  // Ordered list of broad groups, with any unmapped ones appended
-  var orderedGroups = SEED_GROUP_ORDER.filter(function(g) { return groups[g]; });
-  Object.keys(groups).forEach(function(g) { if (orderedGroups.indexOf(g) < 0) orderedGroups.push(g); });
-
-  container.innerHTML = orderedGroups.map(function(group) {
-    var groupId  = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    var emoji    = SEED_GROUP_EMOJI[group] || '🌱';
-    var catsSorted = Object.keys(groups[group]).sort();
-
-    var innerHtml = catsSorted.map(function(cat) {
-      var varieties = groups[group][cat].slice().sort(function(a, b) {
-        return (a.variety || '').localeCompare(b.variety || '');
-      });
-      // Sub-category header: skip when category name matches the broad group (e.g. "Herbs" inside "Herbs")
-      var subHeaderHtml = (cat !== group)
-        ? '<div class="seed-subcategory-header">' + cat + '</div>'
-        : '';
-      return subHeaderHtml + varieties.map(function(s) {
-        var vName = (s.variety || '').replace(/"/g, '&quot;');
-        var slug  = s.seed_slug;
-        var catE  = cat.replace(/"/g, '&quot;');
-        var btns  = '';
-        if (s.price_10g) {
-          btns += '<button type="button" class="seed-weight-btn"'
-            + ' data-slug="' + slug + '" data-name="' + vName + '"'
-            + ' data-category="' + catE + '" data-weight="10g" data-price="' + s.price_10g + '"'
-            + ' onclick="toggleSeed(this)">10g &mdash; KES ' + s.price_10g + '</button>';
-        }
-        if (s.price_25g) {
-          btns += '<button type="button" class="seed-weight-btn"'
-            + ' data-slug="' + slug + '" data-name="' + vName + '"'
-            + ' data-category="' + catE + '" data-weight="25g" data-price="' + s.price_25g + '"'
-            + ' onclick="toggleSeed(this)">25g &mdash; KES ' + s.price_25g + '</button>';
-        }
-        return '<div class="seed-variety-row">'
-          + '<span class="seed-variety-name">' + (s.variety || '') + '</span>'
-          + '<div class="seed-weight-btns">' + btns + '</div>'
-          + '</div>';
-      }).join('');
-    }).join('');
-
-    // Use data-group-key on the header so onclick reads from dataset (avoids HTML quote-escaping issues)
-    return '<div class="seed-group" data-group="' + group.replace(/"/g, '&quot;') + '">'
-      + '<div class="seed-group-header" data-group-key="' + group.replace(/"/g, '&quot;') + '" onclick="toggleSeedGroup(this.dataset.groupKey)">'
-      + '<span class="seed-group-label">' + emoji + ' ' + group + '</span>'
-      + '<span class="seed-group-status" id="status-grp-' + groupId + '">None selected</span>'
-      + '<span class="seed-group-chevron">▾</span>'
-      + '</div>'
-      + '<div class="seed-pills">' + innerHtml + '</div>'
-      + '</div>';
-  }).join('');
-
-  // Keep groups collapsed by default; groups with selected seeds are auto-opened by refreshAllPillLabels().
-}
-
-function toggleSeedGroup(group) {
-  var container = document.getElementById('seed-groups-container');
-  var allGroups = container.querySelectorAll('.seed-group');
-  // Iterate dataset to avoid CSS-selector escaping issues with special characters
-  var target = null;
-  allGroups.forEach(function(g) { if (g.dataset.group === group) target = g; });
-  if (!target) return;
-  var isOpen = target.classList.contains('sg-open');
-  allGroups.forEach(function(g) { g.classList.remove('sg-open'); });
-  if (!isOpen) target.classList.add('sg-open');
-}
-
-function refreshAllPillLabels() {
-  var freePackets = getFreeSeeds();
-  var ordered = window.seedState.ordered;
-  document.querySelectorAll('.seed-weight-btn').forEach(function(btn) {
-    var key = btn.dataset.slug + '-' + btn.dataset.weight;
-    var pos = ordered.findIndex(function(s) { return s.key === key; });
-    if (pos < 0) {
-      btn.classList.remove('selected', 'extra-selected');
-      btn.innerHTML = btn.dataset.weight + ' &mdash; KES ' + btn.dataset.price;
-    } else if (pos < freePackets) {
-      btn.classList.add('selected');
-      btn.classList.remove('extra-selected');
-      btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">&#10003; Free</span>';
-    } else {
-      btn.classList.remove('selected');
-      btn.classList.add('extra-selected');
-      btn.innerHTML = btn.dataset.weight + ' <span class="extra-tag">+KES ' + btn.dataset.price + '</span>';
-    }
-  });
-  // Update broad-group status labels
-  var byGroup = {};
-  ordered.forEach(function(s) {
-    var group = SEED_GROUP_MAP[s.category] || s.category;
-    if (!byGroup[group]) byGroup[group] = [];
-    byGroup[group].push(s.name + ' (' + s.weight + ')');
-  });
-  document.querySelectorAll('.seed-group').forEach(function(grp) {
-    var group = grp.dataset.group || '';
-    var grpId = group.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    var el    = document.getElementById('status-grp-' + grpId);
-    if (!el) return;
-    var names = byGroup[group] || [];
-    if (names.length === 0) {
-      el.textContent = 'None selected';
-      el.className = 'seed-group-status';
-      grp.classList.remove('sg-open');
-    } else {
-      el.textContent = names.join(', ');
-      el.className = 'seed-group-status selected';
-      grp.classList.add('sg-open');
-    }
-  });
-}
-
-function toggleSeed(btn) {
-  var slug     = btn.dataset.slug;
-  var name     = btn.dataset.name;
-  var category = btn.dataset.category;
-  var weight   = btn.dataset.weight;
-  var price    = parseInt(btn.dataset.price, 10) || 0;
-  var key      = slug + '-' + weight;
-  var idx = window.seedState.ordered.findIndex(function(s) { return s.key === key; });
-  if (idx >= 0) {
-    window.seedState.ordered.splice(idx, 1);
-  } else {
-    window.seedState.ordered.push({ key: key, slug: slug, name: name, category: category, weight: weight, price: price });
-    var grp = btn.closest('.seed-group');
-    if (grp) grp.classList.add('sg-open');
-  }
-  refreshAllPillLabels();
-  recalculateSeedState();
-}
-
-function recalculateSeedState() {
-  var freePackets  = getFreeSeeds();
-  var ordered      = window.seedState.ordered;
-  var freePkts     = ordered.slice(0, freePackets);
-  var extraPackets = ordered.slice(freePackets);
-  window.seedState.freePackets  = freePkts;
-  window.seedState.extraPackets = extraPackets;
-  window.seedState.extraTotal   = extraPackets.reduce(function(sum, s) { return sum + (s.price || 0); }, 0);
-  refreshAllPillLabels();
-  updateSeedSummary();
-  updateOrderTotals();
-}
-
-function updateSeedSummary() {
-  var summary  = document.getElementById('seed-summary');
-  var textEl   = document.getElementById('seed-summary-text');
-  var costEl   = document.getElementById('seed-extra-cost');
-  if (!summary) return;
-  var total = window.seedState.freePackets.length + window.seedState.extraPackets.length;
-  if (total === 0) { summary.classList.add('hidden'); return; }
-  summary.classList.remove('hidden');
-  var freeCount  = window.seedState.freePackets.length;
-  var extraCount = window.seedState.extraPackets.length;
-  var freeAlloc  = getFreeSeeds();
-  var freeLabel  = freeCount > 0
-    ? freeCount + ' free (2 per FarmBag)'
-    : (freeAlloc > 0 ? '0 free used' : 'all paid');
-  textEl.textContent = total + ' packet' + (total > 1 ? 's' : '') + ' selected — ' + freeLabel;
-  costEl.textContent = extraCount > 0
-    ? '+ ' + extraCount + ' paid = KES ' + window.seedState.extraTotal
-    : '';
-}
 
 // ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
 window.prosoilState = { qty: 0, total: 0, promoApplied: false };
@@ -1314,23 +906,15 @@ function refreshProsoilCalcUI() {
 function updateOrderTotals() {
   var cart         = getCart();
   var totals       = getCartTotals(cart);
-  var seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
-  var grandTotal   = totals.grandTotal + seedsTotal;
+  var grandTotal   = totals.grandTotal;
 
   // Add-on line items
-  var seedsLine   = document.getElementById('addon-seeds-line');
-  var seedsCost   = document.getElementById('addon-seeds-cost');
   var prosoilLine = document.getElementById('addon-prosoil-line');
   var prosoilCost = document.getElementById('addon-prosoil-cost');
   var promoLine   = document.getElementById('promo-saving-line');
   var promoVal    = document.getElementById('promo-saving-val');
 
-  if (seedsLine)  seedsLine.style.display  = seedsTotal > 0 ? '' : 'none';
-  if (seedsCost)  seedsCost.textContent    = 'KES ' + seedsTotal.toLocaleString();
 
-  var prosoilLineTotal = totals.itemsTotal - cart.items
-    .filter(function(i) { return i.sku !== 'PS-25KG'; })
-    .reduce(function(s, i) { return s + i.unit_price * i.qty; }, 0);
   var prosoilItem = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   var prosoilCostAmt = prosoilItem ? prosoilItem.unit_price * prosoilItem.qty : 0;
   if (prosoilLine) prosoilLine.style.display = prosoilCostAmt > 0 ? '' : 'none';
@@ -1370,67 +954,30 @@ function hideError() {
   document.getElementById('form-error').style.display = 'none';
 }
 
-function mapSeedPacket(seed) {
-  var safeSeed = seed || {};
-  var safeName = safeSeed.name || 'Seed packet';
-  var safeWeight = safeSeed.weight || '';
-  return {
-    slug: safeSeed.slug || '',
-    name: safeWeight ? (safeName + ' (' + safeWeight + ')') : safeName,
-    category: safeSeed.category || 'Other',
-    weight: safeWeight,
-    price: safeSeed.price || 0
-  };
-}
-
-function buildUnifiedOrderItems(cart, freeSeeds, extraSeeds) {
+function buildUnifiedOrderItems(cart) {
   var cartItems = Array.isArray(cart && cart.items) ? cart.items : [];
-  var normalizedCartItems = cartItems.map(function(item, index) {
+  return cartItems.map(function(item, index) {
     var safeItem = item || {};
     var qty = Math.max(1, parseInt(safeItem.qty, 10) || 1);
     var unitPrice = Number(safeItem.unit_price);
+    var fallbackId = 'product-'
+      + String(safeItem.name || safeItem.type || (index + 1))
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      + '-' + index;
     return {
-      id: safeItem.sku || ('product-' + (index + 1)),
+      id: safeItem.id || safeItem.sku || fallbackId,
       sku: safeItem.sku || '',
+      slug: safeItem.slug || safeItem.id || '',
       name: safeItem.name || 'Product',
       price: Number.isFinite(unitPrice) ? unitPrice : 0,
       qty: qty,
-      type: safeItem.type || 'product'
+      type: safeItem.type || 'product',
+      category: safeItem.category || '',
+      is_free: safeItem.freePromo === true
     };
   });
-
-  var normalizedFreeSeeds = (freeSeeds || []).map(function(seed, index) {
-    var safeSeed = seed || {};
-    return {
-      id: 'seed-free-' + (safeSeed.slug || 'unknown') + '-' + index,
-      slug: safeSeed.slug || '',
-      name: safeSeed.name || 'Seed packet',
-      price: 0,
-      qty: 1,
-      type: 'seed',
-      weight: safeSeed.weight || '',
-      category: safeSeed.category || 'Other',
-      is_free: true
-    };
-  });
-
-  var normalizedExtraSeeds = (extraSeeds || []).map(function(seed, index) {
-    var safeSeed = seed || {};
-    var seedPrice = Number(safeSeed.price);
-    return {
-      id: 'seed-paid-' + (safeSeed.slug || 'unknown') + '-' + index,
-      slug: safeSeed.slug || '',
-      name: safeSeed.name || 'Seed packet',
-      price: Number.isFinite(seedPrice) ? seedPrice : 0,
-      qty: 1,
-      type: 'seed',
-      weight: safeSeed.weight || '',
-      category: safeSeed.category || 'Other',
-      is_free: false
-    };
-  });
-
-  return normalizedCartItems.concat(normalizedFreeSeeds, normalizedExtraSeeds);
 }
 
 function launchPaystack() {
@@ -1482,18 +1029,14 @@ function launchPaystack() {
   }
 
   const totals       = getCartTotals(cart);
-  const seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
-  const grandTotal   = totals.grandTotal + seedsTotal;
+  const grandTotal   = totals.grandTotal;
 
-  const freeSeeds      = (window.seedState?.freePackets  || []).map(mapSeedPacket);
-  const extraSeeds     = (window.seedState?.extraPackets || []).map(mapSeedPacket);
-  const unifiedOrderItems = buildUnifiedOrderItems(cart, freeSeeds, extraSeeds);
+  const unifiedOrderItems = buildUnifiedOrderItems(cart);
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
   const prosoilPromoQty = totals.promoQty || 0;
   const prosoilPromo   = prosoilPromoQty > 0;
-  const addonTotal     = seedsTotal + prosoilTotal;
 
   // Primary product for backward-compat fields (first FarmBag, or first item)
   const primaryItem    = cart.items.find(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); }) || cart.items[0];
@@ -1540,15 +1083,10 @@ function launchPaystack() {
       country:          country,
       cart:             JSON.stringify(unifiedOrderItems),
       cart_items:       JSON.stringify(cart.items),
-      free_seeds:       JSON.stringify(freeSeeds),
-      extra_seeds:      JSON.stringify(extraSeeds),
-      extra_seeds_count: extraSeeds.length,
-      extra_seeds_total: seedsTotal,
       prosoil_qty:      prosoilQty,
       prosoil_total:    prosoilTotal,
       prosoil_promo_bag: prosoilPromo,
       prosoil_promo_qty: prosoilPromoQty,
-      addons_total:     addonTotal,
       checkout_attempt_id: checkoutAttemptId,
       custom_fields: [
         { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
@@ -1557,7 +1095,6 @@ function launchPaystack() {
         { display_name: 'Country',          variable_name: 'country',          value: country },
         { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
         { display_name: 'Cart Items',       variable_name: 'cart_items',       value: cart.items.map(function(i) { return i.name + ' ×' + i.qty; }).join(', ') },
-        { display_name: 'Add-ons Total',    variable_name: 'addons_total',     value: addonTotal > 0 ? 'KES ' + addonTotal : 'None' },
         { display_name: 'Order Type',       variable_name: 'order_type',       value: 'PRE-ORDER' },
       ],
     },
