@@ -473,17 +473,17 @@ async function handleSubscribe() {
   msg.textContent = '';
 
   try {
-    // Insert directly via Supabase REST API (anon INSERT allowed by RLS policy).
-    // A 409 Conflict means the email is already subscribed — treat as success.
+    // Upsert directly via Supabase REST API (anon INSERT allowed by RLS policy).
+    // Duplicate emails are merged by conflict key to avoid noisy 409 conflicts.
     const res = await fetch(
-      SUPABASE_URL + '/rest/v1/subscribers',
+      SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'Prefer': 'return=minimal',
+          'Prefer': 'resolution=merge-duplicates,return=minimal',
         },
         body: JSON.stringify({
           email,
@@ -495,8 +495,7 @@ async function handleSubscribe() {
       }
     );
 
-    if (res.status === 201 || res.status === 409) {
-      // 201 = new subscriber, 409 = duplicate email (already subscribed)
+    if (res.ok) {
       btn.textContent = '✓ Subscribed!';
       msg.textContent = '🌿 Welcome to the Afams Growers Club! Check your inbox.';
       msg.style.color = '#A7F3D0';
