@@ -432,8 +432,8 @@ function renderProductCard(p) {
   const imageHtml = p.image
     ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.classList.add('failed');" />`
     : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
-  const shouldShowImageArea = p.category !== 'Seeds';
-  const mediaHtml = shouldShowImageArea
+  const shouldRenderImageSection = p.category !== 'Seeds';
+  const mediaHtml = shouldRenderImageSection
     ? `<div class="product-image">
          ${badgeHtml}
          ${indoorBadgeHtml}
