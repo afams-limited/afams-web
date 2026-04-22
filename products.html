@@ -432,6 +432,14 @@ function renderProductCard(p) {
   const imageHtml = p.image
     ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.classList.add('failed');" />`
     : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
+  const shouldRenderMedia = p.category !== 'Seeds';
+  const mediaHtml = shouldRenderMedia
+    ? `<div class="product-image">
+         ${badgeHtml}
+         ${indoorBadgeHtml}
+         ${imageHtml}
+       </div>`
+    : '';
 
   const unitPrice = getProductPrice(p);
   const cartData = JSON.stringify({
@@ -458,11 +466,7 @@ function renderProductCard(p) {
 
   return `
     <div class="product-card">
-      <div class="product-image">
-        ${badgeHtml}
-        ${indoorBadgeHtml}
-        ${imageHtml}
-      </div>
+      ${mediaHtml}
       <div class="product-body">
         <div class="product-category">${displayCategory}</div>
         <h2 class="product-name">${p.name}</h2>
@@ -516,6 +520,8 @@ function renderProducts(products) {
     : '<div class="seed-filter-note">Choose a seed subcategory first to view available seed and seedling packets.</div>';
   grid.innerHTML = mainProducts.map(renderProductCard).join('')
     + (seedProducts.length ? (seedHeader + seedContent) : '');
+  renderGrowBagCard(grid);
+  renderPremiumRange(grid);
 
   const seedFilter = document.getElementById('seed-subcategory-filter');
   if (seedFilter) {
@@ -830,10 +836,7 @@ function renderGrowBagCard(grid) {
 }
 
 function loadProducts() {
-  const grid = document.getElementById('products-grid');
   renderProducts(ALL_PRODUCTS);
-  renderGrowBagCard(grid);
-  renderPremiumRange(grid);
 }
 
 function renderPremiumRange(grid) {
