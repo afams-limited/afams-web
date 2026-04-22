@@ -1402,7 +1402,7 @@ function buildUnifiedOrderItems(cart, freeSeeds, extraSeeds) {
   var normalizedFreeSeeds = (freeSeeds || []).map(function(seed, index) {
     var safeSeed = seed || {};
     return {
-      id: 'seed-free-' + (safeSeed.slug || 'seed') + '-' + index,
+      id: 'seed-free-' + (safeSeed.slug || 'unknown') + '-' + index,
       slug: safeSeed.slug || '',
       name: safeSeed.name || 'Seed packet',
       price: 0,
@@ -1418,7 +1418,7 @@ function buildUnifiedOrderItems(cart, freeSeeds, extraSeeds) {
     var safeSeed = seed || {};
     var seedPrice = Number(safeSeed.price);
     return {
-      id: 'seed-paid-' + (safeSeed.slug || 'seed') + '-' + index,
+      id: 'seed-paid-' + (safeSeed.slug || 'unknown') + '-' + index,
       slug: safeSeed.slug || '',
       name: safeSeed.name || 'Seed packet',
       price: Number.isFinite(seedPrice) ? seedPrice : 0,

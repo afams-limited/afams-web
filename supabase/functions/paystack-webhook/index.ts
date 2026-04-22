@@ -127,14 +127,16 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
       const i = item as Record<string, unknown>;
       const qtyValue = Number(i.qty ?? i.quantity ?? 1);
       const priceValue = Number(i.price ?? i.unit_price ?? 0);
+      const typeValue = typeof i.type === "string" && i.type ? i.type : "product";
+      const skuValue = typeof i.sku === "string" && i.sku ? i.sku : "na";
       return {
-        id: typeof i.id === "string" && i.id ? i.id : `item-${index + 1}`,
+        id: typeof i.id === "string" && i.id ? i.id : `${typeValue}-${skuValue}-${index + 1}`,
         sku: typeof i.sku === "string" ? i.sku : "",
         slug: typeof i.slug === "string" ? i.slug : "",
         name: typeof i.name === "string" && i.name ? i.name : "Product",
         qty: Number.isFinite(qtyValue) && qtyValue > 0 ? Math.floor(qtyValue) : 1,
         price: Number.isFinite(priceValue) && priceValue >= 0 ? priceValue : 0,
-        type: typeof i.type === "string" && i.type ? i.type : "product",
+        type: typeValue,
         weight: typeof i.weight === "string" ? i.weight : "",
         category: typeof i.category === "string" ? i.category : "",
         is_free: i.is_free === true || i.is_free === "true",
