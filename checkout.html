@@ -975,6 +975,7 @@ function buildUnifiedOrderItems(cart) {
       qty: qty,
       type: safeItem.type || 'product',
       category: safeItem.category || '',
+      subcategory: safeItem.seedGroup || safeItem.subcategory || '',
       is_free: safeItem.freePromo === true
     };
   });

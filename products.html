@@ -211,6 +211,41 @@
       color: #718096;
       font-size: 1rem;
     }
+    .seed-filter-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 0.75rem 0 0.35rem;
+    }
+    .seed-filter-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #155D27;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .seed-filter-select {
+      min-width: 240px;
+      max-width: 320px;
+      border: 1.5px solid #C3DFC7;
+      border-radius: 10px;
+      padding: 0.55rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      color: #1F2937;
+      background: #fff;
+    }
+    .seed-filter-note {
+      grid-column: 1 / -1;
+      border: 1px dashed #C3DFC7;
+      border-radius: 10px;
+      background: #F5FAF6;
+      color: #4B5563;
+      padding: 0.9rem 1rem;
+      font-size: 0.84rem;
+    }
   </style>
 </head>
 <body>
@@ -361,12 +396,17 @@ const SEED_PRODUCTS = [
 ];
 
 const ALL_PRODUCTS = [...MAIN_PRODUCTS, ...SEED_PRODUCTS];
+const seedParams = new URLSearchParams(window.location.search);
+const INITIAL_SEED_SUBCATEGORY = seedParams.get('seedSubcategory') || '';
 
 function getProductPrice(product) {
   return product.priceKES || product.unit_price || product.price || 0;
 }
 
 function renderProductCard(p) {
+  const displayCategory = p.category === 'Seeds'
+    ? ('Seeds & Seedlings · ' + (p.seedGroup || 'General'))
+    : (p.category || '');
   const badgeHtml = p.badge
     ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : p.badge === 'popular' ? 'Most Popular' : 'Pre-order'}</span>`
     : '';
@@ -412,7 +452,7 @@ function renderProductCard(p) {
         ${imageHtml}
       </div>
       <div class="product-body">
-        <div class="product-category">${p.category || ''}</div>
+        <div class="product-category">${displayCategory}</div>
         <h2 class="product-name">${p.name}</h2>
         <p class="product-desc">${p.desc || p.description || ''}</p>
         <div class="product-features">${featuresHtml}</div>
@@ -433,14 +473,43 @@ function renderProducts(products) {
   const grid = document.getElementById('products-grid');
   const mainProducts = products.filter(function(p) { return p.category !== 'Seeds'; });
   const seedProducts = products.filter(function(p) { return p.category === 'Seeds'; });
+  const seedSubCategories = Array.from(
+    new Set(seedProducts.map(function(seed) { return seed.seedGroup || ''; }).filter(Boolean))
+  ).sort();
+  const requestedSubCategory = renderProducts.selectedSeedSubcategory || INITIAL_SEED_SUBCATEGORY || '';
+  const selectedSubCategory = seedSubCategories.includes(requestedSubCategory) ? requestedSubCategory : '';
+  const visibleSeedProducts = selectedSubCategory
+    ? seedProducts.filter(function(seed) { return (seed.seedGroup || '') === selectedSubCategory; })
+    : [];
   const seedHeader = `
-    <div style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+    <div id="seed-catalog-section" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
       <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#155D27;font-weight:700;margin:0">Seeds &amp; Seedlings</p>
       <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Choose high-quality seed packets for your kitchen garden and container setup.</p>
+      <div class="seed-filter-wrap">
+        <label class="seed-filter-label" for="seed-subcategory-filter">Subcategory</label>
+        <select id="seed-subcategory-filter" class="seed-filter-select">
+          <option value="">Select a subcategory…</option>
+          ${seedSubCategories.map(function(name) {
+            var selected = name === selectedSubCategory ? ' selected' : '';
+            return '<option value="' + name + '"' + selected + '>' + name + '</option>';
+          }).join('')}
+        </select>
+      </div>
     </div>
   `;
+  const seedContent = selectedSubCategory
+    ? visibleSeedProducts.map(renderProductCard).join('')
+    : '<div class="seed-filter-note">Choose a seed subcategory first to view available seed and seedling packets.</div>';
   grid.innerHTML = mainProducts.map(renderProductCard).join('')
-    + (seedProducts.length ? (seedHeader + seedProducts.map(renderProductCard).join('')) : '');
+    + (seedProducts.length ? (seedHeader + seedContent) : '');
+
+  const seedFilter = document.getElementById('seed-subcategory-filter');
+  if (seedFilter) {
+    seedFilter.addEventListener('change', function() {
+      renderProducts.selectedSeedSubcategory = seedFilter.value;
+      renderProducts(products);
+    });
+  }
 }
 
 let freeSeedModalEl = null;

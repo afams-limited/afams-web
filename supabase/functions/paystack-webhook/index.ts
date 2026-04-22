@@ -118,6 +118,9 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
         type: typeValue,
         weight: typeof i.weight === "string" ? i.weight : "",
         category: typeof i.category === "string" ? i.category : "",
+        subcategory: typeof i.subcategory === "string"
+          ? i.subcategory
+          : (typeof i.seed_subcategory === "string" ? i.seed_subcategory : ""),
         is_free: i.is_free === true || i.is_free === "true",
       };
     });
