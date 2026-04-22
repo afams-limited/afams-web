@@ -1383,6 +1383,56 @@ function mapSeedPacket(seed) {
   };
 }
 
+function buildUnifiedOrderItems(cart, freeSeeds, extraSeeds) {
+  var cartItems = Array.isArray(cart && cart.items) ? cart.items : [];
+  var normalizedCartItems = cartItems.map(function(item) {
+    var safeItem = item || {};
+    var qty = Math.max(1, parseInt(safeItem.qty, 10) || 1);
+    var unitPrice = Number(safeItem.unit_price);
+    return {
+      id: safeItem.sku || ('item-' + Math.random().toString(36).slice(2, 8)),
+      sku: safeItem.sku || '',
+      name: safeItem.name || 'Product',
+      price: Number.isFinite(unitPrice) ? unitPrice : 0,
+      qty: qty,
+      type: safeItem.type || 'product'
+    };
+  });
+
+  var normalizedFreeSeeds = (freeSeeds || []).map(function(seed, index) {
+    var safeSeed = seed || {};
+    return {
+      id: 'seed-free-' + (safeSeed.slug || 'seed') + '-' + index,
+      slug: safeSeed.slug || '',
+      name: safeSeed.name || 'Seed packet',
+      price: 0,
+      qty: 1,
+      type: 'seed',
+      weight: safeSeed.weight || '',
+      category: safeSeed.category || 'Other',
+      is_free: true
+    };
+  });
+
+  var normalizedExtraSeeds = (extraSeeds || []).map(function(seed, index) {
+    var safeSeed = seed || {};
+    var seedPrice = Number(safeSeed.price);
+    return {
+      id: 'seed-paid-' + (safeSeed.slug || 'seed') + '-' + index,
+      slug: safeSeed.slug || '',
+      name: safeSeed.name || 'Seed packet',
+      price: Number.isFinite(seedPrice) ? seedPrice : 0,
+      qty: 1,
+      type: 'seed',
+      weight: safeSeed.weight || '',
+      category: safeSeed.category || 'Other',
+      is_free: false
+    };
+  });
+
+  return normalizedCartItems.concat(normalizedFreeSeeds, normalizedExtraSeeds);
+}
+
 function launchPaystack() {
   hideError();
   if (paystackLaunchInProgress || getCheckoutLock()) {
@@ -1437,6 +1487,7 @@ function launchPaystack() {
 
   const freeSeeds      = (window.seedState?.freePackets  || []).map(mapSeedPacket);
   const extraSeeds     = (window.seedState?.extraPackets || []).map(mapSeedPacket);
+  const unifiedOrderItems = buildUnifiedOrderItems(cart, freeSeeds, extraSeeds);
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
@@ -1487,6 +1538,7 @@ function launchPaystack() {
       delivery_address: address,
       county:           county,
       country:          country,
+      cart:             JSON.stringify(unifiedOrderItems),
       cart_items:       JSON.stringify(cart.items),
       free_seeds:       JSON.stringify(freeSeeds),
       extra_seeds:      JSON.stringify(extraSeeds),
