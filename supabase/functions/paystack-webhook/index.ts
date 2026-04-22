@@ -18,8 +18,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BREVO_TEMPLATES } from "../_shared/types.ts";
 
-const DEFAULT_SEED_NAME = "Seed packet";
-
 // ── Brevo email helper ────────────────────────────────────────
 async function sendBrevoTemplate(
   apiKey: string,
@@ -99,25 +97,6 @@ function parseMetadataArray(value: unknown): unknown[] {
   }
   if (typeof value === "object") return [value];
   return [];
-}
-
-function parseSeedMetadata(value: unknown): Array<Record<string, unknown>> {
-  return parseMetadataArray(value)
-    .filter((packet) => {
-      if (!packet || typeof packet !== "object" || Array.isArray(packet)) return false;
-      const p = packet as Record<string, unknown>;
-      return typeof p.slug === "string" || typeof p.name === "string";
-    })
-    .map((packet) => {
-      const p = packet as Record<string, unknown>;
-      return {
-        slug: typeof p.slug === "string" ? p.slug : "",
-        name: typeof p.name === "string" ? p.name : DEFAULT_SEED_NAME,
-        category: typeof p.category === "string" ? p.category : "Other",
-        weight: typeof p.weight === "string" ? p.weight : "",
-        price: Number.isFinite(Number(p.price)) ? Number(p.price) : 0,
-      };
-    });
 }
 
 function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>> {
@@ -225,8 +204,6 @@ Deno.serve(async (req: Request) => {
     const county = metadata.county as string | undefined;
 
     // Add-on fields (set by checkout.html for FarmBag orders)
-    const rawFreeSeeds   = metadata.free_seeds;
-    const rawExtraSeeds  = metadata.extra_seeds;
     const extra_seeds_count = parseInt(String(metadata.extra_seeds_count  ?? "0"), 10) || 0;
     const extra_seeds_total = parseInt(String(metadata.extra_seeds_total  ?? "0"), 10) || 0;
     const prosoil_qty       = parseInt(String(metadata.prosoil_qty        ?? "0"), 10) || 0;
@@ -249,37 +226,10 @@ Deno.serve(async (req: Request) => {
       } catch { /* ignore parse errors */ }
     }
 
-    const free_seeds = parseSeedMetadata(rawFreeSeeds);
-    const extra_seeds = parseSeedMetadata(rawExtraSeeds);
     const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
-
-    let orderItems = metadataCartItems;
-    if (!orderItems.length) {
-      const legacyCartItems = parseOrderItemsMetadata(metadata.cart_items);
-      const legacyFreeSeedItems = free_seeds.map((seed, index) => ({
-        id: `seed-free-${index + 1}`,
-        slug: String(seed.slug ?? ""),
-        name: String(seed.name ?? DEFAULT_SEED_NAME),
-        qty: 1,
-        price: 0,
-        type: "seed",
-        weight: String(seed.weight ?? ""),
-        category: String(seed.category ?? "Other"),
-        is_free: true,
-      }));
-      const legacyExtraSeedItems = extra_seeds.map((seed, index) => ({
-        id: `seed-paid-${index + 1}`,
-        slug: String(seed.slug ?? ""),
-        name: String(seed.name ?? DEFAULT_SEED_NAME),
-        qty: 1,
-        price: Number(seed.price ?? 0) || 0,
-        type: "seed",
-        weight: String(seed.weight ?? ""),
-        category: String(seed.category ?? "Other"),
-        is_free: false,
-      }));
-      orderItems = [...legacyCartItems, ...legacyFreeSeedItems, ...legacyExtraSeedItems];
-    }
+    const orderItems = metadataCartItems.length
+      ? metadataCartItems
+      : parseOrderItemsMetadata(metadata.cart_items);
 
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(
@@ -323,8 +273,8 @@ Deno.serve(async (req: Request) => {
       payment_method:   "paystack",
       status:           "paid",
       paid_at:          paid_at || new Date().toISOString(),
-      free_seeds:       free_seeds,
-      extra_seeds:      extra_seeds,
+      free_seeds:       [],
+      extra_seeds:      [],
       items:            orderItems,
       extra_seeds_count: extra_seeds_count,
       extra_seeds_total: extra_seeds_total,
