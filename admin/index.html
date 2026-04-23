@@ -1652,7 +1652,7 @@ function getOrderProductLines(order) {
   return getOrderLineItems(order)
     .filter(function (item) { return String(item.type || '') !== 'seed'; })
     .map(function (item) {
-      var qty = Math.max(1, Number(item.qty || 1));
+      var qty = Math.max(0, Number(item.qty || 0));
       return String(item.name || 'Product') + ' ×' + qty;
     });
 }
@@ -1665,7 +1665,7 @@ function getOrderProductSummary(order) {
 
 function getOrderTotalUnits(order) {
   var totalQty = getOrderLineItems(order).reduce(function (sum, item) {
-    return sum + Math.max(1, Number(item.qty || 1));
+    return sum + Math.max(0, Number(item.qty || 0));
   }, 0);
   return totalQty || Math.max(1, Number(order.quantity || 1));
 }

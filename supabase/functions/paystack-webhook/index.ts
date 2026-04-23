@@ -268,6 +268,10 @@ Deno.serve(async (req: Request) => {
         qty: parseInt(String(quantity ?? "1"), 10) || 1,
         price: parseInt(String(unit_price ?? "0"), 10) || 0,
         type: "product",
+        weight: "",
+        category: "",
+        subcategory: "",
+        is_free: false,
       }]);
     }
     const totalItemQty = orderItems.reduce((sum, item) => sum + (item.qty || 0), 0);
