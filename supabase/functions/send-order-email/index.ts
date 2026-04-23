@@ -77,6 +77,43 @@ function formatPaymentMethod(raw: unknown): string {
   return String(raw);
 }
 
+interface EmailOrderItem {
+  name: string;
+  qty: number;
+  price: number;
+}
+
+function getOrderItems(order: Record<string, unknown>): EmailOrderItem[] {
+  const fromOrderItems = Array.isArray(order.order_items) ? order.order_items : [];
+  const fromItems = Array.isArray(order.items) ? order.items : [];
+  const sourceItems = fromOrderItems.length ? fromOrderItems : fromItems;
+  return sourceItems
+    .filter((item) => item && typeof item === "object" && !Array.isArray(item))
+    .map((item) => {
+      const safeItem = item as Record<string, unknown>;
+      const qtyValue = parseInt(String(safeItem.quantity ?? safeItem.qty ?? "1"), 10);
+      const qty = Number.isFinite(qtyValue) && qtyValue > 0 ? qtyValue : 1;
+      const price = Math.max(0, Number(safeItem.unit_price ?? safeItem.price ?? 0) || 0);
+      return {
+        name: String(safeItem.product_name ?? safeItem.name ?? safeItem.product_sku ?? safeItem.sku ?? "Product"),
+        qty,
+        price,
+      };
+    });
+}
+
+function getOrderItemsSummary(items: EmailOrderItem[]): string {
+  return items
+    .map((item) => formatOrderItemLine(item))
+    .join(", ");
+}
+
+function formatOrderItemLine(item: EmailOrderItem, includePrice = false): string {
+  const base = `${item.name} ×${item.qty}`;
+  if (!includePrice) return base;
+  return `${base} (KES ${item.price.toLocaleString("en-KE")})`;
+}
+
 // ── Main handler ──────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
@@ -161,11 +198,28 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const { data: order, error: fetchError } = await supabase
+  const primaryOrderRes = await supabase
     .from("orders")
-    .select("*")
+    .select("*, order_items(*)")
     .eq("id", orderId)
     .single();
+  let order = primaryOrderRes.data;
+  let fetchError = primaryOrderRes.error;
+
+  if (fetchError) {
+    const fallback = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .single();
+    if (fallback.error) {
+      fetchError = fallback.error;
+      order = null;
+    } else {
+      fetchError = null;
+      order = fallback.data;
+    }
+  }
 
   if (fetchError || !order) {
     console.error("[send-order-email] Order not found:", orderId, fetchError?.message);
@@ -175,17 +229,26 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  const orderLineItems = getOrderItems(order as Record<string, unknown>);
+  const orderItemsSummary = getOrderItemsSummary(orderLineItems);
   const orderRef       = order.order_number ?? order.id.slice(0, 8);
   const customerName   = order.customer_name  ?? "Customer";
   const customerEmail  = order.customer_email ?? "";
-  const productName    = order.product_name   ?? order.product_sku ?? "—";
-  const quantity       = String(order.quantity ?? 1);
+  const productName    = orderItemsSummary || order.product_name || order.product_sku || "—";
+  const quantity       = String(
+    orderLineItems.reduce((sum, item) => sum + item.qty, 0)
+      || Number(order.quantity ?? 1)
+      || 1,
+  );
   const totalKES       = `KES ${(order.total_amount ?? 0).toLocaleString("en-KE")}`;
   const paymentMethod  = formatPaymentMethod(order.payment_method);
   const paymentRef     = order.paystack_ref ?? "—";
   const customerPhone  = order.customer_phone ?? "—";
   const deliveryAddress = order.delivery_address ?? "—";
   const county         = order.county ?? "—";
+  const orderItemsText = orderLineItems.length
+    ? orderLineItems.map((item) => formatOrderItemLine(item, true)).join("\n")
+    : `${productName} ×${quantity}`;
 
   if (!customerEmail) {
     console.warn(`[send-order-email] Order ${orderRef} has no customer_email — skipping`);
@@ -221,6 +284,8 @@ Deno.serve(async (req: Request) => {
         county:             county,
         product_name:       productName,
         quantity:           quantity,
+        order_items:        orderItemsText,
+        order_items_text:   orderItemsText,
         total_amount:       totalKES,
         payment_method:     paymentMethod,
         paystack_reference: paymentRef,
@@ -259,6 +324,8 @@ Deno.serve(async (req: Request) => {
         county:       county,
         product_name:  productName,
         quantity:      quantity,
+        order_items:   orderItemsText,
+        order_items_text: orderItemsText,
         total_amount:  totalKES,
         payment_method: paymentMethod,
         paystack_reference: paymentRef,

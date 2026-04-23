@@ -241,11 +241,11 @@ Deno.serve(async (req: Request) => {
 
     // Compute prosoil_promo_qty: from metadata if provided, otherwise derive from cart_items
     let prosoil_promo_qty   = parseInt(String(metadata.prosoil_promo_qty  ?? "0"), 10) || 0;
-    if (!prosoil_promo_qty && metadata.cart_items) {
+    if (!prosoil_promo_qty && (metadata.cart_items || metadata.items)) {
       try {
-        const cartItems = Array.isArray(metadata.cart_items)
-          ? metadata.cart_items
-          : JSON.parse(String(metadata.cart_items));
+        const cartItems = metadata.items
+          ? (Array.isArray(metadata.items) ? metadata.items : JSON.parse(String(metadata.items)))
+          : (Array.isArray(metadata.cart_items) ? metadata.cart_items : JSON.parse(String(metadata.cart_items)));
         const hasFarmBag = Array.isArray(cartItems) &&
           cartItems.some((i: any) => ["FB-CLS-01", "FB-GRW-01"].includes(i.sku));
         if (hasFarmBag && prosoil_qty >= 3) {
@@ -254,9 +254,12 @@ Deno.serve(async (req: Request) => {
       } catch { /* ignore parse errors */ }
     }
 
+    const metadataItems = parseOrderItemsMetadata(metadata.items);
     const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
     // Backward compatibility: some in-flight/older checkouts may still send `cart_items`.
-    let orderItems = metadataCartItems.length
+    let orderItems = metadataItems.length
+      ? metadataItems
+      : metadataCartItems.length
       ? metadataCartItems
       : parseOrderItemsMetadata(metadata.cart_items);
     if (!orderItems.length && (product_name || product_sku)) {
