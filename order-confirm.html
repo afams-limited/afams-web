@@ -490,8 +490,46 @@ const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const CURRENCY = 'KES';
 
+// Retry configuration for the order DB fetch
+const FETCH_MAX_ATTEMPTS = 6;
+const FETCH_DELAY_MS     = 1500;
+
 // Only the paystack reference drives the receipt — no amount/name from URL params
 const ref = new URLSearchParams(window.location.search).get('ref') || '';
+
+/** Safely escape a string for insertion into innerHTML. */
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(String(str || '')));
+  return div.innerHTML;
+}
+
+/** Show an error message inside the receipt-error element using safe DOM methods. */
+function showReceiptError(fixedHtml, refValue) {
+  var errEl = document.getElementById('receipt-error');
+  errEl.style.display = 'block';
+  // Static trusted HTML goes in via innerHTML; user-supplied ref via textContent on a span
+  var safeRef = document.createElement('strong');
+  safeRef.textContent = refValue || '—';
+  var tmp = document.createElement('div');
+  tmp.innerHTML = fixedHtml + '<br>__REF__';
+  // Replace placeholder text node with the safe element
+  var walker = document.createTreeWalker(tmp, NodeFilter.SHOW_TEXT);
+  var node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.includes('__REF__')) {
+      var parts = node.nodeValue.split('__REF__');
+      var frag  = document.createDocumentFragment();
+      frag.appendChild(document.createTextNode(parts[0]));
+      frag.appendChild(safeRef);
+      frag.appendChild(document.createTextNode(parts[1] || ''));
+      node.parentNode.replaceChild(frag, node);
+      break;
+    }
+  }
+  errEl.innerHTML = '';
+  errEl.appendChild(tmp);
+}
 
 // Print toolbar
 var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
@@ -529,16 +567,20 @@ try { sessionStorage.removeItem('afams_cart'); } catch(_) {}
 try { localStorage.removeItem('afams_cart');  } catch(_) {}
 
 if (!ref) {
-  window.location.href = '/';
+  // No reference in URL — show a helpful error rather than a silent redirect
+  showReceiptError(
+    '<strong>No order reference found.</strong><br>Please check your confirmation email or contact '
+    + '<a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a>.',
+    ''
+  );
+  document.getElementById('receipt-loading').style.display = 'none';
 } else {
   (async () => {
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Fetch order with retry — webhook processing can lag a few seconds after redirect
     async function fetchOrder() {
-      const MAX_ATTEMPTS = 6;
-      const DELAY_MS     = 1500;
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      for (let attempt = 1; attempt <= FETCH_MAX_ATTEMPTS; attempt++) {
         const { data, error } = await sbClient
           .from('orders')
           .select('id, paystack_ref, order_number, customer_name, customer_email, customer_phone, total_amount, status, created_at, order_items(product_name, quantity, unit_price, subtotal)')
