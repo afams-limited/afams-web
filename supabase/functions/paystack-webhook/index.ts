@@ -317,114 +317,154 @@ Deno.serve(async (req: Request) => {
       console.warn(`[Webhook] customer_name missing for ref ${reference} — order will be flagged as Unknown`);
     }
 
-    // Write order to Supabase
-    const { error } = await supabase.from("orders").insert({
-      customer_name:    resolvedCustomerName || "Unknown",
-      customer_email:   customer?.email,
-      customer_phone:   customer_phone || customer?.phone,
-      delivery_address: delivery_address || null,
-      county:           county || null,
-      product_sku:      resolvedProductSku,
-      product_name:     resolvedProductName,
-      quantity:         resolvedQuantity,
-      unit_price:       resolvedUnitPrice,
-      total_amount:     totalKes,
-      paystack_ref:     reference,
-      payment_method:   "paystack",
-      status:           "paid",
-      paid_at:          paid_at || new Date().toISOString(),
-      free_seeds:       [],
-      extra_seeds:      [],
-      items:            orderItems,
+    // Write parent order to Supabase
+    const orderInsertRes = await supabase.from("orders").insert({
+      customer_name:     resolvedCustomerName || "Unknown",
+      customer_email:    customer?.email,
+      customer_phone:    customer_phone || customer?.phone,
+      delivery_address:  delivery_address || null,
+      county:            county || null,
+      product_sku:       resolvedProductSku,
+      product_name:      resolvedProductName,
+      quantity:          resolvedQuantity,
+      unit_price:        resolvedUnitPrice,
+      total_amount:      totalKes,
+      paystack_ref:      reference,
+      payment_method:    "paystack",
+      status:            "paid",
+      paid_at:           paid_at || new Date().toISOString(),
+      free_seeds:        [],
+      extra_seeds:       [],
+      items:             orderItems,
       extra_seeds_count: extra_seeds_count,
       extra_seeds_total: extra_seeds_total,
-      prosoil_qty:      prosoil_qty,
-      prosoil_total:    prosoil_total,
+      prosoil_qty:       prosoil_qty,
+      prosoil_total:     prosoil_total,
       prosoil_promo_bag: prosoil_promo_bag,
       prosoil_promo_qty: prosoil_promo_qty,
-      addons_total:     addons_total,
-    });
+      addons_total:      addons_total,
+    }).select("id, order_number").single();
 
-    if (error) {
-      console.error("[Webhook] Supabase insert error:", error);
+    if (orderInsertRes.error || !orderInsertRes.data) {
+      console.error("[Webhook] Supabase order insert error:", orderInsertRes.error);
       return new Response(JSON.stringify({ error: "DB write failed" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
 
+    const insertedOrder = orderInsertRes.data;
+
+    // Write child line items (best effort if relation exists)
+    if (orderItems.length > 0) {
+      const lineItems = orderItems.map((item) => ({
+        order_id: insertedOrder.id,
+        product_id: String(item.id || item.sku || item.slug || "product"),
+        product_name: String(item.name || "Product"),
+        quantity: Math.max(1, Number(item.qty || 1)),
+        unit_price: Math.max(0, Number(item.price || 0)),
+      }));
+      const itemsInsertRes = await supabase.from("order_items").insert(lineItems);
+      if (itemsInsertRes.error) {
+        console.warn("[Webhook] order_items insert skipped/failed:", itemsInsertRes.error.message);
+      }
+    }
+
     console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
 
-    // ── Send Brevo transactional emails ──────────────────────
+    const response = new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    // ── Send Brevo transactional emails in background ──────────
     const brevoApiKey = Deno.env.get("BREVO_API_KEY");
     if (brevoApiKey && customer?.email) {
       const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL") ?? "orders@afams.co.ke";
-      const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
-      const adminEmail  = Deno.env.get("BREVO_ADMIN_EMAIL")  ?? "iammwombe@gmail.com";
-
-      // Fetch the newly created order to get the generated order_number
-      const { data: newOrder } = await supabase
-        .from("orders")
-        .select("order_number")
-        .eq("paystack_ref", reference)
-        .single();
-
-      const orderRef   = newOrder?.order_number ?? reference.slice(0, 8);
-      const custName   = resolvedCustomerName ?? "Customer";
-      const custEmail  = customer.email;
-      const prodName   = resolvedProductName;
-      const qty        = String(resolvedQuantity);
-      const totalStr   = `KES ${totalKes.toLocaleString("en-KE")}`;
-      const paidAtStr  = paid_at
+      const senderName = Deno.env.get("BREVO_SENDER_NAME") ?? "Afams";
+      const adminEmail = Deno.env.get("BREVO_ADMIN_EMAIL") ?? "iammwombe@gmail.com";
+      const orderRef = insertedOrder.order_number ?? reference.slice(0, 8);
+      const custName = resolvedCustomerName ?? "Customer";
+      const custEmail = customer.email;
+      const prodName = resolvedProductName;
+      const qty = String(resolvedQuantity);
+      const totalStr = `KES ${totalKes.toLocaleString("en-KE")}`;
+      const paidAtStr = paid_at
         ? new Date(paid_at).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
         : new Date().toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" });
 
       const sharedParams = {
-        order_number:   orderRef,
-        order_ref:      orderRef,
+        order_number: orderRef,
+        order_ref: orderRef,
         order_reference: orderRef,
-        customer_name:  custName,
-        product_name:   prodName,
-        quantity:       qty,
-        total_amount:   totalStr,
+        customer_name: custName,
+        product_name: prodName,
+        quantity: qty,
+        total_amount: totalStr,
         payment_method: paymentMethodLabel,
         payment_reference: reference,
         paystack_reference: reference,
-        paid_at:        paidAtStr,
+        paid_at: paidAtStr,
         customer_phone: customer_phone ?? "—",
         delivery_address: delivery_address ?? "—",
-        county:         county ?? "—",
+        county: county ?? "—",
         brand_logo_url: "https://afams.co.ke/assets/images/afams_logo_stacked.png",
         brand_icon_url: "https://afams.co.ke/assets/images/afams_favicon_512.png",
       };
 
-      // #1 Order Received — confirm the order is in our queue
-      const tplOrderReceived = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_ORDER_RECEIVED") ?? String(BREVO_TEMPLATES.order_received), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplOrderReceived, custEmail, custName, sharedParams)
-        .catch((e) => console.error("[Webhook] order_received email failed:", e));
+      const backgroundEmailTask = (async () => {
+        const tplOrderReceived = parseInt(
+          Deno.env.get("BREVO_TEMPLATE_ORDER_RECEIVED") ?? String(BREVO_TEMPLATES.order_received),
+          10,
+        );
+        await sendBrevoTemplate(
+          brevoApiKey,
+          senderEmail,
+          senderName,
+          tplOrderReceived,
+          custEmail,
+          custName,
+          sharedParams,
+        ).catch((e) => console.error("[Webhook] order_received email failed:", e));
 
-      // #2 Payment Success — confirm payment was received
-      const tplPaymentSuccess = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_PAYMENT_SUCCESS") ?? String(BREVO_TEMPLATES.payment_success), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplPaymentSuccess, custEmail, custName, sharedParams)
-        .catch((e) => console.error("[Webhook] payment_success email failed:", e));
+        const tplPaymentSuccess = parseInt(
+          Deno.env.get("BREVO_TEMPLATE_PAYMENT_SUCCESS") ?? String(BREVO_TEMPLATES.payment_success),
+          10,
+        );
+        await sendBrevoTemplate(
+          brevoApiKey,
+          senderEmail,
+          senderName,
+          tplPaymentSuccess,
+          custEmail,
+          custName,
+          sharedParams,
+        ).catch((e) => console.error("[Webhook] payment_success email failed:", e));
 
-      // #4 Admin New Order — notify admin of new paid order
-      const tplAdminOrder = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_ADMIN_NEW_ORDER") ?? String(BREVO_TEMPLATES.admin_new_order), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplAdminOrder, adminEmail, "Afams Admin", {
-        ...sharedParams,
-        customer_email: custEmail,
-      }).catch((e) => console.error("[Webhook] admin_new_order email failed:", e));
+        const tplAdminOrder = parseInt(
+          Deno.env.get("BREVO_TEMPLATE_ADMIN_NEW_ORDER") ?? String(BREVO_TEMPLATES.admin_new_order),
+          10,
+        );
+        await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplAdminOrder, adminEmail, "Afams Admin", {
+          ...sharedParams,
+          customer_email: custEmail,
+        }).catch((e) => console.error("[Webhook] admin_new_order email failed:", e));
 
-      console.log(`[Webhook] Brevo emails dispatched for order ${orderRef}`);
+        console.log(`[Webhook] Brevo emails dispatched for order ${orderRef}`);
+      })();
+
+      const edgeRuntime = (globalThis as { EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void } })
+        .EdgeRuntime;
+      if (edgeRuntime && typeof edgeRuntime.waitUntil === "function") {
+        edgeRuntime.waitUntil(backgroundEmailTask);
+      } else {
+        backgroundEmailTask.catch((e) => console.error("[Webhook] background email task failed:", e));
+      }
     } else if (!brevoApiKey) {
       console.warn("[Webhook] BREVO_API_KEY not set — skipping emails");
     }
+
+    return response;
   }
 
   // Acknowledge all other events
