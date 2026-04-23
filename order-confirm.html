@@ -343,6 +343,7 @@
       @page { size: A4; margin: 10mm; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -359,6 +360,15 @@
 </div>
 
 <main class="wrapper">
+  <!-- Loading / error states -->
+  <div id="receipt-loading" style="text-align:center;padding:3rem;color:var(--ink-soft)">
+    <p style="font-size:0.9rem">Loading your receipt…</p>
+    <p style="font-size:0.78rem;margin-top:0.5rem;opacity:0.7">This usually takes a moment after payment is confirmed.</p>
+  </div>
+  <div id="receipt-error" style="display:none;padding:1.5rem 2rem;background:#fff8f8;border:1px solid #f5c6c6;border-radius:12px;color:#C0392B;font-size:0.88rem;line-height:1.8" role="alert"></div>
+
+  <!-- Receipt content — shown after DB fetch succeeds -->
+  <div id="receipt-content" style="display:none">
   <div class="success-chip">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.7" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
     Payment confirmed
@@ -420,6 +430,19 @@
         </tbody>
       </table>
 
+      <!-- Order items — populated from DB; hidden until rows are available -->
+      <table class="summary-table" id="items-table" aria-label="Order items" style="display:none">
+        <thead>
+          <tr>
+            <th style="width:auto;text-align:left">Item</th>
+            <th style="width:60px;text-align:center">Qty</th>
+            <th style="width:95px;text-align:right">Unit Price</th>
+            <th style="width:95px;text-align:right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="items-tbody"></tbody>
+      </table>
+
       <div class="timeline-wrap">
         <div class="pane-title">What happens next</div>
         <div class="timeline">
@@ -460,25 +483,23 @@
     </a>
     <a href="index.html" class="btn-secondary">Back to home</a>
   </div>
+  </div><!-- /#receipt-content -->
 </main>
 <script>
-// Read URL params
-const params  = new URLSearchParams(window.location.search);
-const ref     = params.get('ref')    || '';
-const name    = params.get('name')   || '';
-const email   = params.get('email')  || '';
-const amount  = Number(params.get('amount') || 0);
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const CURRENCY = 'KES';
 
-// Display reference
-document.getElementById('order-ref').textContent = ref || 'Check your email';
-document.getElementById('order-ref-copy').textContent = ref || 'Check your email';
-if (name) document.getElementById('order-name').textContent = name;
-if (email) document.getElementById('order-email').textContent = email;
-const receiptNo = 'CR-' + (ref || 'AFAMS').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase() + '-' + Date.now().toString(36).toUpperCase().slice(-4);
-document.getElementById('receipt-no').textContent = receiptNo;
+// Only the paystack reference drives the receipt — no amount/name from URL params
+const ref = new URLSearchParams(window.location.search).get('ref') || '';
 
-// Timestamps
+// Print toolbar
+var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
+if (toolbarPrintBtn) {
+  toolbarPrintBtn.addEventListener('click', function() { window.print(); });
+}
+
+// Timestamps shown immediately (before DB fetch completes)
 const now = new Date();
 document.getElementById('ts-now').textContent = now.toLocaleString('en-KE', {
   day: 'numeric', month: 'short', year: 'numeric',
@@ -499,53 +520,115 @@ function addBusinessDays(date, days) {
   return d;
 }
 
-const deliveryDate = addBusinessDays(now, 5);
-const dispatchDate = addBusinessDays(now, 2);
-
 const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
-document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
-document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
+document.getElementById('ts-dispatch').textContent = 'By ' + addBusinessDays(now, 2).toLocaleDateString('en-KE', fmt);
+document.getElementById('ts-delivery').textContent = 'By ' + addBusinessDays(now, 5).toLocaleDateString('en-KE', fmt);
 
-function formatAmount(val) {
-  const safe = Number(val);
-  if (!Number.isFinite(safe) || safe <= 0) return CURRENCY + ' —';
-  return CURRENCY + ' ' + safe.toLocaleString('en-KE');
-}
-const formattedAmount = formatAmount(amount);
-document.getElementById('amount-paid').textContent = formattedAmount;
-document.getElementById('amount-paid-copy').textContent = formattedAmount;
+// Belt-and-suspenders cart clear (checkout.html already calls clearCart() on success)
+try { sessionStorage.removeItem('afams_cart'); } catch(_) {}
+try { localStorage.removeItem('afams_cart');  } catch(_) {}
 
-var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
-if (toolbarPrintBtn) {
-  toolbarPrintBtn.addEventListener('click', function() {
-    window.print();
-  });
-}
+if (!ref) {
+  window.location.href = '/';
+} else {
+  (async () => {
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Clear cart if using the localStorage cart from index.html
-try { localStorage.removeItem('afams_cart'); } catch(_) {}
+    // Fetch order with retry — webhook processing can lag a few seconds after redirect
+    async function fetchOrder() {
+      const MAX_ATTEMPTS = 6;
+      const DELAY_MS     = 1500;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const { data, error } = await sbClient
+          .from('orders')
+          .select('id, paystack_ref, order_number, customer_name, customer_email, customer_phone, total_amount, status, created_at, order_items(product_name, quantity, unit_price, subtotal)')
+          .eq('paystack_ref', ref)
+          .maybeSingle();
 
-// After successful order, silently add to subscribers list (buyer auto-enrolment)
-const orderData = { email: email, full_name: name };
-if (orderData.email) {
-  const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-  fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Prefer': 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify({
-      email: orderData.email,
-      first_name: orderData.full_name ? orderData.full_name.split(' ')[0] : null,
-      source: 'checkout',
-      status: 'active',
-      tags: ['product_updates', 'promotions', 'growing_tips'],
-    })
-  }).catch(() => {}); // Silent fail — don't block order confirmation UX
+        if (error) throw error;
+        if (data)  return data;
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(r => setTimeout(r, DELAY_MS));
+        }
+      }
+      return null;
+    }
+
+    try {
+      const order = await fetchOrder();
+      document.getElementById('receipt-loading').style.display = 'none';
+
+      if (!order) {
+        var errEl = document.getElementById('receipt-error');
+        errEl.style.display = 'block';
+        errEl.innerHTML = '<strong>We couldn\'t load your receipt right now.</strong><br>'
+          + 'Your payment was received — save your reference: <strong>' + (ref || '—') + '</strong><br>'
+          + 'A confirmation email is on its way. Contact <a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a> if you need help.';
+        return;
+      }
+
+      // Populate receipt from verified DB data
+      var refDisplay = order.order_number || order.paystack_ref || ref;
+      var receiptNo  = 'CR-' + refDisplay.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase()
+                              + '-' + Date.now().toString(36).toUpperCase().slice(-4);
+      document.getElementById('order-ref').textContent       = refDisplay;
+      document.getElementById('order-ref-copy').textContent  = refDisplay;
+      document.getElementById('receipt-no').textContent      = receiptNo;
+      document.getElementById('order-name').textContent      = order.customer_name  || '—';
+      document.getElementById('order-email').textContent     = order.customer_email || '—';
+
+      var formattedAmount = CURRENCY + ' ' + Number(order.total_amount || 0).toLocaleString('en-KE');
+      document.getElementById('amount-paid').textContent      = formattedAmount;
+      document.getElementById('amount-paid-copy').textContent = formattedAmount;
+
+      // Render order items table (only when normalized rows are present)
+      var items = Array.isArray(order.order_items) ? order.order_items : [];
+      if (items.length > 0) {
+        var tbody = document.getElementById('items-tbody');
+        tbody.innerHTML = '';
+        items.forEach(function(item) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td style="text-align:left">'  + (item.product_name || '—') + '</td>'
+            + '<td style="text-align:center">' + (item.quantity   || 1) + '</td>'
+            + '<td style="text-align:right">KES ' + Number(item.unit_price || 0).toLocaleString('en-KE') + '</td>'
+            + '<td style="text-align:right">KES ' + Number(item.subtotal  || 0).toLocaleString('en-KE') + '</td>';
+          tbody.appendChild(tr);
+        });
+        document.getElementById('items-table').style.display = '';
+      }
+
+      document.getElementById('receipt-content').style.display = 'block';
+
+      // Subscriber auto-enrolment using DB-verified email (not URL params)
+      if (order.customer_email) {
+        fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Prefer': 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify({
+            email:      order.customer_email,
+            first_name: order.customer_name ? order.customer_name.split(' ')[0] : null,
+            source:     'checkout',
+            status:     'active',
+            tags:       ['product_updates', 'promotions', 'growing_tips'],
+          }),
+        }).catch(() => {}); // Silent fail — don't block receipt UX
+      }
+
+    } catch (err) {
+      console.error('[Receipt] Error loading order:', err);
+      document.getElementById('receipt-loading').style.display = 'none';
+      var errEl = document.getElementById('receipt-error');
+      errEl.style.display = 'block';
+      errEl.innerHTML = '<strong>Could not load your receipt.</strong><br>'
+        + 'Save your reference: <strong>' + (ref || '—') + '</strong><br>'
+        + 'Email <a href="mailto:orders@afams.co.ke">orders@afams.co.ke</a> with this reference.';
+    }
+  })();
 }
 </script>
 

@@ -297,12 +297,13 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Idempotency check — skip duplicate events
+    // Idempotency check — skip duplicate events.
+    // maybeSingle() returns null (not an error) when no row exists.
     const { data: existing } = await supabase
       .from("orders")
       .select("id")
       .eq("paystack_ref", reference)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       console.log(`[Webhook] Duplicate ref ${reference} — skipping`);
@@ -317,8 +318,8 @@ Deno.serve(async (req: Request) => {
       console.warn(`[Webhook] customer_name missing for ref ${reference} — order will be flagged as Unknown`);
     }
 
-    // Write order to Supabase
-    const { error } = await supabase.from("orders").insert({
+    // Write order to Supabase — select id and order_number for immediate use
+    const { data: insertedOrder, error } = await supabase.from("orders").insert({
       customer_name:    resolvedCustomerName || "Unknown",
       customer_email:   customer?.email,
       customer_phone:   customer_phone || customer?.phone,
@@ -343,7 +344,7 @@ Deno.serve(async (req: Request) => {
       prosoil_promo_bag: prosoil_promo_bag,
       prosoil_promo_qty: prosoil_promo_qty,
       addons_total:     addons_total,
-    });
+    }).select('id, order_number').single();
 
     if (error) {
       console.error("[Webhook] Supabase insert error:", error);
@@ -351,6 +352,24 @@ Deno.serve(async (req: Request) => {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Bulk-insert normalized order_items — one row per product line
+    if (insertedOrder?.id && orderItems.length > 0) {
+      const lineItems = orderItems.map((item) => ({
+        order_id:     insertedOrder.id,
+        product_id:   item.sku || item.id || "unknown",
+        product_name: item.name || "Product",
+        quantity:     item.qty,
+        unit_price:   item.price,
+      }));
+      const { error: itemsErr } = await supabase.from("order_items").insert(lineItems);
+      if (itemsErr) {
+        // Non-fatal: order row exists; legacy orders.items JSONB is the fallback
+        console.error("[Webhook] order_items insert error:", itemsErr.message);
+      } else {
+        console.log(`[Webhook] ${lineItems.length} order_items written for order ${insertedOrder.id}`);
+      }
     }
 
     console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
@@ -362,14 +381,8 @@ Deno.serve(async (req: Request) => {
       const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
       const adminEmail  = Deno.env.get("BREVO_ADMIN_EMAIL")  ?? "iammwombe@gmail.com";
 
-      // Fetch the newly created order to get the generated order_number
-      const { data: newOrder } = await supabase
-        .from("orders")
-        .select("order_number")
-        .eq("paystack_ref", reference)
-        .single();
-
-      const orderRef   = newOrder?.order_number ?? reference.slice(0, 8);
+      // order_number is returned from the insert — no extra DB round-trip needed
+      const orderRef   = insertedOrder?.order_number ?? reference.slice(0, 8);
       const custName   = resolvedCustomerName ?? "Customer";
       const custEmail  = customer.email;
       const prodName   = resolvedProductName;

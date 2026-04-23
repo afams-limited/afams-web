@@ -34,6 +34,21 @@ export interface Order {
   prosoil_promo_bag: boolean;
   prosoil_promo_qty: number;
   addons_total: number;
+  // Normalized line items (populated from order_items table)
+  order_items?: OrderItem[];
+}
+
+/** One row per product per order in the order_items table. */
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  /** Generated column: quantity * unit_price */
+  subtotal: number;
+  created_at: string;
 }
 
 // CRITICAL: These are the ONLY valid status values.
