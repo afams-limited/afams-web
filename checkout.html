@@ -1103,7 +1103,10 @@ function launchPaystack() {
     callback: function(response) {
       releaseCheckoutState();
       clearCart();
-      window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference);
+      window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference)
+        + '&name=' + encodeURIComponent(name)
+        + '&email=' + encodeURIComponent(email)
+        + '&amount=' + grandTotal;
     },
     onClose: function() {
       releaseCheckoutState();
