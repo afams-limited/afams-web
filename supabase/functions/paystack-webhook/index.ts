@@ -99,7 +99,21 @@ function parseMetadataArray(value: unknown): unknown[] {
   return [];
 }
 
-function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>> {
+interface ParsedOrderItem {
+  id: string;
+  sku: string;
+  slug: string;
+  name: string;
+  qty: number;
+  price: number;
+  type: string;
+  weight: string;
+  category: string;
+  subcategory: string;
+  is_free: boolean;
+}
+
+function parseOrderItemsMetadata(value: unknown): ParsedOrderItem[] {
   return parseMetadataArray(value)
     .filter((item) => item && typeof item === "object" && !Array.isArray(item))
     .map((item, index) => {
@@ -128,6 +142,13 @@ function parseOrderItemsMetadata(value: unknown): Array<Record<string, unknown>>
         is_free: i.is_free === true || i.is_free === "true",
       };
     });
+}
+
+function getOrderProductSummary(items: ParsedOrderItem[]): string {
+  const lines = items
+    .filter((item) => item && typeof item.name === "string")
+    .map((item) => `${item.name} ×${item.qty}`);
+  return lines.length ? lines.join(", ") : "FarmBag Product";
 }
 
 // ── Main handler ─────────────────────────────────────────────
@@ -235,9 +256,31 @@ Deno.serve(async (req: Request) => {
 
     const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
     // Backward compatibility: some in-flight/older checkouts may still send `cart_items`.
-    const orderItems = metadataCartItems.length
+    let orderItems = metadataCartItems.length
       ? metadataCartItems
       : parseOrderItemsMetadata(metadata.cart_items);
+    if (!orderItems.length && (product_name || product_sku)) {
+      orderItems = parseOrderItemsMetadata([{
+        id: String(product_sku || "legacy-item"),
+        sku: product_sku || "",
+        slug: product_sku || "",
+        name: product_name || "FarmBag Product",
+        qty: parseInt(String(quantity ?? "1"), 10) || 1,
+        price: parseInt(String(unit_price ?? "0"), 10) || 0,
+        type: "product",
+      }]);
+    }
+    const totalItemQty = orderItems.reduce((sum, item) => sum + (item.qty || 0), 0);
+    const resolvedQuantity = totalItemQty > 0
+      ? totalItemQty
+      : (parseInt(String(quantity ?? "1"), 10) || 1);
+    const resolvedProductName = getOrderProductSummary(orderItems);
+    const resolvedUnitPrice = resolvedQuantity > 0
+      ? Math.round(totalKes / resolvedQuantity)
+      : (parseInt(String(unit_price ?? "0"), 10) || 0);
+    const resolvedProductSku = orderItems.length === 1
+      ? (orderItems[0].sku || null)
+      : null;
 
     // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
     const supabase = createClient(
@@ -272,10 +315,10 @@ Deno.serve(async (req: Request) => {
       customer_phone:   customer_phone || customer?.phone,
       delivery_address: delivery_address || null,
       county:           county || null,
-      product_sku:      product_sku || null,
-      product_name:     product_name || "FarmBag Product",
-      quantity:         parseInt(String(quantity ?? "1"), 10) || 1,
-      unit_price:       parseInt(String(unit_price ?? "0"), 10) || 0,
+      product_sku:      resolvedProductSku,
+      product_name:     resolvedProductName,
+      quantity:         resolvedQuantity,
+      unit_price:       resolvedUnitPrice,
       total_amount:     totalKes,
       paystack_ref:     reference,
       payment_method:   "paystack",
@@ -320,8 +363,8 @@ Deno.serve(async (req: Request) => {
       const orderRef   = newOrder?.order_number ?? reference.slice(0, 8);
       const custName   = resolvedCustomerName ?? "Customer";
       const custEmail  = customer.email;
-      const prodName   = product_name ?? "FarmBag Product";
-      const qty        = String(parseInt(String(quantity ?? "1"), 10) || 1);
+      const prodName   = resolvedProductName;
+      const qty        = String(resolvedQuantity);
       const totalStr   = `KES ${totalKes.toLocaleString("en-KE")}`;
       const paidAtStr  = paid_at
         ? new Date(paid_at).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
