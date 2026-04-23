@@ -260,19 +260,21 @@ Deno.serve(async (req: Request) => {
       ? metadataCartItems
       : parseOrderItemsMetadata(metadata.cart_items);
     if (!orderItems.length && (product_name || product_sku)) {
-      orderItems = parseOrderItemsMetadata([{
-        id: String(product_sku || "legacy-item"),
-        sku: product_sku || "",
-        slug: product_sku || "",
-        name: product_name || "FarmBag Product",
-        qty: parseInt(String(quantity ?? "1"), 10) || 1,
+      const legacyQty = parseInt(String(quantity ?? "1"), 10) || 1;
+      const legacySku = String(product_sku || "");
+      orderItems = [{
+        id: legacySku || "legacy-item",
+        sku: legacySku,
+        slug: legacySku,
+        name: String(product_name || "FarmBag Product"),
+        qty: legacyQty,
         price: parseInt(String(unit_price ?? "0"), 10) || 0,
         type: "product",
         weight: "",
         category: "",
         subcategory: "",
         is_free: false,
-      }]);
+      }];
     }
     const totalItemQty = orderItems.reduce((sum, item) => sum + (item.qty || 0), 0);
     const resolvedQuantity = totalItemQty > 0

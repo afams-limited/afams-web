@@ -1659,8 +1659,11 @@ function getOrderProductLines(order) {
 
 function getOrderProductSummary(order) {
   var lines = getOrderProductLines(order);
-  if (!lines.length) return String(order.product_name || order.product_sku || '—');
-  return lines.join(', ');
+  if (lines.length) return lines.join(', ');
+  // If items only contain seeds or items array is missing, fall back to legacy field
+  var storedItems = Array.isArray(order && order.items) ? order.items : [];
+  if (storedItems.length > 0) return 'See order items';
+  return String(order.product_name || order.product_sku || '—');
 }
 
 function getOrderTotalUnits(order) {
@@ -2734,8 +2737,8 @@ function summarizeAddonItems(items) {
 
 function getDispatchProductLines(order) {
   var lines = getOrderProductLines(order).slice();
-  var hasProsoilLine = lines.some(function (line) {
-    return String(line || '').toLowerCase().indexOf('prosoil') >= 0;
+  var hasProsoilLine = getOrderLineItems(order).some(function (item) {
+    return String(item.sku || '').toUpperCase() === 'PS-25KG';
   });
 
   var freeSeeds = summarizeAddonItems(order.free_seeds);
