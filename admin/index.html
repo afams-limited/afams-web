@@ -1600,6 +1600,7 @@ function getOrderLineItems(order) {
       if (!Number.isFinite(price) || price < 0) price = 0;
       return {
         name: String(safeItem.name || safeItem.sku || safeItem.slug || 'Product'),
+        sku: String(safeItem.sku || ''),
         qty: qty,
         price: price,
         type: String(safeItem.type || 'product'),
@@ -1613,6 +1614,7 @@ function getOrderLineItems(order) {
   var unitPrice = Math.max(0, Number(order.unit_price || 0));
   fallback.push({
     name: String(order.product_name || order.product_sku || 'Product'),
+    sku: String(order.product_sku || ''),
     qty: qty,
     price: unitPrice,
     type: 'product',
@@ -1623,6 +1625,7 @@ function getOrderLineItems(order) {
   freeSeeds.forEach(function (seed) {
     fallback.push({
       name: String((seed && (seed.name || seed.slug)) || 'Seed packet'),
+      sku: '',
       qty: 1,
       price: 0,
       type: 'seed',
@@ -1634,6 +1637,7 @@ function getOrderLineItems(order) {
   extraSeeds.forEach(function (seed) {
     fallback.push({
       name: String((seed && (seed.name || seed.slug)) || 'Seed packet'),
+      sku: '',
       qty: 1,
       price: Math.max(0, Number(seed && seed.price) || 0),
       type: 'seed',
@@ -1642,6 +1646,31 @@ function getOrderLineItems(order) {
   });
 
   return fallback;
+}
+
+function getOrderProductLines(order) {
+  return getOrderLineItems(order)
+    .filter(function (item) { return String(item.type || '') !== 'seed'; })
+    .map(function (item) {
+      var qty = Math.max(0, Number(item.qty || 0));
+      return String(item.name || 'Product') + ' ×' + qty;
+    });
+}
+
+function getOrderProductSummary(order) {
+  var lines = getOrderProductLines(order);
+  if (lines.length) return lines.join(', ');
+  // If items only contain seeds or items array is missing, fall back to legacy field
+  var storedItems = Array.isArray(order && order.items) ? order.items : [];
+  if (storedItems.length > 0) return 'See order items';
+  return String(order.product_name || order.product_sku || '—');
+}
+
+function getOrderTotalUnits(order) {
+  var totalQty = getOrderLineItems(order).reduce(function (sum, item) {
+    return sum + Math.max(0, Number(item.qty || 0));
+  }, 0);
+  return totalQty || Math.max(1, Number(order.quantity || 1));
 }
 
 function renderStatusBadge(status) {
@@ -1821,8 +1850,7 @@ function renderOrders(orders) {
   tbody.innerHTML = orders.map(function (o) {
     var name     = escapeHtml(o.customer_name || '—');
     var email    = escapeHtml(o.customer_email || '');
-    var product  = escapeHtml(o.product_name || o.product_sku || '—');
-    var qty      = o.quantity || 1;
+    var product  = escapeHtml(getOrderProductSummary(o));
     var ref      = escapeHtml(o.order_number || (o.id ? o.id.slice(0, 8) : '—'));
     var amount   = (o.total_amount || 0).toLocaleString();
     var status   = o.status || 'pending';
@@ -1837,7 +1865,7 @@ function renderOrders(orders) {
       +   '<div style="font-weight:600">' + name + '</div>'
       +   '<div style="color:var(--text-muted);font-size:0.78rem;">' + email + '</div>'
       + '</td>'
-      + '<td style="color:var(--text-muted);font-size:0.82rem;">' + product + ' ×' + qty + '</td>'
+      + '<td style="color:var(--text-muted);font-size:0.82rem;">' + product + '</td>'
       + '<td style="font-weight:600">KES ' + amount + '</td>'
       + '<td><span class="badge badge-' + escapeHtml(payStatus) + '">' + escapeHtml(payStatus) + '</span></td>'
       + '<td>' + renderStatusBadge(status) + '</td>'
@@ -2101,8 +2129,8 @@ function openMailtoFallback(orderSnapshot, emailType) {
   // Build subject and body directly from the snapshot — no global mutation needed
   var ref         = orderSnapshot.order_number || orderSnapshot.id;
   var name        = orderSnapshot.customer_name  || 'Customer';
-  var product     = orderSnapshot.product_name   || orderSnapshot.product_sku || '—';
-  var qty         = String(orderSnapshot.quantity || 1);
+  var product     = getOrderProductSummary(orderSnapshot);
+  var qty         = String(getOrderTotalUnits(orderSnapshot));
   var total       = 'KES ' + Number(orderSnapshot.total_amount || 0).toLocaleString('en-KE');
   var trackingNo  = orderSnapshot.tracking_number || '—';
   var deliveredAt = orderSnapshot.delivered_at
@@ -2225,8 +2253,8 @@ function buildWhatsAppContent(templateKey, o) {
   var payRef = o.paystack_ref || '—';
   var payMethod = formatPaymentMethodLabel(o.payment_method);
   var name  = o.customer_name  || 'there';
-  var prod  = o.product_name   || o.product_sku || 'FarmBag';
-  var qty   = o.quantity       || 1;
+  var prod  = getOrderProductSummary(o);
+  var qty   = getOrderTotalUnits(o);
   var amt   = o.total_amount   ? 'KES ' + Number(o.total_amount).toLocaleString('en-KE') : '—';
   var paidAt    = o.paid_at         ? new Date(o.paid_at).toLocaleString('en-KE')      : '—';
   var delivAt   = o.delivered_at    ? new Date(o.delivered_at).toLocaleString('en-KE') : '—';
@@ -2708,10 +2736,10 @@ function summarizeAddonItems(items) {
 }
 
 function getDispatchProductLines(order) {
-  var lines = [];
-  var baseProduct = order.product_name || order.product_sku || '—';
-  var baseQty = Number(order.quantity || 1);
-  lines.push(baseProduct + ' ×' + baseQty);
+  var lines = getOrderProductLines(order).slice();
+  var hasProsoilLine = getOrderLineItems(order).some(function (item) {
+    return String(item.sku || '').toUpperCase() === 'PS-25KG';
+  });
 
   var freeSeeds = summarizeAddonItems(order.free_seeds);
   if (freeSeeds) lines.push('Certified Seeds (Free): ' + freeSeeds);
@@ -2722,7 +2750,7 @@ function getDispatchProductLines(order) {
   var prosoilQty = Number(order.prosoil_qty || 0);
   var prosoilPromoQty = Number(order.prosoil_promo_qty || 0);
   var prosoilDispatchQty = prosoilQty + prosoilPromoQty;
-  if (prosoilDispatchQty > 0) {
+  if (prosoilDispatchQty > 0 && !hasProsoilLine) {
     var prosoilLine = 'Afams ProSoil 25kg ×' + prosoilDispatchQty;
     if (prosoilPromoQty > 0) {
       prosoilLine += ' (' + prosoilQty + ' paid + ' + prosoilPromoQty + ' free)';
@@ -3097,8 +3125,8 @@ function buildEmailContent(templateType) {
   var o           = currentOrder;
   var ref         = o.order_number || o.id;
   var name        = o.customer_name  || 'Customer';
-  var product     = o.product_name   || o.product_sku || '—';
-  var qty         = String(o.quantity || 1);
+  var product     = getOrderProductSummary(o);
+  var qty         = String(getOrderTotalUnits(o));
   var total       = 'KES ' + Number(o.total_amount || 0).toLocaleString('en-KE');
   var payRef      = o.paystack_ref || '—';
   var payMethod   = formatPaymentMethodLabel(o.payment_method);
