@@ -1590,7 +1590,22 @@ function calculateUnitPrice(total, quantity) {
 }
 
 function getOrderLineItems(order) {
-  var storedItems = Array.isArray(order && order.items) ? order.items : [];
+  var storedItems = [];
+  if (Array.isArray(order && order.order_items) && order.order_items.length > 0) {
+    storedItems = order.order_items.map(function (item) {
+      var safeItem = item || {};
+      return {
+        name: safeItem.product_name || safeItem.name || safeItem.product_sku || safeItem.sku || 'Product',
+        sku: safeItem.product_sku || safeItem.sku || '',
+        qty: safeItem.quantity || safeItem.qty || 1,
+        price: safeItem.unit_price || safeItem.price || 0,
+        type: safeItem.type || 'product',
+        is_free: safeItem.is_free === true || safeItem.is_free === 'true'
+      };
+    });
+  } else {
+    storedItems = Array.isArray(order && order.items) ? order.items : [];
+  }
   if (storedItems.length > 0) {
     return storedItems.map(function (item) {
       var safeItem = item || {};
@@ -1661,7 +1676,12 @@ function getOrderProductSummary(order) {
   var lines = getOrderProductLines(order);
   if (lines.length) return lines.join(', ');
   // If items only contain seeds or items array is missing, fall back to legacy field
-  var storedItems = Array.isArray(order && order.items) ? order.items : [];
+  var storedItems = [];
+  if (Array.isArray(order && order.order_items) && order.order_items.length > 0) {
+    storedItems = order.order_items;
+  } else if (Array.isArray(order && order.items)) {
+    storedItems = order.items;
+  }
   if (storedItems.length > 0) return 'See order items';
   return String(order.product_name || order.product_sku || '—');
 }
@@ -1806,10 +1826,22 @@ async function loadOrders() {
   const tbody = document.getElementById('orders-tbody');
   tbody.innerHTML = '<tr class="loading-row"><td colspan="8">Loading orders…</td></tr>';
 
-  const { data, error } = await sb
+  let { data, error } = await sb
     .from('orders')
-    .select('*')
+    .select('*, order_items(*)')
     .order('created_at', { ascending: false });
+
+  if (error) {
+    var details = String(error.message || '').toLowerCase();
+    if (details.includes('order_items') || details.includes('relationship') || details.includes('foreign key')) {
+      var fallbackRes = await sb
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      data = fallbackRes.data;
+      error = fallbackRes.error;
+    }
+  }
 
   if (error) {
     tbody.innerHTML = '<tr class="loading-row"><td colspan="8" style="color:#C0392B">Error: '
