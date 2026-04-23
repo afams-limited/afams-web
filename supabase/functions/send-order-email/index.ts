@@ -91,7 +91,8 @@ function getOrderItems(order: Record<string, unknown>): EmailOrderItem[] {
     .filter((item) => item && typeof item === "object" && !Array.isArray(item))
     .map((item) => {
       const safeItem = item as Record<string, unknown>;
-      const qty = Math.max(1, parseInt(String(safeItem.quantity ?? safeItem.qty ?? "1"), 10) || 1);
+      const qtyValue = parseInt(String(safeItem.quantity ?? safeItem.qty ?? "1"), 10);
+      const qty = Number.isFinite(qtyValue) && qtyValue > 0 ? qtyValue : 1;
       const price = Math.max(0, Number(safeItem.unit_price ?? safeItem.price ?? 0) || 0);
       return {
         name: String(safeItem.product_name ?? safeItem.name ?? safeItem.product_sku ?? safeItem.sku ?? "Product"),
@@ -198,16 +199,13 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (fetchError) {
-    const details = String(fetchError.message ?? "").toLowerCase();
-    if (details.includes("order_items") || details.includes("relationship") || details.includes("foreign key")) {
-      const fallback = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", orderId)
-        .single();
-      order = fallback.data;
-      fetchError = fallback.error;
-    }
+    const fallback = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .single();
+    order = fallback.data;
+    fetchError = fallback.error;
   }
 
   if (fetchError || !order) {

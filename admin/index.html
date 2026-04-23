@@ -1832,15 +1832,12 @@ async function loadOrders() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    var details = String(error.message || '').toLowerCase();
-    if (details.includes('order_items') || details.includes('relationship') || details.includes('foreign key')) {
-      var fallbackRes = await sb
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-      data = fallbackRes.data;
-      error = fallbackRes.error;
-    }
+    var fallbackRes = await sb
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    data = fallbackRes.data;
+    error = fallbackRes.error;
   }
 
   if (error) {
