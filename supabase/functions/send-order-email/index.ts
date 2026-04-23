@@ -104,8 +104,14 @@ function getOrderItems(order: Record<string, unknown>): EmailOrderItem[] {
 
 function getOrderItemsSummary(items: EmailOrderItem[]): string {
   return items
-    .map((item) => `${item.name} ×${item.qty}`)
+    .map((item) => formatOrderItemLine(item))
     .join(", ");
+}
+
+function formatOrderItemLine(item: EmailOrderItem, includePrice = false): string {
+  const base = `${item.name} ×${item.qty}`;
+  if (!includePrice) return base;
+  return `${base} (KES ${item.price.toLocaleString("en-KE")})`;
 }
 
 // ── Main handler ──────────────────────────────────────────────
@@ -241,7 +247,7 @@ Deno.serve(async (req: Request) => {
   const deliveryAddress = order.delivery_address ?? "—";
   const county         = order.county ?? "—";
   const orderItemsText = orderLineItems.length
-    ? orderLineItems.map((item) => `${item.name} ×${item.qty} (KES ${item.price.toLocaleString("en-KE")})`).join("\n")
+    ? orderLineItems.map((item) => formatOrderItemLine(item, true)).join("\n")
     : `${productName} ×${quantity}`;
 
   if (!customerEmail) {
