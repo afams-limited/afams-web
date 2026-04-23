@@ -1826,18 +1826,25 @@ async function loadOrders() {
   const tbody = document.getElementById('orders-tbody');
   tbody.innerHTML = '<tr class="loading-row"><td colspan="8">Loading orders…</td></tr>';
 
-  let { data, error } = await sb
+  var primaryRes = await sb
     .from('orders')
     .select('*, order_items(*)')
     .order('created_at', { ascending: false });
+  var data = primaryRes.data;
+  var error = primaryRes.error;
 
   if (error) {
     var fallbackRes = await sb
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
-    data = fallbackRes.data;
-    error = fallbackRes.error;
+    if (fallbackRes.error) {
+      error = fallbackRes.error;
+      data = [];
+    } else {
+      error = null;
+      data = fallbackRes.data;
+    }
   }
 
   if (error) {

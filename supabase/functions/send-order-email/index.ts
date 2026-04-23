@@ -192,11 +192,13 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  let { data: order, error: fetchError } = await supabase
+  const primaryOrderRes = await supabase
     .from("orders")
     .select("*, order_items(*)")
     .eq("id", orderId)
     .single();
+  let order = primaryOrderRes.data;
+  let fetchError = primaryOrderRes.error;
 
   if (fetchError) {
     const fallback = await supabase
@@ -204,8 +206,13 @@ Deno.serve(async (req: Request) => {
       .select("*")
       .eq("id", orderId)
       .single();
-    order = fallback.data;
-    fetchError = fallback.error;
+    if (fallback.error) {
+      fetchError = fallback.error;
+      order = null;
+    } else {
+      fetchError = null;
+      order = fallback.data;
+    }
   }
 
   if (fetchError || !order) {
