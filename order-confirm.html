@@ -462,19 +462,17 @@
   </div>
 </main>
 <script>
-// Read URL params
-const params  = new URLSearchParams(window.location.search);
-const ref     = params.get('ref')    || '';
-const name    = params.get('name')   || '';
-const email   = params.get('email')  || '';
-const amount  = Number(params.get('amount') || 0);
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const CURRENCY = 'KES';
 
-// Display reference
+// Read URL params
+const params = new URLSearchParams(window.location.search);
+const ref    = params.get('ref') || '';
+
+// Display reference immediately (before async order fetch)
 document.getElementById('order-ref').textContent = ref || 'Check your email';
 document.getElementById('order-ref-copy').textContent = ref || 'Check your email';
-if (name) document.getElementById('order-name').textContent = name;
-if (email) document.getElementById('order-email').textContent = email;
 const receiptNo = 'CR-' + (ref || 'AFAMS').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase() + '-' + Date.now().toString(36).toUpperCase().slice(-4);
 document.getElementById('receipt-no').textContent = receiptNo;
 
@@ -511,9 +509,6 @@ function formatAmount(val) {
   if (!Number.isFinite(safe) || safe <= 0) return CURRENCY + ' —';
   return CURRENCY + ' ' + safe.toLocaleString('en-KE');
 }
-const formattedAmount = formatAmount(amount);
-document.getElementById('amount-paid').textContent = formattedAmount;
-document.getElementById('amount-paid-copy').textContent = formattedAmount;
 
 var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
 if (toolbarPrintBtn) {
@@ -525,27 +520,71 @@ if (toolbarPrintBtn) {
 // Clear cart if using the localStorage cart from index.html
 try { localStorage.removeItem('afams_cart'); } catch(_) {}
 
-// After successful order, silently add to subscribers list (buyer auto-enrolment)
-const orderData = { email: email, full_name: name };
-if (orderData.email) {
-  const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-  fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Prefer': 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify({
-      email: orderData.email,
-      first_name: orderData.full_name ? orderData.full_name.split(' ')[0] : null,
-      source: 'checkout',
-      status: 'active',
-      tags: ['product_updates', 'promotions', 'growing_tips'],
+// Fetch order details from Supabase using the paystack reference
+function populateFromOrder(order) {
+  if (!order) return;
+  if (order.customer_name) document.getElementById('order-name').textContent = order.customer_name;
+  if (order.customer_email) document.getElementById('order-email').textContent = order.customer_email;
+  var displayRef = order.order_number || ref;
+  document.getElementById('order-ref').textContent = displayRef || 'Check your email';
+  document.getElementById('order-ref-copy').textContent = displayRef || 'Check your email';
+  var formatted = formatAmount(order.total_amount);
+  document.getElementById('amount-paid').textContent = formatted;
+  document.getElementById('amount-paid-copy').textContent = formatted;
+
+  // Subscriber auto-enrolment using fetched order data
+  if (order.customer_email) {
+    fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify({
+        email: order.customer_email,
+        first_name: order.customer_name ? order.customer_name.split(' ')[0] : null,
+        source: 'checkout',
+        status: 'active',
+        tags: ['product_updates', 'promotions', 'growing_tips'],
+      })
+    }).catch(function() {}); // Silent fail — don't block order confirmation UX
+  }
+}
+
+if (ref) {
+  // Poll briefly to allow the webhook time to write the order before first fetch
+  var fetchAttempts = 0;
+  var maxAttempts = 5;
+  var fetchDelay = 1500; // ms between retries
+
+  function fetchOrder() {
+    fetch(SUPABASE_URL + '/rest/v1/orders?paystack_ref=eq.' + encodeURIComponent(ref) + '&select=order_number,customer_name,customer_email,total_amount&limit=1', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      }
     })
-  }).catch(() => {}); // Silent fail — don't block order confirmation UX
+    .then(function(res) { return res.json(); })
+    .then(function(rows) {
+      if (Array.isArray(rows) && rows.length > 0) {
+        populateFromOrder(rows[0]);
+      } else if (fetchAttempts < maxAttempts) {
+        fetchAttempts++;
+        setTimeout(fetchOrder, fetchDelay);
+      }
+    })
+    .catch(function() {
+      if (fetchAttempts < maxAttempts) {
+        fetchAttempts++;
+        setTimeout(fetchOrder, fetchDelay);
+      }
+    });
+  }
+
+  // Start with a short delay to give the webhook a head start
+  setTimeout(fetchOrder, 1000);
 }
 </script>
 
