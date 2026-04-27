@@ -834,8 +834,6 @@ window.addEventListener('afams:cart-updated', function() {
 });
 
 // ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
-window.prosoilState = { qty: 0, total: 0, promoApplied: false };
-
 function changeProsoilQty(delta) {
   var hasFarmBag = cartHasFarmBag();
   var currentQty = window.prosoilState.qty;
@@ -844,6 +842,7 @@ function changeProsoilQty(delta) {
   // Sync with cart
   if (newQty === 0) {
     removeFromCart('PS-25KG');
+    return; // cart-updated fires → renderCartItems handles state + UI refresh
   } else if (currentQty === 0 && newQty > 0) {
     addToCart({ sku: 'PS-25KG', name: 'Afams ProSoil 25kg', unit_price: PROSOIL_PRICE_CHECKOUT, qty: newQty, image: 'assets/images/prosoil-front.jpg', type: 'prosoil' });
     return; // addToCart fires cart-updated → renderCartItems handles rest
