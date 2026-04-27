@@ -1,449 +1,248 @@
-// ============================================================
+// supabase/functions/paystack-webhook/index.ts
 // Afams Ltd — Paystack Webhook Handler
-// Path: supabase/functions/paystack-webhook/index.ts
-// Runtime: Supabase Edge Functions (Deno)
-// Deploy:  supabase functions deploy paystack-webhook --no-verify-jwt
-//
-// Required Supabase Secrets:
-//   PAYSTACK_SECRET_KEY
-//   BREVO_API_KEY
-//   BREVO_SENDER_EMAIL          (e.g. orders@afams.co.ke)
-//   BREVO_SENDER_NAME           (e.g. Afams)
-//   BREVO_ADMIN_EMAIL           (admin notification recipient)
-//   BREVO_TEMPLATE_ORDER_RECEIVED    (integer template ID)
-//   BREVO_TEMPLATE_PAYMENT_SUCCESS   (integer template ID)
-//   BREVO_TEMPLATE_ADMIN_NEW_ORDER   (integer template ID)
-// ============================================================
+// Deno runtime — Supabase Edge Functions
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { BREVO_TEMPLATES } from "../_shared/types.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ── Brevo email helper ────────────────────────────────────────
-async function sendBrevoTemplate(
-  apiKey: string,
-  senderEmail: string,
-  senderName: string,
-  templateId: number,
-  toEmail: string,
-  toName: string,
-  params: Record<string, string | number>,
-): Promise<void> {
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "api-key": apiKey,
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-    },
-    body: JSON.stringify({
-      sender: { email: senderEmail, name: senderName },
-      to: [{ email: toEmail, name: toName }],
-      templateId,
-      params,
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    console.error(`[Webhook/Brevo] template ${templateId} failed: ${res.status} ${text}`);
-  }
-}
+const CORS = {
+  'Access-Control-Allow-Origin': 'https://afams.co.ke',
+  'Access-Control-Allow-Headers': 'content-type, x-paystack-signature',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
+};
 
-// ── HMAC-SHA512 signature verification ───────────────────────
-async function verifySignature(
-  body: string,
-  signature: string,
+// HMAC-SHA512 using Web Crypto — no external deps
+async function verifyHmac(
   secret: string,
+  rawBody: string,
+  sig: string,
 ): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-512" },
-    false,
-    ["sign"],
-  );
-  const signatureBuffer = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(body),
-  );
-  const hex = Array.from(new Uint8Array(signatureBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hex === signature;
-}
-
-function formatPaymentMethod(raw: unknown): string {
-  const val = String(raw ?? "").trim().toLowerCase();
-  if (val === "mobile_money_mtn" || val.includes("airtel")) return "Airtel Money";
-  if (val === "mobile_money" || val.includes("mpesa") || val.includes("m-pesa")) return "M-Pesa";
-  if (val.includes("till")) return "M-Pesa Till";
-  if (val.includes("card")) return "Card";
-  if (!val || val === "paystack") return "M-Pesa / M-Pesa Till / Airtel Money / Card";
-  return String(raw);
-}
-
-function parseMetadataArray(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value;
-  if (value == null || value === "") return [];
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed;
-      return typeof parsed === "object" && parsed !== null ? [parsed] : [];
-    } catch {
-      return [];
-    }
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign'],
+    );
+    const buf = await crypto.subtle.sign(
+      'HMAC', key, new TextEncoder().encode(rawBody),
+    );
+    const expected = Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+    return expected === sig;
+  } catch {
+    return false;
   }
-  if (typeof value === "object") return [value];
-  return [];
 }
 
-interface ParsedOrderItem {
-  id: string;
-  sku: string;
-  slug: string;
-  name: string;
-  qty: number;
-  price: number;
-  type: string;
-  weight: string;
-  category: string;
-  subcategory: string;
-  is_free: boolean;
-}
-
-function parseOrderItemsMetadata(value: unknown): ParsedOrderItem[] {
-  return parseMetadataArray(value)
-    .filter((item) => item && typeof item === "object" && !Array.isArray(item))
-    .map((item, index) => {
-      const i = item as Record<string, unknown>;
-      const qtyValue = Number(i.qty ?? i.quantity ?? 1);
-      const priceValue = Number(i.price ?? i.unit_price ?? 0);
-      const typeValue = typeof i.type === "string" && i.type ? i.type : "product";
-      const skuValue = typeof i.sku === "string" && i.sku ? i.sku : "na";
-      let subcategoryValue = "";
-      if (typeof i.subcategory === "string") {
-        subcategoryValue = i.subcategory;
-      } else if (typeof i.seed_subcategory === "string") {
-        subcategoryValue = i.seed_subcategory;
-      }
-      return {
-        id: typeof i.id === "string" && i.id ? i.id : `${typeValue}-${skuValue}-${index + 1}`,
-        sku: typeof i.sku === "string" ? i.sku : "",
-        slug: typeof i.slug === "string" ? i.slug : "",
-        name: typeof i.name === "string" && i.name ? i.name : "Product",
-        qty: Number.isFinite(qtyValue) && qtyValue > 0 ? Math.floor(qtyValue) : 1,
-        price: Number.isFinite(priceValue) && priceValue >= 0 ? priceValue : 0,
-        type: typeValue,
-        weight: typeof i.weight === "string" ? i.weight : "",
-        category: typeof i.category === "string" ? i.category : "",
-        subcategory: subcategoryValue,
-        is_free: i.is_free === true || i.is_free === "true",
-      };
-    });
-}
-
-function getOrderProductSummary(items: ParsedOrderItem[]): string {
-  const lines = items
-    .filter((item) => item && typeof item.name === "string")
-    .map((item) => `${item.name} ×${item.qty}`);
-  return lines.length ? lines.join(", ") : "FarmBag Product";
-}
-
-// ── Main handler ─────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
+
+  // CORS preflight
+  if (req.method === 'OPTIONS')
+    return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== 'POST')
+    return new Response(JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: CORS });
+
+  // Step 1: Read raw body FIRST — required for HMAC, do not parse before this
+  let rawBody: string;
+  try {
+    rawBody = await req.text();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Could not read body' }),
+      { status: 400, headers: CORS });
   }
 
-  const paystackSecret = Deno.env.get("PAYSTACK_SECRET_KEY");
-  if (!paystackSecret) {
-    console.error("[Webhook] PAYSTACK_SECRET_KEY is not set");
-    return new Response(JSON.stringify({ error: "Server misconfigured" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  // Step 2: Verify HMAC signature
+  const secret = Deno.env.get('PAYSTACK_SECRET_KEY') ?? '';
+  const sig    = req.headers.get('x-paystack-signature') ?? '';
+
+  if (!secret) {
+    console.error('[webhook] PAYSTACK_SECRET_KEY not set');
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }),
+      { status: 500, headers: CORS });
+  }
+  if (!await verifyHmac(secret, rawBody, sig)) {
+    console.error('[webhook] HMAC verification failed');
+    return new Response(JSON.stringify({ error: 'Invalid signature' }),
+      { status: 401, headers: CORS });
   }
 
-  // Read raw body — required for HMAC verification
-  const rawBody = await req.text();
-  const signature = req.headers.get("x-paystack-signature") ?? "";
-
-  if (!signature || !(await verifySignature(rawBody, signature, paystackSecret))) {
-    console.error("[Webhook] Invalid Paystack signature");
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
+  // Step 3: Parse JSON
   let payload: Record<string, unknown>;
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    return new Response(JSON.stringify({ error: "Bad Request" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }),
+      { status: 400, headers: CORS });
   }
 
-  const eventType = payload.event as string | undefined;
-  const data = payload.data as Record<string, unknown> | undefined;
-  console.log(`[Webhook] Event: ${eventType} | Ref: ${(data as { reference?: string })?.reference}`);
+  // Step 4: Only handle charge.success — acknowledge everything else
+  if (payload.event !== 'charge.success') {
+    console.log('[webhook] Ignoring event:', payload.event);
+    return new Response(JSON.stringify({ received: true }),
+      { status: 200, headers: CORS });
+  }
 
-  // ── Handle charge.success ───────────────────────────────────
-  if (eventType === "charge.success" && data) {
-    const reference = data.reference as string | undefined;
-    const amount = data.amount as number | undefined;
-    const customer = data.customer as Record<string, string> | undefined;
-    const metadata = (data.metadata ?? {}) as Record<string, unknown>;
-    const paid_at = data.paid_at as string | undefined;
-    const paymentChannel = data.channel as string | undefined;
-    const paymentMethodLabel = formatPaymentMethod(paymentChannel || metadata.payment_method);
+  const data     = (payload.data     ?? {}) as Record<string, unknown>;
+  const meta     = (data.metadata    ?? {}) as Record<string, unknown>;
+  const customer = (data.customer    ?? {}) as Record<string, unknown>;
+  const paystackRef = String(data.reference ?? '').trim();
 
-    if (!reference) {
-      console.error("[Webhook] charge.success missing reference");
-      return new Response(JSON.stringify({ error: "Missing reference" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+  if (!paystackRef)
+    return new Response(JSON.stringify({ error: 'No reference in payload' }),
+      { status: 400, headers: CORS });
 
-    if (!paid_at) {
-      console.warn(`[Webhook] paid_at missing for ref ${reference} — using server time`);
-    }
+  console.log('[webhook] Processing charge.success — ref:', paystackRef);
+  console.log('[webhook] metadata.items:', JSON.stringify(meta.items));
 
-    const totalKes = Math.round((amount ?? 0) / 100); // kobo/cents → KES
+  // Step 5: Supabase service-role client — bypasses RLS
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
 
-    // metadata shape set during Paystack popup initialisation:
-    // { customer_name, customer_phone, product_sku, product_name,
-    //   quantity, unit_price, delivery_address, county }
-    const customer_name = metadata.customer_name as string | undefined;
-    const customer_phone = metadata.customer_phone as string | undefined;
-    const product_sku = metadata.product_sku as string | undefined;
-    const product_name = metadata.product_name as string | undefined;
-    const quantity = metadata.quantity as string | number | undefined;
-    const unit_price = metadata.unit_price as string | number | undefined;
-    const delivery_address = metadata.delivery_address as string | undefined;
-    const county = metadata.county as string | undefined;
+  // Step 6: Idempotency — skip if this reference was already processed
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('id, order_number')
+    .eq('paystack_ref', paystackRef)
+    .maybeSingle();
 
-    // Add-on fields (set by checkout.html for FarmBag orders)
-    const extra_seeds_count = parseInt(String(metadata.extra_seeds_count  ?? "0"), 10) || 0;
-    const extra_seeds_total = parseInt(String(metadata.extra_seeds_total  ?? "0"), 10) || 0;
-    const prosoil_qty       = parseInt(String(metadata.prosoil_qty        ?? "0"), 10) || 0;
-    const prosoil_total     = parseInt(String(metadata.prosoil_total      ?? "0"), 10) || 0;
-    const prosoil_promo_bag = metadata.prosoil_promo_bag === true || metadata.prosoil_promo_bag === "true";
-    const addons_total      = parseInt(String(metadata.addons_total       ?? "0"), 10) || 0;
-
-    // Compute prosoil_promo_qty: from metadata if provided, otherwise derive from cart_items
-    let prosoil_promo_qty   = parseInt(String(metadata.prosoil_promo_qty  ?? "0"), 10) || 0;
-    if (!prosoil_promo_qty && (metadata.cart_items || metadata.items)) {
-      try {
-        const cartItems = metadata.items
-          ? (Array.isArray(metadata.items) ? metadata.items : JSON.parse(String(metadata.items)))
-          : (Array.isArray(metadata.cart_items) ? metadata.cart_items : JSON.parse(String(metadata.cart_items)));
-        const hasFarmBag = Array.isArray(cartItems) &&
-          cartItems.some((i: any) => ["FB-CLS-01", "FB-GRW-01"].includes(i.sku));
-        if (hasFarmBag && prosoil_qty >= 3) {
-          prosoil_promo_qty = Math.floor(prosoil_qty / 3);
-        }
-      } catch { /* ignore parse errors */ }
-    }
-
-    const metadataItems = parseOrderItemsMetadata(metadata.items);
-    const metadataCartItems = parseOrderItemsMetadata(metadata.cart);
-    // Backward compatibility: some in-flight/older checkouts may still send `cart_items`.
-    let orderItems = metadataItems.length
-      ? metadataItems
-      : metadataCartItems.length
-      ? metadataCartItems
-      : parseOrderItemsMetadata(metadata.cart_items);
-    if (!orderItems.length && (product_name || product_sku)) {
-      const legacyQty = parseInt(String(quantity ?? "1"), 10) || 1;
-      const legacySku = String(product_sku || "");
-      orderItems = [{
-        id: legacySku || "legacy-item",
-        sku: legacySku,
-        slug: legacySku,
-        name: String(product_name || "FarmBag Product"),
-        qty: legacyQty,
-        price: parseInt(String(unit_price ?? "0"), 10) || 0,
-        type: "product",
-        weight: "",
-        category: "",
-        subcategory: "",
-        is_free: false,
-      }];
-    }
-    const totalItemQty = orderItems.reduce((sum, item) => sum + (item.qty || 0), 0);
-    const resolvedQuantity = totalItemQty > 0
-      ? totalItemQty
-      : (parseInt(String(quantity ?? "1"), 10) || 1);
-    const resolvedProductName = getOrderProductSummary(orderItems);
-    const resolvedUnitPrice = resolvedQuantity > 0
-      ? Math.round(totalKes / resolvedQuantity)
-      : (parseInt(String(unit_price ?? "0"), 10) || 0);
-    const resolvedProductSku = orderItems.length === 1
-      ? (orderItems[0].sku || null)
-      : null;
-
-    // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  if (existing) {
+    console.log('[webhook] Duplicate — already processed:', paystackRef);
+    return new Response(
+      JSON.stringify({ received: true, duplicate: true, order: existing.order_number }),
+      { status: 200, headers: CORS },
     );
-
-    // Idempotency check — skip duplicate events
-    const { data: existing } = await supabase
-      .from("orders")
-      .select("id")
-      .eq("paystack_ref", reference)
-      .maybeSingle();
-
-    if (existing) {
-      console.log(`[Webhook] Duplicate ref ${reference} — skipping`);
-      return new Response(JSON.stringify({ status: "duplicate" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const resolvedCustomerName = customer_name || customer?.name;
-    if (!resolvedCustomerName) {
-      console.warn(`[Webhook] customer_name missing for ref ${reference} — order will be flagged as Unknown`);
-    }
-
-    // Write order to Supabase
-    const { data: newOrderRow, error } = await supabase.from("orders").insert({
-      customer_name:    resolvedCustomerName || "Unknown",
-      customer_email:   customer?.email,
-      customer_phone:   customer_phone || customer?.phone,
-      delivery_address: delivery_address || null,
-      county:           county || null,
-      product_sku:      resolvedProductSku,
-      product_name:     resolvedProductName,
-      quantity:         resolvedQuantity,
-      unit_price:       resolvedUnitPrice,
-      total_amount:     totalKes,
-      paystack_ref:     reference,
-      payment_method:   "paystack",
-      status:           "paid",
-      paid_at:          paid_at || new Date().toISOString(),
-      free_seeds:       [],
-      extra_seeds:      [],
-      items:            orderItems,
-      extra_seeds_count: extra_seeds_count,
-      extra_seeds_total: extra_seeds_total,
-      prosoil_qty:      prosoil_qty,
-      prosoil_total:    prosoil_total,
-      prosoil_promo_bag: prosoil_promo_bag,
-      prosoil_promo_qty: prosoil_promo_qty,
-      addons_total:     addons_total,
-    }).select("id, order_number").single();
-
-    if (error) {
-      console.error("[Webhook] Supabase insert error:", error);
-      return new Response(JSON.stringify({ error: "DB write failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
-
-    // ── Bulk insert ALL line items into order_items table ────
-    if (newOrderRow?.id && orderItems.length > 0) {
-      const lineItems = orderItems.map((item) => ({
-        order_id:     newOrderRow.id,
-        product_sku:  item.sku || null,
-        product_name: item.name || "Product",
-        quantity:     Math.max(1, item.qty || 1),
-        unit_price:   Math.max(0, item.price || 0),
-        item_type:    item.type || "product",
-        is_free:      item.is_free === true,
-      }));
-      const { error: itemsErr } = await supabase.from("order_items").insert(lineItems);
-      if (itemsErr) {
-        // Non-fatal — order row is already committed; log and continue
-        console.error("[Webhook] order_items insert failed:", itemsErr.message);
-      } else {
-        console.log(`[Webhook] ${lineItems.length} line item(s) saved for order ${newOrderRow.order_number}`);
-      }
-    }
-
-    // ── Send Brevo transactional emails ──────────────────────
-    const brevoApiKey = Deno.env.get("BREVO_API_KEY");
-    if (brevoApiKey && customer?.email) {
-      const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL") ?? "orders@afams.co.ke";
-      const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
-      const adminEmail  = Deno.env.get("BREVO_ADMIN_EMAIL")  ?? "iammwombe@gmail.com";
-
-      // Use order_number returned from insert (avoids extra DB round-trip)
-      const orderRef   = newOrderRow?.order_number ?? reference.slice(0, 8);
-      const custName   = resolvedCustomerName ?? "Customer";
-      const custEmail  = customer.email;
-      const prodName   = resolvedProductName;
-      const qty        = String(resolvedQuantity);
-      const totalStr   = `KES ${totalKes.toLocaleString("en-KE")}`;
-      const paidAtStr  = paid_at
-        ? new Date(paid_at).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
-        : new Date().toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" });
-
-      const sharedParams = {
-        order_number:   orderRef,
-        order_ref:      orderRef,
-        order_reference: orderRef,
-        customer_name:  custName,
-        product_name:   prodName,
-        quantity:       qty,
-        total_amount:   totalStr,
-        payment_method: paymentMethodLabel,
-        payment_reference: reference,
-        paystack_reference: reference,
-        paid_at:        paidAtStr,
-        customer_phone: customer_phone ?? "—",
-        delivery_address: delivery_address ?? "—",
-        county:         county ?? "—",
-        brand_logo_url: "https://afams.co.ke/assets/images/afams_logo_stacked.png",
-        brand_icon_url: "https://afams.co.ke/assets/images/afams_favicon_512.png",
-      };
-
-      // #1 Order Received — confirm the order is in our queue
-      const tplOrderReceived = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_ORDER_RECEIVED") ?? String(BREVO_TEMPLATES.order_received), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplOrderReceived, custEmail, custName, sharedParams)
-        .catch((e) => console.error("[Webhook] order_received email failed:", e));
-
-      // #2 Payment Success — confirm payment was received
-      const tplPaymentSuccess = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_PAYMENT_SUCCESS") ?? String(BREVO_TEMPLATES.payment_success), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplPaymentSuccess, custEmail, custName, sharedParams)
-        .catch((e) => console.error("[Webhook] payment_success email failed:", e));
-
-      // #4 Admin New Order — notify admin of new paid order
-      const tplAdminOrder = parseInt(
-        Deno.env.get("BREVO_TEMPLATE_ADMIN_NEW_ORDER") ?? String(BREVO_TEMPLATES.admin_new_order), 10,
-      );
-      await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, tplAdminOrder, adminEmail, "Afams Admin", {
-        ...sharedParams,
-        customer_email: custEmail,
-      }).catch((e) => console.error("[Webhook] admin_new_order email failed:", e));
-
-      console.log(`[Webhook] Brevo emails dispatched for order ${orderRef}`);
-    } else if (!brevoApiKey) {
-      console.warn("[Webhook] BREVO_API_KEY not set — skipping emails");
-    }
   }
 
-  // Acknowledge all other events
-  return new Response(JSON.stringify({ received: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
+  // Step 7: Extract items array from metadata
+  // checkout.html sends metadata.items as a full array — that is the source of truth.
+  // Fall back through cart → cart_items strings if needed.
+  // Final fallback: build single-item array from flat metadata fields.
+  type RawItem = Record<string, unknown>;
+  let rawItems: RawItem[] = [];
+
+  if (Array.isArray(meta.items) && (meta.items as RawItem[]).length > 0) {
+    rawItems = meta.items as RawItem[];
+    console.log('[webhook] Using metadata.items — count:', rawItems.length);
+  } else if (typeof meta.cart === 'string' && meta.cart.length > 2) {
+    try { rawItems = JSON.parse(meta.cart); } catch { /* ignore */ }
+    console.log('[webhook] Parsed metadata.cart — count:', rawItems.length);
+  } else if (typeof meta.cart_items === 'string' && meta.cart_items.length > 2) {
+    try { rawItems = JSON.parse(meta.cart_items); } catch { /* ignore */ }
+    console.log('[webhook] Parsed metadata.cart_items — count:', rawItems.length);
+  }
+
+  if (rawItems.length === 0) {
+    console.warn('[webhook] All item arrays empty — using single-product fallback');
+    rawItems = [{
+      sku:   meta.product_sku,
+      name:  meta.product_name ?? 'Product',
+      price: meta.unit_price   ?? 0,
+      qty:   meta.quantity     ?? 1,
+    }];
+  }
+
+  // Step 8: Normalise each item
+  const normItems = rawItems.map((item) => {
+    const qty       = Math.max(1, parseInt(String(item.qty ?? item.quantity ?? 1), 10));
+    const unitPrice = Math.max(0, Math.round(Number(item.price ?? item.unit_price ?? 0)));
+    return {
+      product_sku:  String(item.sku  ?? item.id  ?? '').trim() || null,
+      product_name: String(item.name ?? 'Product').trim(),
+      quantity:     qty,
+      unit_price:   unitPrice,
+      item_type:    String(item.type  ?? 'product'),
+      is_free:      item.is_free === true,
+    };
   });
+
+  // Step 9: Calculate totals
+  const itemsTotal    = normItems.reduce(
+    (s, i) => s + (i.is_free ? 0 : i.unit_price * i.quantity), 0,
+  );
+  const paystackTotal = Math.round(Number(data.amount ?? 0) / 100); // kobo → KES
+  const totalAmount   = paystackTotal > 0 ? paystackTotal : itemsTotal;
+
+  console.log('[webhook] Items total:', itemsTotal, '| Paystack total:', paystackTotal, '| Using:', totalAmount);
+  console.log('[webhook] Normalised items:', JSON.stringify(normItems));
+
+  // Step 10: Primary item for backward-compat flat columns on orders row
+  const primary = normItems.find(i => !i.is_free) ?? normItems[0];
+
+  // Step 11: Insert parent order row
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      paystack_ref:     paystackRef,
+      customer_name:    String(meta.customer_name  ?? `${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim()),
+      customer_email:   String(meta.customer_email ?? customer.email ?? ''),
+      customer_phone:   String(meta.customer_phone ?? ''),
+      delivery_address: String(meta.delivery_address ?? ''),
+      county:           String(meta.county   ?? ''),
+      // Flat backward-compat columns — keep populated for queries that don't join
+      product_sku:      primary.product_sku,
+      product_name:     primary.product_name,
+      quantity:         primary.quantity,
+      unit_price:       primary.unit_price,
+      total_amount:     totalAmount,
+      items:            normItems,       // full array written to JSONB column
+      status:           'paid',
+      paid_at:          new Date().toISOString(),
+      payment_method:   'paystack',
+    })
+    .select('id, order_number')
+    .single();
+
+  if (orderErr || !order) {
+    console.error('[webhook] ORDER INSERT FAILED:', orderErr?.message);
+    return new Response(
+      JSON.stringify({ error: 'Order insert failed', detail: orderErr?.message }),
+      { status: 500, headers: CORS },
+    );
+  }
+
+  console.log('[webhook] Order created:', order.order_number, '| id:', order.id);
+
+  // Step 12: Bulk insert ALL line items — single DB call, all items atomically
+  const lineItems = normItems.map(item => ({
+    order_id:     order.id,
+    product_sku:  item.product_sku  || null,
+    product_name: item.product_name,
+    quantity:     item.quantity,
+    unit_price:   item.unit_price,
+    item_type:    item.item_type,
+    is_free:      item.is_free,
+  }));
+
+  console.log('[webhook] Inserting', lineItems.length, 'row(s) into order_items');
+
+  const { error: itemsErr } = await supabase
+    .from('order_items')
+    .insert(lineItems);
+
+  if (itemsErr) {
+    // Log but do not fail — order row is saved; items are recoverable from JSONB
+    console.error('[webhook] ORDER_ITEMS FAILED:', itemsErr.message, itemsErr.hint);
+  } else {
+    console.log('[webhook] order_items OK —', lineItems.length, 'item(s) for', order.order_number);
+  }
+
+  // Step 13: Respond to Paystack BEFORE sending email — prevents 30s timeout
+  const webhookResponse = new Response(
+    JSON.stringify({ received: true, order_id: order.id, order_number: order.order_number }),
+    { status: 200, headers: CORS },
+  );
+
+  // Step 14: Trigger confirmation email — fire and forget, non-blocking
+  supabase.functions.invoke('send-order-email', {
+    body: { order_id: order.id, email_type: 'order_received' },
+  }).catch((e: Error) =>
+    console.error('[webhook] Email invoke failed:', e.message),
+  );
+
+  return webhookResponse;
 });
