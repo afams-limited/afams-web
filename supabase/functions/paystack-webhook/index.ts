@@ -302,7 +302,7 @@ Deno.serve(async (req: Request) => {
       .from("orders")
       .select("id")
       .eq("paystack_ref", reference)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       console.log(`[Webhook] Duplicate ref ${reference} — skipping`);
@@ -318,7 +318,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Write order to Supabase
-    const { error } = await supabase.from("orders").insert({
+    const { data: newOrderRow, error } = await supabase.from("orders").insert({
       customer_name:    resolvedCustomerName || "Unknown",
       customer_email:   customer?.email,
       customer_phone:   customer_phone || customer?.phone,
@@ -343,7 +343,7 @@ Deno.serve(async (req: Request) => {
       prosoil_promo_bag: prosoil_promo_bag,
       prosoil_promo_qty: prosoil_promo_qty,
       addons_total:     addons_total,
-    });
+    }).select("id, order_number").single();
 
     if (error) {
       console.error("[Webhook] Supabase insert error:", error);
@@ -355,6 +355,26 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
 
+    // ── Bulk insert ALL line items into order_items table ────
+    if (newOrderRow?.id && orderItems.length > 0) {
+      const lineItems = orderItems.map((item) => ({
+        order_id:     newOrderRow.id,
+        product_sku:  item.sku || null,
+        product_name: item.name || "Product",
+        quantity:     Math.max(1, item.qty || 1),
+        unit_price:   Math.max(0, item.price || 0),
+        item_type:    item.type || "product",
+        is_free:      item.is_free === true,
+      }));
+      const { error: itemsErr } = await supabase.from("order_items").insert(lineItems);
+      if (itemsErr) {
+        // Non-fatal — order row is already committed; log and continue
+        console.error("[Webhook] order_items insert failed:", itemsErr.message);
+      } else {
+        console.log(`[Webhook] ${lineItems.length} line item(s) saved for order ${newOrderRow.order_number}`);
+      }
+    }
+
     // ── Send Brevo transactional emails ──────────────────────
     const brevoApiKey = Deno.env.get("BREVO_API_KEY");
     if (brevoApiKey && customer?.email) {
@@ -362,14 +382,8 @@ Deno.serve(async (req: Request) => {
       const senderName  = Deno.env.get("BREVO_SENDER_NAME")  ?? "Afams";
       const adminEmail  = Deno.env.get("BREVO_ADMIN_EMAIL")  ?? "iammwombe@gmail.com";
 
-      // Fetch the newly created order to get the generated order_number
-      const { data: newOrder } = await supabase
-        .from("orders")
-        .select("order_number")
-        .eq("paystack_ref", reference)
-        .single();
-
-      const orderRef   = newOrder?.order_number ?? reference.slice(0, 8);
+      // Use order_number returned from insert (avoids extra DB round-trip)
+      const orderRef   = newOrderRow?.order_number ?? reference.slice(0, 8);
       const custName   = resolvedCustomerName ?? "Customer";
       const custEmail  = customer.email;
       const prodName   = resolvedProductName;
