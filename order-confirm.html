@@ -395,6 +395,27 @@
         </div>
       </div>
 
+      <!-- Order line items -->
+      <div style="margin-bottom:1rem;">
+        <div class="pane-title" style="margin-bottom:0.6rem;">Items ordered</div>
+        <table class="summary-table" id="items-table" aria-label="Items ordered">
+          <thead>
+            <tr>
+              <th style="width:auto;">Product</th>
+              <th style="width:80px;text-align:center;">Qty</th>
+              <th style="width:110px;text-align:right;">Unit price</th>
+              <th style="width:110px;text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody">
+            <!-- Populated by JS -->
+            <tr id="items-loading-row">
+              <td colspan="4" style="color:#718096;font-size:0.82rem;">Loading order details…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <table class="summary-table" aria-label="Receipt details">
         <tbody>
           <tr>
@@ -462,74 +483,165 @@
   </div>
 </main>
 <script>
-// Read URL params
-const params  = new URLSearchParams(window.location.search);
-const ref     = params.get('ref')    || '';
-const name    = params.get('name')   || '';
-const email   = params.get('email')  || '';
-const amount  = Number(params.get('amount') || 0);
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 const CURRENCY = 'KES';
 
-// Display reference
-document.getElementById('order-ref').textContent = ref || 'Check your email';
-document.getElementById('order-ref-copy').textContent = ref || 'Check your email';
-if (name) document.getElementById('order-name').textContent = name;
+// ── URL params (always available immediately)
+const params = new URLSearchParams(window.location.search);
+const ref    = params.get('ref')    || '';
+const name   = params.get('name')   || '';
+const email  = params.get('email')  || '';
+const amount = Number(params.get('amount') || 0);
+
+// ── Render URL-param fields immediately (no async wait)
+document.getElementById('order-ref').textContent      = ref  || 'Check your email';
+document.getElementById('order-ref-copy').textContent = ref  || 'Check your email';
+if (name)  document.getElementById('order-name').textContent  = name;
 if (email) document.getElementById('order-email').textContent = email;
-const receiptNo = 'CR-' + (ref || 'AFAMS').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase() + '-' + Date.now().toString(36).toUpperCase().slice(-4);
+
+const receiptNo = 'CR-' + (ref || 'AFAMS').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase()
+  + '-' + Date.now().toString(36).toUpperCase().slice(-4);
 document.getElementById('receipt-no').textContent = receiptNo;
-
-// Timestamps
-const now = new Date();
-document.getElementById('ts-now').textContent = now.toLocaleString('en-KE', {
-  day: 'numeric', month: 'short', year: 'numeric',
-  hour: '2-digit', minute: '2-digit',
-});
-document.getElementById('generated-at').textContent = now.toLocaleString('en-KE', {
-  day: 'numeric', month: 'short', year: 'numeric',
-  hour: '2-digit', minute: '2-digit',
-});
-
-function addBusinessDays(date, days) {
-  const d = new Date(date);
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() !== 0 && d.getDay() !== 6) added++;
-  }
-  return d;
-}
-
-const deliveryDate = addBusinessDays(now, 5);
-const dispatchDate = addBusinessDays(now, 2);
-
-const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
-document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
-document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
 
 function formatAmount(val) {
   const safe = Number(val);
   if (!Number.isFinite(safe) || safe <= 0) return CURRENCY + ' —';
   return CURRENCY + ' ' + safe.toLocaleString('en-KE');
 }
-const formattedAmount = formatAmount(amount);
-document.getElementById('amount-paid').textContent = formattedAmount;
-document.getElementById('amount-paid-copy').textContent = formattedAmount;
 
-var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
-if (toolbarPrintBtn) {
-  toolbarPrintBtn.addEventListener('click', function() {
-    window.print();
-  });
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-// Clear cart if using the localStorage cart from index.html
-try { localStorage.removeItem('afams_cart'); } catch(_) {}
+// Show URL-param amount immediately — will be replaced by DB amount if available
+document.getElementById('amount-paid').textContent      = formatAmount(amount);
+document.getElementById('amount-paid-copy').textContent = formatAmount(amount);
 
-// After successful order, silently add to subscribers list (buyer auto-enrolment)
-const orderData = { email: email, full_name: name };
+// Timestamps
+const now = new Date();
+document.getElementById('ts-now').textContent = now.toLocaleString('en-KE', {
+  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+});
+document.getElementById('generated-at').textContent = now.toLocaleString('en-KE', {
+  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+});
+
+function addBusinessDays(date, days) {
+  const d = new Date(date); let added = 0;
+  while (added < days) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) added++; }
+  return d;
+}
+const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
+document.getElementById('ts-dispatch').textContent = 'By ' + addBusinessDays(now, 2).toLocaleDateString('en-KE', fmt);
+document.getElementById('ts-delivery').textContent = 'By ' + addBusinessDays(now, 5).toLocaleDateString('en-KE', fmt);
+
+// ── Fetch order from Supabase to get line items
+// Retries up to 4 times with 2s delay — webhook may not have inserted yet
+async function fetchOrderWithRetry(paystackRef, maxRetries, delayMs) {
+  maxRetries = maxRetries || 4;
+  delayMs = delayMs || 2000;
+  for (var attempt = 1; attempt <= maxRetries; attempt++) {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/orders?paystack_ref=eq.' + encodeURIComponent(paystackRef)
+        + '&select=id,order_number,customer_name,customer_email,total_amount,items,status,order_items(product_name,product_sku,quantity,unit_price,subtotal,is_free)&limit=1',
+      {
+        headers: {
+          'apikey':        SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Accept':        'application/json',
+        }
+      }
+    );
+    if (!res.ok) throw new Error('Supabase fetch failed: ' + res.status);
+    var rows = await res.json();
+    if (rows && rows.length > 0) return rows[0];
+    if (attempt < maxRetries) {
+      console.log('[confirm] Order not found yet, retry ' + attempt + '/' + maxRetries + ' in ' + delayMs + 'ms');
+      await new Promise(function(r) { setTimeout(r, delayMs); });
+    }
+  }
+  return null;
+}
+
+function renderItems(order) {
+  var tbody = document.getElementById('items-tbody');
+  tbody.innerHTML = '';
+
+  // Use order_items rows if available, else fall back to items JSONB
+  var lineItems = (order.order_items && order.order_items.length > 0)
+    ? order.order_items
+    : (Array.isArray(order.items) ? order.items : []);
+
+  if (lineItems.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#718096;">No item details available.</td></tr>';
+    return;
+  }
+
+  lineItems.forEach(function(item) {
+    var qty       = Number(item.quantity ?? item.qty ?? 1);
+    var unitPrice = Number(item.unit_price ?? item.price ?? 0);
+    var subtotal  = Number(item.subtotal ?? (qty * unitPrice));
+    var isFree    = Boolean(item.is_free);
+    var tr = document.createElement('tr');
+    var productName = escapeHtml(item.product_name ?? item.name ?? 'Product');
+    tr.innerHTML =
+      '<td>' + productName + (isFree ? ' <span style="color:#0d683a;font-size:0.75rem;font-weight:700;">(FREE)</span>' : '') + '</td>'
+      + '<td style="text-align:center;">' + qty + '</td>'
+      + '<td style="text-align:right;">' + (isFree ? '—' : formatAmount(unitPrice)) + '</td>'
+      + '<td style="text-align:right;">' + (isFree ? 'FREE' : formatAmount(subtotal)) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Update displayed total with the authoritative DB value
+  if (order.total_amount) {
+    var dbAmount = formatAmount(order.total_amount);
+    document.getElementById('amount-paid').textContent      = dbAmount;
+    document.getElementById('amount-paid-copy').textContent = dbAmount;
+  }
+}
+
+// Kick off Supabase fetch (non-blocking — UI already visible from URL params above)
+if (ref) {
+  fetchOrderWithRetry(ref)
+    .then(function(order) {
+      if (order) {
+        renderItems(order);
+        // Overwrite name/email with authoritative DB values if present
+        if (order.customer_name)  document.getElementById('order-name').textContent  = order.customer_name;
+        if (order.customer_email) document.getElementById('order-email').textContent = order.customer_email;
+        if (order.order_number) {
+          document.getElementById('order-ref').textContent      = order.order_number;
+          document.getElementById('order-ref-copy').textContent = order.order_number;
+        }
+      } else {
+        document.getElementById('items-loading-row').innerHTML =
+          '<td colspan="4" style="color:#718096;font-size:0.82rem;">Item details will be emailed to you shortly.</td>';
+      }
+    })
+    .catch(function(err) {
+      console.error('[confirm] Failed to fetch order:', err);
+      document.getElementById('items-loading-row').innerHTML =
+        '<td colspan="4" style="color:#718096;font-size:0.82rem;">Item details will be emailed to you shortly.</td>';
+    });
+} else {
+  document.getElementById('items-loading-row').innerHTML =
+    '<td colspan="4" style="color:#718096;">No order reference found.</td>';
+}
+
+// ── Print button
+var toolbarPrintBtn = document.getElementById('toolbar-print-btn');
+if (toolbarPrintBtn) toolbarPrintBtn.addEventListener('click', function() { window.print(); });
+
+// ── Silent subscriber enrolment (unchanged)
+try { localStorage.removeItem('afams_cart'); } catch(_) {}
+var orderData = { email: email, full_name: name };
 if (orderData.email) {
-  const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
   fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
     method: 'POST',
     headers: {
@@ -541,11 +653,10 @@ if (orderData.email) {
     body: JSON.stringify({
       email: orderData.email,
       first_name: orderData.full_name ? orderData.full_name.split(' ')[0] : null,
-      source: 'checkout',
-      status: 'active',
+      source: 'checkout', status: 'active',
       tags: ['product_updates', 'promotions', 'growing_tips'],
     })
-  }).catch(() => {}); // Silent fail — don't block order confirmation UX
+  }).catch(function() {});
 }
 </script>
 
