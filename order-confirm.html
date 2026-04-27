@@ -510,6 +510,15 @@ function formatAmount(val) {
   return CURRENCY + ' ' + safe.toLocaleString('en-KE');
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Show URL-param amount immediately — will be replaced by DB amount if available
 document.getElementById('amount-paid').textContent      = formatAmount(amount);
 document.getElementById('amount-paid-copy').textContent = formatAmount(amount);
@@ -580,8 +589,9 @@ function renderItems(order) {
     var subtotal  = Number(item.subtotal ?? (qty * unitPrice));
     var isFree    = Boolean(item.is_free);
     var tr = document.createElement('tr');
+    var productName = escapeHtml(item.product_name ?? item.name ?? 'Product');
     tr.innerHTML =
-      '<td>' + (item.product_name ?? item.name ?? 'Product') + (isFree ? ' <span style="color:#0d683a;font-size:0.75rem;font-weight:700;">(FREE)</span>' : '') + '</td>'
+      '<td>' + productName + (isFree ? ' <span style="color:#0d683a;font-size:0.75rem;font-weight:700;">(FREE)</span>' : '') + '</td>'
       + '<td style="text-align:center;">' + qty + '</td>'
       + '<td style="text-align:right;">' + (isFree ? '—' : formatAmount(unitPrice)) + '</td>'
       + '<td style="text-align:right;">' + (isFree ? 'FREE' : formatAmount(subtotal)) + '</td>';
