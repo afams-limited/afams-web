@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <meta name="robots" content="noindex"/>
   <title>Checkout — Afams FarmBag</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/afams_favicon_32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/afams_favicon_512.svg"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/afams_favicon_512.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -64,11 +66,11 @@
 
     /* ── LAYOUT ── */
     .checkout-wrap {
-      max-width: 900px;
+      max-width: 980px;
       margin: 2.5rem auto;
       padding: 0 1.25rem 5rem;
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 420px;
       gap: 2rem;
       align-items: start;
     }
@@ -311,27 +313,60 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      cursor: pointer;
+      user-select: none;
     }
-    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; }
+    .seed-group-header:hover .seed-group-label { color: #1a4d38; }
+    .seed-group-chevron {
+      font-size: 0.75rem;
+      color: #2D6A4F;
+      margin-left: 8px;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+    .seed-group.sg-open .seed-group-chevron { transform: rotate(180deg); }
+    .seed-group-label { font-weight: 700; color: #2D6A4F; font-size: 0.85rem; flex: 1; }
     .seed-group-status { font-size: 0.72rem; color: #888; }
     .seed-group-status.selected { color: #2D6A4F; font-weight: 600; }
-    .seed-pills { display: flex; flex-wrap: wrap; gap: 6px; }
-    .seed-pill {
+    .seed-pills { display: none; flex-direction: column; gap: 0; margin-top: 10px; }
+    .seed-group.sg-open .seed-pills { display: flex; }
+    .seed-variety-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(45,106,79,0.08);
+      gap: 8px;
+    }
+    .seed-variety-row:last-child { border-bottom: none; }
+    .seed-subcategory-header {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: #2D6A4F;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 0 3px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(45,106,79,0.12);
+    }
+    .seed-subcategory-header:first-child { border-top: none; margin-top: 0; }
+    .seed-variety-name { font-size: 0.78rem; color: #333; flex: 1; min-width: 0; }
+    .seed-weight-btns { display: flex; gap: 5px; flex-shrink: 0; }
+    .seed-weight-btn {
       cursor: pointer;
       border: 1.5px solid rgba(45,106,79,0.27);
       background: #fff;
       color: #333;
-      border-radius: 20px;
-      padding: 4px 11px;
-      font-size: 0.76rem;
+      border-radius: 16px;
+      padding: 3px 9px;
+      font-size: 0.72rem;
       transition: all 0.15s ease;
       user-select: none;
     }
-    .seed-pill:hover { border-color: #2D6A4F; color: #2D6A4F; background: #f0f7f4; }
-    .seed-pill.selected { background: #2D6A4F; color: #fff; border-color: #2D6A4F; }
-    .seed-pill.extra-selected { background: #fff3e0; border-color: #E07B39; color: #E07B39; }
-    .seed-pill .extra-tag { font-size: 0.65rem; margin-left: 3px; opacity: 0.85; }
+    .seed-weight-btn:hover { border-color: #2D6A4F; color: #2D6A4F; background: #f0f7f4; }
+    .seed-weight-btn.selected { background: #2D6A4F; color: #fff; border-color: #2D6A4F; }
+    .seed-weight-btn.extra-selected { background: #fff3e0; border-color: #E07B39; color: #E07B39; }
+    .seed-weight-btn .extra-tag { font-size: 0.65rem; margin-left: 3px; opacity: 0.85; }
     .seed-summary {
       background: #fff;
       border: 1.5px solid #2D6A4F;
@@ -420,7 +455,7 @@
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">
-    <img src="assets/images/afams-logo.jpg" alt="Afams"/>
+    <img src="assets/images/afams_logo_stacked.png" alt="Afams"/>
     Afams
   </a>
   <a href="products.html" class="nav-back">
@@ -456,37 +491,56 @@
       </div>
 
       <div class="form-group">
-        <label for="f-address">Delivery address</label>
-        <input type="text" id="f-address" placeholder="Building, street, area" autocomplete="street-address"/>
+        <label for="f-address">Delivery address <span class="req">*</span></label>
+        <input type="text" id="f-address" placeholder="Building, street, area" autocomplete="street-address" required/>
       </div>
 
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" id="f-county-group">
           <label for="f-county">County</label>
           <select id="f-county" autocomplete="address-level1">
             <option value="">Select county…</option>
-            <option>Nairobi</option><option>Mombasa</option><option>Kisumu</option>
-            <option>Nakuru</option><option>Eldoret</option><option>Thika</option>
-            <option>Kiambu</option><option>Machakos</option><option>Nyeri</option>
-            <option>Meru</option><option>Kakamega</option><option>Kisii</option>
-            <option>Other (Kenya)</option><option>Outside Kenya</option>
+            <option>Baringo</option><option>Bomet</option><option>Bungoma</option><option>Busia</option>
+            <option>Elgeyo-Marakwet</option><option>Embu</option><option>Garissa</option><option>Homa Bay</option>
+            <option>Isiolo</option><option>Kajiado</option><option>Kakamega</option><option>Kericho</option>
+            <option>Kiambu</option><option>Kilifi</option><option>Kirinyaga</option><option>Kisii</option>
+            <option>Kisumu</option><option>Kitui</option><option>Kwale</option><option>Laikipia</option>
+            <option>Lamu</option><option>Machakos</option><option>Makueni</option><option>Mandera</option>
+            <option>Marsabit</option><option>Meru</option><option>Migori</option><option>Mombasa</option>
+            <option>Murang'a</option><option>Nairobi</option><option>Nakuru</option><option>Nandi</option>
+            <option>Narok</option><option>Nyamira</option><option>Nyandarua</option><option>Nyeri</option>
+            <option>Samburu</option><option>Siaya</option><option>Taita-Taveta</option><option>Tana River</option>
+            <option>Tharaka-Nithi</option><option>Trans Nzoia</option><option>Turkana</option><option>Uasin Gishu</option>
+            <option>Vihiga</option><option>Wajir</option><option>West Pokot</option>
+            <option>Outside Kenya</option>
+          </select>
+        </div>
+        <div class="form-group" id="f-country-group" style="display:none">
+          <label for="f-country">Country</label>
+          <select id="f-country" autocomplete="country">
+            <option value="">Select country…</option>
+            <option>Kenya</option><option>Uganda</option><option>Tanzania</option><option>Rwanda</option>
+            <option>Burundi</option><option>Ethiopia</option><option>South Sudan</option><option>Somalia</option>
+            <option>Democratic Republic of the Congo</option><option>Nigeria</option><option>South Africa</option><option>Ghana</option>
+            <option>India</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option>
+            <option>Canada</option><option>Australia</option><option>Germany</option><option>France</option>
           </select>
         </div>
       </div>
 
       <div class="delivery-badge">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        Free delivery within Nairobi · 3–5 business days
+        Free delivery for orders Above KES 2,499 · 3–5 business days
       </div>
 
       <button class="btn-pay" id="pay-btn" type="submit">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Pay with M-Pesa / Card
+        Pay with M-Pesa / Airtel Money / Card
       </button>
 
       <p class="secure-note">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Secured by Paystack · 256-bit SSL encryption
+        Secure checkout · 256-bit SSL encryption
       </p>
 
       <p style="text-align:center;font-size:0.72rem;color:#718096;margin-top:0.5rem;line-height:1.6">
@@ -517,31 +571,11 @@
 
       <!-- ProSoil standalone promo notice (shown when only ProSoil in cart) -->
       <div id="prosoil-promo-notice" class="prosoil-checkout-promo hidden">
-        🎁 <strong>Every 3 bags, 1 free</strong> — Add a FarmBag to your order to activate this promo.
+        🎁 <strong>Every 3 bags, 1 free (max 3 free bags)</strong> — Add a FarmBag to your order to activate this promo. <em style="font-size:0.78rem;color:#a05000">First-time customers only.</em>
       </div>
 
-      <!-- Add-ons — FarmBag orders only -->
+      <!-- Add-ons — FarmBag orders only (ProSoil) -->
       <div id="farmbag-addons" style="display:none">
-
-        <!-- SEED SELECTOR -->
-        <section id="seed-selector" class="addon-section">
-          <div class="addon-header">
-            <span class="addon-badge free">FREE</span>
-            <h3>🌱 Certified Seeds — Choose Your Starter Pack</h3>
-            <p class="addon-subtitle">
-              Select <strong>one variety from each group</strong> below.
-              Your first <strong>4 packets are free</strong> with any FarmBag order.
-              Additional packets are <strong>KES 150 each</strong>.
-            </p>
-          </div>
-          <div id="seed-groups-container">
-            <div style="color:#888;font-size:0.82rem;padding:8px 0">Loading seeds…</div>
-          </div>
-          <div id="seed-summary" class="seed-summary hidden">
-            <span id="seed-summary-text"></span>
-            <span id="seed-extra-cost" class="extra-cost"></span>
-          </div>
-        </section>
 
         <!-- PROSOIL ADD-ON -->
         <section id="prosoil-addon" class="addon-section">
@@ -550,14 +584,14 @@
             <h3>🪴 Afams ProSoil 25kg — Premium Growing Medium</h3>
             <p class="addon-subtitle">
               Pour. Water. Plant. Done. Pre-mixed, pH-balanced, sterilised.
-              <strong>Recommended: 2 bags per FarmBag.</strong>
+              <strong>Recommended: 3 bags per FarmBag.</strong>
             </p>
           </div>
           <div class="prosoil-promo-banner">
             <span class="promo-icon">🎁</span>
             <div class="promo-text">
-              <strong>Every 3 bags, get 1 FREE</strong>
-              <span id="prosoil-promo-banner-text">Exclusive for FarmBag customers.</span>
+              <strong>Every 3 bags, get 1 FREE (max 3 free bags)</strong>
+              <span id="prosoil-promo-banner-text">Exclusive for FarmBag customers — first-time customers only.</span>
             </div>
           </div>
           <p class="prosoil-desc">
@@ -591,10 +625,6 @@
 
       </div><!-- /farmbag-addons -->
 
-      <div class="summary-line" id="addon-seeds-line" style="display:none">
-        <span class="label">Extra seeds</span>
-        <span id="addon-seeds-cost">KES 0</span>
-      </div>
       <div class="summary-line" id="addon-prosoil-line" style="display:none">
         <span class="label">ProSoil add-on</span>
         <span id="addon-prosoil-cost">KES 0</span>
@@ -605,7 +635,7 @@
       </div>
       <div class="summary-line">
         <span class="label">Delivery</span>
-        <span>Free</span>
+        <span id="delivery-display">Free (orders Above KES 2,499)</span>
       </div>
       <div class="summary-total">
         <span>Total</span>
@@ -624,98 +654,99 @@
 // ── Checkout logic — reads cart from sessionStorage via cart.js ────────────────
 
 const PROSOIL_PRICE_CHECKOUT = 399;
-const SUPABASE_URL_CHECKOUT  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-const SUPABASE_ANON_KEY_CHECKOUT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
 
-// ── Static seed catalogue — fallback when Supabase seed_catalog is unreachable ─
-const STATIC_SEED_GROUPS = {
-  1: {
-    name: 'Leafy Greens',
-    seeds: [
-      { seed_slug: 'sukuma-wiki',     seed_name: 'Sukuma Wiki (Kale)' },
-      { seed_slug: 'spinach',         seed_name: 'Spinach' },
-      { seed_slug: 'swiss-chard',     seed_name: 'Swiss Chard' },
-      { seed_slug: 'lettuce-butter',  seed_name: 'Lettuce (Butterhead)' },
-      { seed_slug: 'lettuce-romaine', seed_name: 'Lettuce (Romaine)' },
-      { seed_slug: 'managu',          seed_name: 'African Nightshade (Managu)' },
-      { seed_slug: 'terere',          seed_name: 'Amaranth (Terere)' },
-      { seed_slug: 'pak-choi',        seed_name: 'Pak Choi' },
-      { seed_slug: 'mustard-greens',  seed_name: 'Mustard Greens' },
-      { seed_slug: 'baby-cabbage',    seed_name: 'Baby Cabbage' },
-      { seed_slug: 'beetroot-leaves', seed_name: 'Beetroot Leaves' },
-    ]
-  },
-  2: {
-    name: 'Fruiting Vegetables',
-    seeds: [
-      { seed_slug: 'cherry-tomato',       seed_name: 'Cherry Tomato' },
-      { seed_slug: 'tomato-roma',         seed_name: 'Tomato (Roma)' },
-      { seed_slug: 'tomato-beefsteak',    seed_name: 'Tomato (Beefsteak)' },
-      { seed_slug: 'bell-pepper-green',   seed_name: 'Bell Pepper (Green)' },
-      { seed_slug: 'bell-pepper-red',     seed_name: 'Bell Pepper (Red)' },
-      { seed_slug: 'hot-pepper-cayenne',  seed_name: 'Hot Pepper (Cayenne)' },
-      { seed_slug: 'okra',                seed_name: 'Okra' },
-      { seed_slug: 'courgette',           seed_name: 'Courgette (Zucchini)' },
-      { seed_slug: 'cucumber',            seed_name: 'Cucumber' },
-      { seed_slug: 'eggplant',            seed_name: 'Eggplant (Brinjal)' },
-      { seed_slug: 'strawberry',          seed_name: 'Strawberry' },
-    ]
-  },
-  3: {
-    name: 'Herbs & Aromatics',
-    seeds: [
-      { seed_slug: 'basil-sweet',    seed_name: 'Basil (Sweet)' },
-      { seed_slug: 'coriander',      seed_name: 'Coriander (Dhania)' },
-      { seed_slug: 'parsley',        seed_name: 'Parsley (Flat Leaf)' },
-      { seed_slug: 'mint',           seed_name: 'Mint' },
-      { seed_slug: 'chives',         seed_name: 'Chives' },
-      { seed_slug: 'dill',           seed_name: 'Dill' },
-      { seed_slug: 'rosemary',       seed_name: 'Rosemary' },
-      { seed_slug: 'thyme',          seed_name: 'Thyme' },
-      { seed_slug: 'lemongrass',     seed_name: 'Lemon Grass' },
-      { seed_slug: 'spring-onion',   seed_name: 'Spring Onion' },
-      { seed_slug: 'garlic-chives',  seed_name: 'Garlic Chives' },
-    ]
-  },
-  4: {
-    name: 'Roots & Others',
-    seeds: [
-      { seed_slug: 'radish-french',    seed_name: 'Radish (French Breakfast)' },
-      { seed_slug: 'radish-cherry',    seed_name: 'Radish (Cherry Belle)' },
-      { seed_slug: 'carrot-baby',      seed_name: 'Carrot (Baby)' },
-      { seed_slug: 'beetroot-detroit', seed_name: 'Beetroot (Detroit)' },
-      { seed_slug: 'turnip',           seed_name: 'Turnip' },
-      { seed_slug: 'garden-peas',      seed_name: 'Garden Peas' },
-      { seed_slug: 'french-beans',     seed_name: 'French Dwarf Beans' },
-      { seed_slug: 'sunflower-edible', seed_name: 'Sunflower (Edible)' },
-      { seed_slug: 'microgreens-mix',  seed_name: 'Microgreens Mix' },
-      { seed_slug: 'arugula',          seed_name: 'Arugula (Rocket)' },
-      { seed_slug: 'watercress',       seed_name: 'Watercress' },
-    ]
-  },
-};
+const FREE_DELIVERY_MIN_KES = 2499;
+const CHECKOUT_LOCK_KEY = 'afams_checkout_lock';
+const CHECKOUT_LOCK_TTL_MS = 2 * 60 * 1000;
+const CHECKOUT_WATCHDOG_TIMEOUT_MS = 45000;
+let paystackLaunchInProgress = false;
+let paystackLaunchWatchdog = null;
+
+function getDeliveryLabel(total) {
+  var threshold = FREE_DELIVERY_MIN_KES.toLocaleString('en-KE');
+  return total >= FREE_DELIVERY_MIN_KES
+    ? 'Free (orders KES ' + threshold + '+)'
+    : 'Charged (orders below KES ' + threshold + ')';
+}
+
+function syncLocationSelectors() {
+  var countyGroup = document.getElementById('f-county-group');
+  var countryGroup = document.getElementById('f-country-group');
+  var countyEl = document.getElementById('f-county');
+  var countryEl = document.getElementById('f-country');
+  if (!countyGroup || !countryGroup || !countyEl || !countryEl) return;
+
+  var countyVal = countyEl.value.trim();
+  var countryVal = countryEl.value.trim();
+  var countryDriven = countryGroup.style.display !== 'none' && countryVal;
+  var outsideKenya = countryDriven ? (countryVal !== 'Kenya') : (countyVal === 'Outside Kenya');
+
+  if (outsideKenya) {
+    countyGroup.style.display = 'none';
+    countyEl.required = false;
+    if (countyVal === 'Outside Kenya') {
+      if (!countryVal || countryVal === 'Kenya') countryEl.value = '';
+    }
+    countryGroup.style.display = '';
+    countryEl.required = true;
+  } else {
+    if (countyVal === 'Outside Kenya') countyEl.value = '';
+    countryGroup.style.display = 'none';
+    countryEl.required = false;
+    countryEl.value = 'Kenya';
+    countyGroup.style.display = '';
+    countyEl.required = true;
+  }
+}
+
+function createCheckoutAttemptId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return 'chk-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+function getCheckoutLock() {
+  try {
+    var raw = sessionStorage.getItem(CHECKOUT_LOCK_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || !parsed.id || !parsed.ts) return null;
+    if ((Date.now() - parsed.ts) > CHECKOUT_LOCK_TTL_MS) {
+      sessionStorage.removeItem(CHECKOUT_LOCK_KEY);
+      return null;
+    }
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+function setCheckoutLock(id) {
+  try {
+    sessionStorage.setItem(CHECKOUT_LOCK_KEY, JSON.stringify({ id: id, ts: Date.now() }));
+  } catch (_) {}
+}
+
+function clearCheckoutLock() {
+  try { sessionStorage.removeItem(CHECKOUT_LOCK_KEY); } catch (_) {}
+}
 
 // ── Catalogue of products for URL-param pre-loading ──────────────────────────
 const CHECKOUT_PRODUCTS = {
-  'FB-CLS-01': { name: 'FarmBag Classic',    unit_price: 7500, image: 'assets/images/farmbag-classic.jpg',  type: 'farmbag' },
-  'FB-GRW-01': { name: 'FarmBag Vertical',   unit_price: 8500, image: 'assets/images/farmbag-vertical.jpg', type: 'farmbag' },
-  'PS-25KG':   { name: 'Afams ProSoil 25kg', unit_price:  399, image: 'assets/images/prosoil-front.jpg',    type: 'prosoil' },
+  'FB-CLS-01': { name: 'FarmBag Classic',         unit_price:  7500, image: 'assets/images/farmbag-classic.jpg',  type: 'farmbag' },
+  'FB-GRW-01': { name: 'FarmBag Vertical',         unit_price:  8500, image: 'assets/images/farmbag-vertical.jpg', type: 'farmbag' },
+  'PS-25KG':   { name: 'Afams ProSoil 25kg',       unit_price:   399, image: 'assets/images/prosoil-front.jpg',    type: 'prosoil' },
+  'FB-HYD-01': { name: 'FarmBag Hydro',            unit_price:  8999, image: '',                                   type: 'farmbag' },
+  'FB-HYP-01': { name: 'FarmBag Hydro Pro',        unit_price: 11999, image: '',                                   type: 'farmbag' },
+  'FB-AQA-01': { name: 'FarmBag Aqua',             unit_price: 14999, image: '',                                   type: 'farmbag' },
+  'FB-AHP-01': { name: 'FarmBag Aqua-Hydro Pro',   unit_price: 39999, image: '',                                   type: 'farmbag' },
 };
-
-// ── Add-on state (seeds — selected at checkout, not a cart item) ──────────────
-const INITIAL_SEED_STATE    = { selected: {}, freePackets: [], extraPackets: [], extraTotal: 0 };
-const INITIAL_PROSOIL_STATE = { qty: 0, total: 0, promoApplied: false };
-window.seedState    = Object.assign({}, INITIAL_SEED_STATE);
-window.prosoilState = Object.assign({}, INITIAL_PROSOIL_STATE);
 
 function cartHasFarmBag() {
   var cart = getCart();
-  return cart.items.some(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); });
-}
-
-function cartHasAnyItem() {
-  var cart = getCart();
-  return cart.items.length > 0;
+  var PREMIUM_FARMBAG_SKUS = ['FB-CLS-01','FB-GRW-01','FB-HYD-01','FB-HYP-01','FB-AQA-01','FB-AHP-01'];
+  return cart.items.some(function(i) { return PREMIUM_FARMBAG_SKUS.includes(i.sku); });
 }
 
 // ── Render cart items list ────────────────────────────────────────────────────
@@ -756,13 +787,13 @@ function renderCartItems() {
       + '</div>'
       + '</div>'
       + '<div style="text-align:right;white-space:nowrap;">'
-      + '<div style="font-size:0.8rem;color:#718096;">KES ' + item.unit_price.toLocaleString() + ' ea</div>'
+      + '<div style="font-size:0.8rem;color:#718096;">KES ' + item.unit_price.toLocaleString() + ' each</div>'
       + '<div style="font-weight:700;color:#1A2028;">KES ' + subtotal + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
 
-  // Show/hide FarmBag add-ons and ProSoil promo notice
+  // Show/hide add-ons and ProSoil promo notice
   var farmBagAddons      = document.getElementById('farmbag-addons');
   var prosoilPromoNotice = document.getElementById('prosoil-promo-notice');
   var hasFarmBag         = cartHasFarmBag();
@@ -770,17 +801,6 @@ function renderCartItems() {
 
   if (farmBagAddons)      farmBagAddons.style.display       = hasFarmBag ? '' : 'none';
   if (prosoilPromoNotice) prosoilPromoNotice.classList.toggle('hidden', !hasProsoilOnly);
-
-  // When FarmBag is removed, reset seed and ProSoil state so stale data doesn't affect totals
-  if (!hasFarmBag) {
-    window.seedState    = Object.assign({}, INITIAL_SEED_STATE);
-    window.prosoilState = Object.assign({}, INITIAL_PROSOIL_STATE);
-    _seedsRendered = false; // Allow seed groups to re-render if FarmBag is added again
-    _seedsLoading  = false;
-  } else {
-    // Load seeds only if not already rendered
-    loadSeeds();
-  }
 
   // Sync ProSoil add-on qty with cart
   var prosoilItemInCart = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
@@ -791,7 +811,7 @@ function renderCartItems() {
     window.prosoilState = {
       qty: cartProsoilQty,
       total: cartProsoilQty * PROSOIL_PRICE_CHECKOUT,
-      promoApplied: hasFarmBag && cartProsoilQty >= 3
+      promoApplied: hasFarmBag && Math.min(3, Math.floor(cartProsoilQty / 3)) > 0
     };
     refreshProsoilCalcUI();
   }
@@ -813,166 +833,6 @@ window.addEventListener('afams:cart-updated', function() {
   renderCartItems();
 });
 
-// ── Seed Selector ─────────────────────────────────────────────────────────────
-var _seedsRendered = false;
-var _seedsLoading  = false;
-
-async function loadSeeds() {
-  if (_seedsRendered || _seedsLoading) return; // already rendered or fetch in-flight
-  _seedsLoading = true;
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL_CHECKOUT}/rest/v1/seed_catalog?select=*&in_stock=eq.true&order=group_number,sort_order`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY_CHECKOUT,
-          Authorization: 'Bearer ' + SUPABASE_ANON_KEY_CHECKOUT,
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-    if (!res.ok) throw new Error('Fetch failed ' + res.status);
-    const seeds = await res.json();
-    if (Array.isArray(seeds) && seeds.length > 0) {
-      renderSeedGroups(seeds);
-      _seedsRendered = true;
-      _seedsLoading  = false;
-    } else {
-      renderStaticSeedGroups();
-    }
-  } catch (err) {
-    console.warn('[Afams] loadSeeds error, using static fallback:', err);
-    _seedsLoading = false;
-    renderStaticSeedGroups();
-  }
-}
-
-function renderStaticSeedGroups() {
-  // Convert STATIC_SEED_GROUPS into the same flat array format as Supabase rows
-  var rows = [];
-  Object.entries(STATIC_SEED_GROUPS).forEach(function(entry) {
-    var gNum = parseInt(entry[0], 10);
-    var gData = entry[1];
-    gData.seeds.forEach(function(s) {
-      rows.push({ group_number: gNum, group_name: gData.name, seed_slug: s.seed_slug, seed_name: s.seed_name, description: '' });
-    });
-  });
-  renderSeedGroups(rows);
-  _seedsRendered = true;
-  _seedsLoading  = false;
-}
-
-function renderSeedGroups(seeds) {
-  const container = document.getElementById('seed-groups-container');
-  const groups = {};
-  seeds.forEach(function(s) {
-    if (!groups[s.group_number]) groups[s.group_number] = { name: s.group_name, seeds: [] };
-    groups[s.group_number].seeds.push(s);
-  });
-  const groupEmojis = { 1: '🥬', 2: '🍓', 3: '🌿', 4: '🌱' };
-  container.innerHTML = Object.entries(groups).map(function(entry) {
-    var gNum = entry[0], gData = entry[1];
-    return '<div class="seed-group" data-group="' + gNum + '">'
-      + '<div class="seed-group-header">'
-      + '<span class="seed-group-label">' + (groupEmojis[gNum] || '') + ' ' + gData.name + '</span>'
-      + '<span class="seed-group-status" id="status-group-' + gNum + '">None selected</span>'
-      + '</div>'
-      + '<div class="seed-pills">'
-      + gData.seeds.map(function(s) {
-          return '<div class="seed-pill"'
-            + ' data-slug="' + s.seed_slug + '"'
-            + ' data-name="' + s.seed_name.replace(/"/g, '&quot;') + '"'
-            + ' data-group="' + gNum + '"'
-            + ' title="' + (s.description || '').replace(/"/g, '&quot;') + '"'
-            + ' onclick="toggleSeed(this)">'
-            + s.seed_name
-            + '</div>';
-        }).join('')
-      + '</div></div>';
-  }).join('');
-}
-
-function refreshGroupPillLabels(group) {
-  var groupSel = window.seedState.selected[group] || [];
-  var container = document.querySelector('.seed-group[data-group="' + group + '"] .seed-pills');
-  if (!container) return;
-  container.querySelectorAll('.seed-pill').forEach(function(p) {
-    var slug = p.dataset.slug;
-    var name = p.dataset.name;
-    var pos  = groupSel.findIndex(function(s) { return s.slug === slug; });
-    if (pos < 0) {
-      p.classList.remove('selected', 'extra-selected');
-      p.innerHTML = name;
-    } else if (pos === 0) {
-      p.classList.remove('extra-selected');
-      p.classList.add('selected');
-      p.innerHTML = name + ' <span class="extra-tag">✓ Free</span>';
-    } else {
-      p.classList.remove('selected');
-      p.classList.add('extra-selected');
-      p.innerHTML = name + ' <span class="extra-tag">+KES 150</span>';
-    }
-  });
-}
-
-function toggleSeed(pill) {
-  var group = pill.dataset.group;
-  var slug  = pill.dataset.slug;
-  var name  = pill.dataset.name;
-  if (!window.seedState.selected[group]) window.seedState.selected[group] = [];
-  var groupSel = window.seedState.selected[group];
-  var idx = groupSel.findIndex(function(s) { return s.slug === slug; });
-  if (idx >= 0) {
-    groupSel.splice(idx, 1);
-  } else {
-    groupSel.push({ slug: slug, name: name, group: parseInt(group, 10) });
-  }
-  // Re-evaluate all pills in this group so free/extra labels stay correct
-  refreshGroupPillLabels(group);
-  var status = document.getElementById('status-group-' + group);
-  if (status) {
-    if (groupSel.length === 0) {
-      status.textContent = 'None selected';
-      status.className = 'seed-group-status';
-    } else {
-      status.textContent = groupSel.map(function(s) { return s.name; }).join(', ');
-      status.className = 'seed-group-status selected';
-    }
-  }
-  recalculateSeedState();
-}
-
-function recalculateSeedState() {
-  var freePackets = [], extraPackets = [];
-  Object.values(window.seedState.selected).forEach(function(groupArr) {
-    groupArr.forEach(function(seed, i) {
-      if (i === 0) freePackets.push(seed);
-      else extraPackets.push(seed);
-    });
-  });
-  window.seedState.freePackets  = freePackets;
-  window.seedState.extraPackets = extraPackets;
-  window.seedState.extraTotal   = extraPackets.length * 150;
-  updateSeedSummary();
-  updateOrderTotals();
-}
-
-function updateSeedSummary() {
-  var summary  = document.getElementById('seed-summary');
-  var textEl   = document.getElementById('seed-summary-text');
-  var costEl   = document.getElementById('seed-extra-cost');
-  if (!summary) return;
-  var total = window.seedState.freePackets.length + window.seedState.extraPackets.length;
-  if (total === 0) { summary.classList.add('hidden'); return; }
-  summary.classList.remove('hidden');
-  var freeCount  = window.seedState.freePackets.length;
-  var extraCount = window.seedState.extraPackets.length;
-  textEl.textContent = total + ' packet' + (total > 1 ? 's' : '') + ' selected — ' + freeCount + ' free';
-  costEl.textContent = extraCount > 0
-    ? '+ ' + extraCount + ' extra = KES ' + window.seedState.extraTotal
-    : '';
-}
-
 // ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
 function changeProsoilQty(delta) {
   var hasFarmBag = cartHasFarmBag();
@@ -990,12 +850,17 @@ function changeProsoilQty(delta) {
     updateQty('PS-25KG', newQty);
     return; // updateQty fires cart-updated
   }
+
+  var promoBags = hasFarmBag ? Math.min(3, Math.floor(newQty / 3)) : 0;
+  window.prosoilState = { qty: newQty, total: newQty * PROSOIL_PRICE_CHECKOUT, promoApplied: promoBags > 0 };
+  refreshProsoilCalcUI();
+  updateOrderTotals();
 }
 
 function refreshProsoilCalcUI() {
   var newQty    = window.prosoilState.qty;
   var hasFarmBag = cartHasFarmBag();
-  var promoBags = hasFarmBag ? Math.floor(newQty / 3) : 0;
+  var promoBags = hasFarmBag ? Math.min(3, Math.floor(newQty / 3)) : 0;
   var totalBags = newQty + promoBags;
   var qtyEl     = document.getElementById('prosoil-qty');
   var calc      = document.getElementById('prosoil-calc');
@@ -1024,12 +889,14 @@ function refreshProsoilCalcUI() {
   if (bannerText) {
     if (!hasFarmBag) {
       bannerText.textContent = 'Add a FarmBag to your order to activate this promo.';
-    } else if (newQty > 0 && newQty < 3) {
-      bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag.';
+    } else if (newQty > 0 && promoBags === 0 && newQty < 3) {
+      bannerText.textContent = 'Add ' + (3 - newQty) + ' more bag' + ((3 - newQty) > 1 ? 's' : '') + ' to unlock a free bag. First-time customers only.';
+    } else if (promoBags >= 3) {
+      bannerText.textContent = '🎁 Maximum promo reached: 3 free bags unlocked! First-time customers only.';
     } else if (promoBags > 0) {
-      bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '!';
+      bannerText.textContent = '🎁 You\'ve unlocked ' + promoBags + ' free bag' + (promoBags > 1 ? 's' : '') + '! First-time customers only.';
     } else {
-      bannerText.textContent = 'Exclusive for FarmBag customers.';
+      bannerText.textContent = 'Exclusive for FarmBag customers — first-time customers only.';
     }
   }
 }
@@ -1038,19 +905,14 @@ function refreshProsoilCalcUI() {
 function updateOrderTotals() {
   var cart         = getCart();
   var totals       = getCartTotals(cart);
-  var seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
-  var grandTotal   = totals.grandTotal + seedsTotal;
+  var grandTotal   = totals.grandTotal;
 
   // Add-on line items
-  var seedsLine   = document.getElementById('addon-seeds-line');
-  var seedsCost   = document.getElementById('addon-seeds-cost');
   var prosoilLine = document.getElementById('addon-prosoil-line');
   var prosoilCost = document.getElementById('addon-prosoil-cost');
   var promoLine   = document.getElementById('promo-saving-line');
   var promoVal    = document.getElementById('promo-saving-val');
 
-  if (seedsLine)  seedsLine.style.display  = seedsTotal > 0 ? '' : 'none';
-  if (seedsCost)  seedsCost.textContent    = 'KES ' + seedsTotal.toLocaleString();
 
   var prosoilItem = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   var prosoilCostAmt = prosoilItem ? prosoilItem.unit_price * prosoilItem.qty : 0;
@@ -1068,12 +930,14 @@ function updateOrderTotals() {
 
   // Grand total display
   document.getElementById('total-display').textContent = 'KES ' + grandTotal.toLocaleString();
+  var deliveryDisplay = document.getElementById('delivery-display');
+  if (deliveryDisplay) deliveryDisplay.textContent = getDeliveryLabel(grandTotal);
 
   // Pay button
   var btn = document.getElementById('pay-btn');
   if (btn) {
     btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'
-      + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Card';
+      + ' Pay KES ' + grandTotal.toLocaleString() + ' — M-Pesa / Airtel Money / Card';
   }
   window.currentOrderAmount = grandTotal * 100;
 }
@@ -1089,18 +953,67 @@ function hideError() {
   document.getElementById('form-error').style.display = 'none';
 }
 
+function buildUnifiedOrderItems(cart) {
+  var cartItems = Array.isArray(cart && cart.items) ? cart.items : [];
+  return cartItems.map(function(item, index) {
+    var safeItem = item || {};
+    var qty = Math.max(1, parseInt(safeItem.qty, 10) || 1);
+    var unitPrice = Number(safeItem.unit_price);
+    var fallbackId = 'product-'
+      + String(safeItem.name || safeItem.type || (index + 1))
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      + '-' + index;
+    return {
+      id: safeItem.id || safeItem.sku || fallbackId,
+      sku: safeItem.sku || '',
+      slug: safeItem.slug || safeItem.id || '',
+      name: safeItem.name || 'Product',
+      price: Number.isFinite(unitPrice) ? unitPrice : 0,
+      qty: qty,
+      type: safeItem.type || 'product',
+      category: safeItem.category || '',
+      subcategory: safeItem.seedGroup || safeItem.subcategory || '',
+      is_free: safeItem.freePromo === true
+    };
+  });
+}
+
 function launchPaystack() {
   hideError();
+  if (paystackLaunchInProgress || getCheckoutLock()) {
+    return showError('Your payment request is already being processed. Please wait a few seconds.');
+  }
+
+  if (typeof PaystackPop === 'undefined' || !PaystackPop || typeof PaystackPop.setup !== 'function') {
+    return showError('Payment system failed to load. Please refresh the page and try again.');
+  }
+
   const name    = document.getElementById('f-name').value.trim();
   const phone   = document.getElementById('f-phone').value.trim();
   const email   = document.getElementById('f-email').value.trim();
   const address = document.getElementById('f-address').value.trim();
-  const county  = document.getElementById('f-county').value;
+  const countyInput  = document.getElementById('f-county').value.trim();
+  const countryInput = document.getElementById('f-country').value.trim() || 'Kenya';
+  const outsideKenya = countyInput === 'Outside Kenya' || (countryInput && countryInput !== 'Kenya');
+  const country = outsideKenya ? countryInput : 'Kenya';
+  const county = outsideKenya ? ('Outside Kenya — ' + (country || 'Unspecified')) : countyInput;
 
   if (!name)  { return showError('Please enter your full name.'); }
   if (!phone) { return showError('Please enter your phone number.'); }
+  if (phone.replace(/\D/g, '').length < 7 || phone.replace(/\D/g, '').length > 15) {
+    return showError('Please enter a valid phone number (e.g. +254 7XX XXX XXX).');
+  }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return showError('Please enter a valid email address.');
+  }
+  if (!address) { return showError('Please enter your delivery address.'); }
+  if (outsideKenya && !countryInput) {
+    return showError('Please select your country.');
+  }
+  if (!outsideKenya && !countyInput) {
+    return showError('Please select your county.');
   }
 
   const cart = getCart();
@@ -1116,26 +1029,42 @@ function launchPaystack() {
   }
 
   const totals       = getCartTotals(cart);
-  const seedsTotal   = window.seedState ? (window.seedState.extraTotal || 0) : 0;
-  const grandTotal   = totals.grandTotal + seedsTotal;
+  const grandTotal   = totals.grandTotal;
 
-  const hasFarmBag     = cartHasFarmBag();
-  const freeSeeds      = hasFarmBag ? (window.seedState?.freePackets  || []) : [];
-  const extraSeeds     = hasFarmBag ? (window.seedState?.extraPackets || []) : [];
+  const unifiedOrderItems = buildUnifiedOrderItems(cart);
   const prosoilItem    = cart.items.find(function(i) { return i.sku === 'PS-25KG'; });
   const prosoilQty     = prosoilItem ? prosoilItem.qty : 0;
   const prosoilTotal   = prosoilQty * PROSOIL_PRICE_CHECKOUT;
   const prosoilPromoQty = totals.promoQty || 0;
   const prosoilPromo   = prosoilPromoQty > 0;
-  const addonTotal     = seedsTotal + prosoilTotal;
 
   // Primary product for backward-compat fields (first FarmBag, or first item)
   const primaryItem    = cart.items.find(function(i) { return ['FB-CLS-01','FB-GRW-01'].includes(i.sku); }) || cart.items[0];
 
   const btn = document.getElementById('pay-btn');
+  const checkoutAttemptId = createCheckoutAttemptId();
+  paystackLaunchInProgress = true;
+  setCheckoutLock(checkoutAttemptId);
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  btn.setAttribute('aria-label', 'Opening secure payment');
+  btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Opening secure payment…';
 
-  const handler = PaystackPop.setup({
+  var releaseCheckoutState = function() {
+    paystackLaunchInProgress = false;
+    clearCheckoutLock();
+    if (paystackLaunchWatchdog) {
+      clearTimeout(paystackLaunchWatchdog);
+      paystackLaunchWatchdog = null;
+    }
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    btn.removeAttribute('aria-label');
+    updateOrderTotals();
+  };
+
+  try {
+    const handler = PaystackPop.setup({
     key:      paystackKey,
     email:    email,
     amount:   grandTotal * 100,
@@ -1151,27 +1080,27 @@ function launchPaystack() {
       unit_price:       primaryItem.unit_price,
       delivery_address: address,
       county:           county,
+      country:          country,
+      items:            unifiedOrderItems,
+      cart:             JSON.stringify(unifiedOrderItems),
       cart_items:       JSON.stringify(cart.items),
-      free_seeds:       JSON.stringify(freeSeeds),
-      extra_seeds:      JSON.stringify(extraSeeds),
-      extra_seeds_count: extraSeeds.length,
-      extra_seeds_total: seedsTotal,
       prosoil_qty:      prosoilQty,
       prosoil_total:    prosoilTotal,
       prosoil_promo_bag: prosoilPromo,
       prosoil_promo_qty: prosoilPromoQty,
-      addons_total:     addonTotal,
+      checkout_attempt_id: checkoutAttemptId,
       custom_fields: [
         { display_name: 'Customer Name',    variable_name: 'customer_name',    value: name    },
         { display_name: 'Phone',            variable_name: 'customer_phone',   value: phone   },
         { display_name: 'Delivery County',  variable_name: 'county',           value: county  },
+        { display_name: 'Country',          variable_name: 'country',          value: country },
         { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
         { display_name: 'Cart Items',       variable_name: 'cart_items',       value: cart.items.map(function(i) { return i.name + ' ×' + i.qty; }).join(', ') },
-        { display_name: 'Add-ons Total',    variable_name: 'addons_total',     value: addonTotal > 0 ? 'KES ' + addonTotal : 'None' },
         { display_name: 'Order Type',       variable_name: 'order_type',       value: 'PRE-ORDER' },
       ],
     },
     callback: function(response) {
+      releaseCheckoutState();
       clearCart();
       window.location.href = 'order-confirm.html?ref=' + encodeURIComponent(response.reference)
         + '&name=' + encodeURIComponent(name)
@@ -1179,11 +1108,20 @@ function launchPaystack() {
         + '&amount=' + grandTotal;
     },
     onClose: function() {
-      btn.disabled = false;
+      releaseCheckoutState();
     },
   });
 
-  handler.openIframe();
+    // Safety reset: if payment iframe fails to open/return under poor network conditions, unlock checkout state.
+    paystackLaunchWatchdog = setTimeout(function() {
+      releaseCheckoutState();
+    }, CHECKOUT_WATCHDOG_TIMEOUT_MS);
+    handler.openIframe();
+  } catch (err) {
+    console.error('[Afams] Paystack setup error:', err);
+    releaseCheckoutState();
+    showError('Unable to start payment right now. Please check your connection and try again.');
+  }
 }
 
 // ── URL params — pre-load cart from ?sku= and ?qty= (deep-link from product pages)
@@ -1198,6 +1136,9 @@ function launchPaystack() {
 })();
 
 // Initial render
+document.getElementById('f-county').addEventListener('change', syncLocationSelectors);
+document.getElementById('f-country').addEventListener('change', syncLocationSelectors);
+syncLocationSelectors();
 renderCartItems();
 
 document.getElementById('checkout-form').addEventListener('submit', function (e) {
@@ -1213,7 +1154,7 @@ document.getElementById('checkout-form').addEventListener('submit', function (e)
     <a href="terms.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Terms &amp; Conditions</a>·
     <a href="returns-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Returns Policy</a>
   </div>
-  <p>© 2026 Afams Ltd · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved</p>
+  <p>© 2026 Afams Limited · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved</p>
 </footer>
 
 </body>

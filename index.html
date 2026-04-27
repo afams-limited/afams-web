@@ -6,14 +6,14 @@
   <meta name="description" content="Afams FarmBag — Kenya's #1 urban farming system. Grow vegetables at home with our innovative grow bags in Nairobi. Perfect for vertical gardening, indoor gardening, rooftop & balcony gardens. Pre-order now, shipping across Kenya."/>
   <meta name="keywords" content="urban farming Kenya, grow bags Nairobi, vertical gardening Kenya, indoor gardening Nairobi, FarmBag, urban garden Kenya, grow bag Nairobi, home vegetable garden Kenya, balcony farming Kenya, rooftop garden Nairobi, container gardening Kenya, hydroponic grow bag, kitchen garden Kenya, urban agriculture Nairobi, FarmBag Classic, FarmBag Vertical, Afams"/>
   <meta name="robots" content="index, follow"/>
-  <meta name="author" content="Afams Ltd"/>
+  <meta name="author" content="Afams Limited"/>
   <link rel="canonical" href="https://afams.co.ke/"/>
   <!-- Open Graph -->
   <meta property="og:title" content="Afams FarmBag — Urban Farming &amp; Grow Bags in Nairobi, Kenya"/>
   <meta property="og:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony, office or school. Vertical gardening &amp; indoor gardening made easy. Pre-order yours today."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://afams.co.ke"/>
-  <meta property="og:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <meta property="og:image" content="https://afams.co.ke/assets/images/afams_logo_horizontal.png"/>
   <meta property="og:image:alt" content="Afams FarmBag — Urban Farming Grow Bags Kenya"/>
   <meta property="og:site_name" content="Afams"/>
   <meta property="og:locale" content="en_KE"/>
@@ -22,13 +22,83 @@
   <meta name="twitter:site" content="@afams"/>
   <meta name="twitter:title" content="Afams FarmBag — Urban Farming &amp; Grow Bags in Nairobi, Kenya"/>
   <meta name="twitter:description" content="Kenya's most innovative urban farming grow bag. Grow fresh vegetables anywhere — apartment, rooftop, balcony or school. Pre-order today."/>
-  <meta name="twitter:image" content="https://afams.co.ke/assets/images/afams-logo.jpg"/>
+  <meta name="twitter:image" content="https://afams.co.ke/assets/images/afams_logo_horizontal.png"/>
   <title>Afams FarmBag — Urban Farming &amp; Grow Bags Nairobi, Kenya</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/afams_favicon_32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/afams_favicon_512.svg"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/afams_favicon_512.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+  <style>
+    /* GrowBag selector buttons */
+    .gb-size-btn, .gb-variant-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1.5px solid #C3DFC7;
+      background: #fff;
+      color: #4A5568;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .gb-size-btn:hover, .gb-variant-btn:hover {
+      border-color: #1E7D34;
+      color: #155D27;
+    }
+    .gb-size-btn.gb-active, .gb-variant-btn.gb-active {
+      background: #155D27;
+      border-color: #155D27;
+      color: #fff;
+    }
+    .gb-crop-tag {
+      background: #E6F0E7;
+      color: #155D27;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+    /* GrowBag gallery arrows */
+    .gb-gallery-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(7,26,11,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 2;
+      padding: 0;
+    }
+    .gb-gallery-arrow:hover { background: rgba(7,26,11,0.85); }
+    .gb-gallery-arrow-left  { left: 8px; }
+    .gb-gallery-arrow-right { right: 8px; }
+    /* GrowBag thumbnail strip */
+    .gb-thumb {
+      cursor: pointer;
+      opacity: 0.65;
+      transition: opacity 0.2s, border-color 0.2s;
+      border: 2px solid transparent !important;
+    }
+    .gb-thumb:hover { opacity: 1; }
+    .gb-thumb.gb-thumb-active {
+      opacity: 1;
+      border-color: #1E7D34 !important;
+    }
+  </style>
   <script src="js/cart.js"></script>
   <!-- Structured Data: Organisation + Product -->
   <script type="application/ld+json">
@@ -39,7 +109,7 @@
         "@type": "Organization",
         "name": "Afams Ltd",
         "url": "https://afams.co.ke",
-        "logo": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "logo": "https://afams.co.ke/assets/images/afams_logo_horizontal.png",
         "description": "Afams is an urban AgriTech company registered in Kenya in 2021, building innovative grow bag systems for cities, homes, schools and institutions.",
         "foundingDate": "2021",
         "foundingLocation": "Nairobi, Kenya",
@@ -62,7 +132,7 @@
         "description": "Innovative urban farming grow bag for vertical gardening, indoor gardening, rooftop and balcony gardens in Nairobi, Kenya.",
         "category": "Urban Farming / Grow Bags",
         "url": "https://afams.co.ke/#products",
-        "image": "https://afams.co.ke/assets/images/afams-logo.jpg",
+        "image": "https://afams.co.ke/assets/images/afams_logo_horizontal.png",
         "offers": {
           "@type": "AggregateOffer",
           "priceCurrency": "KES",
@@ -79,30 +149,31 @@
 
 <!-- ANNOUNCE BAR -->
 <div class="announce">
-  🌿 Pre-orders now open — ship within 3–5 days · Free delivery in Nairobi ·
-  <a href="#products" onclick="scrollTo('products')">Order yours →</a>
+  🌿 Pre-orders now open — ship within 3–5 days · Free delivery on orders KES 2,499+ ·
+  <a href="#products" onclick="scrollToSection('products')">Order yours →</a>
 </div>
 
 <!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#" class="nav-logo">
-      <img src="assets/images/afams-logo.jpg" alt="Afams Logo" class="nav-logo-img"/>
+      <img src="assets/images/afams_logo_stacked.png" alt="Afams Logo" class="nav-logo-img"/>
       Afams
     </a>
     <div class="nav-links">
-      <a href="#products" onclick="scrollTo('products')">Products</a>
-      <a href="#how-it-works" onclick="scrollTo('how-it-works')">How it works</a>
-      <a href="#institutional" onclick="scrollTo('institutional')">For institutions</a>
-      <a href="#story" onclick="scrollTo('story')">Our story</a>
-      <a href="#contact" onclick="scrollTo('contact')">Contact</a>
+      <a href="#products" onclick="scrollToSection('products')">Products</a>
+      <a href="#how-it-works" onclick="scrollToSection('how-it-works')">How it works</a>
+      <a href="#institutional" onclick="scrollToSection('institutional')">For institutions</a>
+      <a href="#story" onclick="scrollToSection('story')">Our story</a>
+      <a href="#contact" onclick="scrollToSection('contact')">Contact</a>
     </div>
     <div class="nav-actions">
+      <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Switch theme" title="Switch theme">🌙</button>
       <div class="nav-cart" onclick="window.location.href='checkout.html'" title="View cart" style="cursor:pointer">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         <span class="cart-count" style="display:none">0</span>
       </div>
-      <a href="#products" class="btn-preorder-nav" onclick="scrollTo('products')">Pre-Order Now</a>
+      <a href="#products" class="btn-preorder-nav" onclick="scrollToSection('products')">Pre-Order Now</a>
     </div>
     <div class="nav-hamburger" id="hamburger">
       <span></span><span></span><span></span>
@@ -112,11 +183,11 @@
 
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
-  <a href="#products" onclick="scrollTo('products')">Products</a>
-  <a href="#how-it-works" onclick="scrollTo('how-it-works')">How it works</a>
-  <a href="#institutional" onclick="scrollTo('institutional')">For institutions</a>
-  <a href="#story" onclick="scrollTo('story')">Our story</a>
-  <a href="#contact" onclick="scrollTo('contact')">Contact</a>
+  <a href="#products" onclick="scrollToSection('products')">Products</a>
+  <a href="#how-it-works" onclick="scrollToSection('how-it-works')">How it works</a>
+  <a href="#institutional" onclick="scrollToSection('institutional')">For institutions</a>
+  <a href="#story" onclick="scrollToSection('story')">Our story</a>
+  <a href="#contact" onclick="scrollToSection('contact')">Contact</a>
 </div>
 
 <!-- HERO -->
@@ -137,17 +208,17 @@
         no garden needed.
       </p>
       <div class="hero-actions">
-        <button class="btn-hero-primary" onclick="scrollTo('products')">
+        <button class="btn-hero-primary" onclick="scrollToSection('products')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
           Pre-Order Now
         </button>
-        <button class="btn-hero-secondary" onclick="scrollTo('how-it-works')">
+        <button class="btn-hero-secondary" onclick="scrollToSection('how-it-works')">
           See how it works
         </button>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-num" data-count="2" data-suffix=" products">0 products</div>
+          <div class="hero-stat-num" data-count="4" data-suffix=" products">0 products</div>
           <div class="hero-stat-label">In the lineup</div>
         </div>
         <div class="hero-stat">
@@ -155,14 +226,24 @@
           <div class="hero-stat-label">Global presence</div>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-num" data-prefix="KES " data-count="7500">0</div>
-          <div class="hero-stat-label">Starting price</div>
+          <div class="hero-stat-num" data-prefix="KES " data-count="59">0</div>
+          <div class="hero-stat-label">GrowBag from</div>
         </div>
       </div>
       <!-- PRODUCT HIGHLIGHT SLIDER -->
       <div class="hero-product-slider">
         <div class="hero-product-slider-track">
-          <div class="hero-product-slide hl-active" id="hl-slide-0" style="cursor:pointer" onclick="addToCart({sku:'FB-CLS-01',name:'FarmBag Classic',unit_price:7500,qty:1,image:'assets/images/farmbag-classic.jpg',type:'farmbag'})">
+          <div class="hero-product-slide hl-active" id="hl-slide-0" style="cursor:pointer" onclick="scrollToSection('products')">
+            <div class="hero-product-slide-img">
+              <img src="assets/images/growbag-hero.jpg" alt="GrowBag" onerror="this.parentElement.textContent='🌱'"/>
+            </div>
+            <div class="hero-product-slide-info">
+              <div class="hero-product-slide-name">GrowBag Range</div>
+              <div class="hero-product-slide-price">From KES 59 · Basic Range</div>
+              <div class="hero-product-slide-cta">Choose size →</div>
+            </div>
+          </div>
+          <div class="hero-product-slide" id="hl-slide-1" style="cursor:pointer" onclick="addToCart({sku:'FB-CLS-01',name:'FarmBag Classic',unit_price:7500,qty:1,image:'assets/images/farmbag-classic.jpg',type:'farmbag'})">
             <div class="hero-product-slide-img">
               <img src="assets/images/farmbag-classic.jpg" alt="FarmBag Classic" onerror="this.parentElement.textContent='🌿'"/>
             </div>
@@ -172,13 +253,23 @@
               <div class="hero-product-slide-cta">Add to Cart →</div>
             </div>
           </div>
-          <div class="hero-product-slide" id="hl-slide-1" style="cursor:pointer" onclick="addToCart({sku:'FB-GRW-01',name:'FarmBag Vertical',unit_price:8500,qty:1,image:'assets/images/farmbag-vertical.jpg',type:'farmbag'})">
+          <div class="hero-product-slide" id="hl-slide-2" style="cursor:pointer" onclick="addToCart({sku:'FB-GRW-01',name:'FarmBag Vertical',unit_price:8500,qty:1,image:'assets/images/farmbag-vertical.jpg',type:'farmbag'})">
             <div class="hero-product-slide-img">
               <img src="assets/images/farmbag-vertical.jpg" alt="FarmBag Vertical" onerror="this.parentElement.textContent='🌱'"/>
             </div>
             <div class="hero-product-slide-info">
               <div class="hero-product-slide-name">FarmBag Vertical</div>
               <div class="hero-product-slide-price">KES 8,500 · New</div>
+              <div class="hero-product-slide-cta">Add to Cart →</div>
+            </div>
+          </div>
+          <div class="hero-product-slide" id="hl-slide-3" style="cursor:pointer" onclick="addToCart('ps-prosoil')">
+            <div class="hero-product-slide-img">
+              <img src="assets/images/prosoil-front.jpg" alt="Afams ProSoil" onerror="this.parentElement.textContent='🪴'"/>
+            </div>
+            <div class="hero-product-slide-info">
+              <div class="hero-product-slide-name">Afams ProSoil 25kg</div>
+              <div class="hero-product-slide-price">KES 399 · Growing Medium</div>
               <div class="hero-product-slide-cta">Add to Cart →</div>
             </div>
           </div>
@@ -197,7 +288,7 @@
       </div>
     </div>
   </div>
-  <div class="hero-scroll" onclick="scrollTo('preorder')">
+  <div class="hero-scroll" onclick="scrollToSection('preorder')">
     <div class="hero-scroll-line"></div>
     SCROLL
   </div>
@@ -217,7 +308,7 @@
         <div class="preorder-steps">
           <div class="preorder-step">
             <div class="preorder-step-num">1</div>
-            Choose your FarmBag
+            Choose your product
           </div>
           <div class="preorder-step">
             <div class="preorder-step-num">2</div>
@@ -229,7 +320,7 @@
           </div>
         </div>
       </div>
-      <button class="preorder-cta" onclick="scrollTo('products')">Browse Products →</button>
+      <button class="preorder-cta" onclick="scrollToSection('products')">Browse Products →</button>
     </div>
   </div>
 </section>
@@ -239,15 +330,91 @@
   <div class="section-inner">
     <div class="section-center" style="margin-bottom:3rem">
       <div class="section-label">The Product Lineup</div>
-      <h2 class="section-title">Pick your FarmBag</h2>
+      <h2 class="section-title">Browse the Lineup</h2>
       <p class="section-sub">
-        Two products. One mission: making urban food production accessible to every household,
-        school, restaurant, and office on Earth — and eventually, beyond.
+        From the essential GrowBag to the advanced FarmBag System — urban food production for every space, every budget, and every level of grower.
       </p>
      </div>
    </div>
     <div class="products-grid">
       <!-- Products rendered by JS below, but also hardcoded for SEO/no-JS -->
+
+      <!-- ═══ GROWBAG CARD — FIRST ═══ -->
+      <div class="product-card fade-up" id="growbag-card">
+        <div class="product-img-wrap" style="position:relative;">
+          <img id="growbag-main-img" src="assets/images/growbag-hero.jpg" data-emoji="🌱" alt="Afams GrowBag" class="product-img" onerror="this.style.display='none'"/>
+          <span id="growbag-badge" class="product-badge" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;">Most Popular</span>
+          <button onclick="gbGalleryNav(-1)" class="gb-gallery-arrow gb-gallery-arrow-left" aria-label="Previous image">&#8249;</button>
+          <button onclick="gbGalleryNav(1)"  class="gb-gallery-arrow gb-gallery-arrow-right" aria-label="Next image">&#8250;</button>
+        </div>
+        <div class="gb-img-strip" id="growbag-img-strip">
+          <img src="assets/images/growbag-hero.jpg" alt="GrowBag Hero" class="gb-thumb gb-thumb-active" onclick="gbSetImage(0)"/>
+          <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" class="gb-thumb" onclick="gbSetImage(1)"/>
+          <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" class="gb-thumb" onclick="gbSetImage(2)"/>
+          <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" class="gb-thumb" onclick="gbSetImage(3)"/>
+          <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" class="gb-thumb" onclick="gbSetImage(4)"/>
+        </div>
+        <div class="product-body">
+          <div class="product-category">GrowBag · Basic Range</div>
+          <div class="product-name" id="growbag-name">GrowBag Standard — Wide</div>
+          <div class="product-desc" id="growbag-volume" style="font-size:0.82rem;color:#718096;margin-bottom:0.6rem">32 litres · PP geotextile · Bonded liner</div>
+
+          <!-- SIZE SELECTOR -->
+          <div style="margin-bottom:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Size</p>
+            <div id="growbag-size-btns" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="gb-size-btn" data-size="Mini"     onclick="selectGrowBagSize('Mini')">Mini</button>
+              <button class="gb-size-btn" data-size="Medium"   onclick="selectGrowBagSize('Medium')">Medium</button>
+              <button class="gb-size-btn gb-active" data-size="Standard" onclick="selectGrowBagSize('Standard')">Standard</button>
+              <button class="gb-size-btn" data-size="Large"    onclick="selectGrowBagSize('Large')">Large</button>
+              <button class="gb-size-btn" data-size="XL"       onclick="selectGrowBagSize('XL')">XL</button>
+            </div>
+          </div>
+
+          <!-- VARIANT SELECTOR -->
+          <div style="margin-bottom:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
+            <div id="growbag-variant-btns" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="gb-variant-btn gb-active" data-variant="Wide"     onclick="selectGrowBagVariant('Wide')"     title="Broad and squat — best where floor space is available">Wide</button>
+              <button class="gb-variant-btn"           data-variant="Compact"  onclick="selectGrowBagVariant('Compact')"  title="Narrower and taller — best for tight corners">Compact</button>
+              <button class="gb-variant-btn"           data-variant="Vertical" onclick="selectGrowBagVariant('Vertical')" title="Tall and upright — maximises vertical growing" style="display:none">Vertical</button>
+            </div>
+            <p id="growbag-variant-desc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
+          </div>
+
+          <!-- QTY SELECTOR -->
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0">Qty</p>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="changeGBQty(-1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">−</button>
+              <span id="growbag-qty" style="font-size:0.95rem;font-weight:700;color:#071A0B;min-width:24px;text-align:center">5</span>
+              <button onclick="changeGBQty(1)"  style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">+</button>
+            </div>
+          </div>
+
+          <!-- CROPS -->
+          <div id="growbag-crops" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px"></div>
+
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">From</span>
+              <span class="price-val" id="growbag-price">KES 1,050</span>
+            </div>
+            <button class="btn-add-cart" id="growbag-cta" onclick="addGrowBagToCart()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ═══ END GROWBAG CARD ═══ -->
+
+      <!-- FarmBag range divider -->
+      <div class="product-divider" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#1E7D34;font-weight:700;margin:0">The FarmBag System · Advanced Range</p>
+        <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Full 3-zone urban farming system with compost zone, Grow Zone, and indoor wicking.</p>
+      </div>
+
       <div class="product-card fade-up">
         <div class="product-img-wrap">
           <img data-src="assets/images/farmbag-classic.jpg" data-emoji="🌿" alt="FarmBag Classic" class="product-img lazy-img"/>
@@ -305,6 +472,150 @@
         </div>
       </div>
 
+      <div class="product-card fade-up">
+        <div class="product-img-wrap">
+          <img data-src="assets/images/prosoil-front.jpg" data-emoji="🪴" alt="Afams ProSoil 25kg" class="product-img lazy-img"/>
+          <span class="product-badge badge-prosoil">Growing Medium</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">ProSoil · 25 kg bag</div>
+          <div class="product-name">Afams ProSoil</div>
+          <div class="product-desc">Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately. Buy 3 bags, get 1 free (up to 3 free bags max) when ordering with a FarmBag — first-time customers.</div>
+          <div class="product-features">
+            <span class="feature-chip">pH 6.2–6.8</span>
+            <span class="feature-chip">Sterilised</span>
+            <span class="feature-chip">Ready to plant</span>
+            <span class="feature-chip">Made in Kenya</span>
+          </div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Per bag</span>
+              <span class="price-val">KES 399</span>
+              <span class="price-gbp">Free delivery on orders KES 2,499+</span>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart('ps-prosoil')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#0F5132,#2D6A4F);display:flex;align-items:center;justify-content:center;">
+          <span class="product-badge" style="background:#E07B39;color:#fff;">New</span>
+          <span style="position:absolute;left:0.9rem;right:0.9rem;bottom:0.9rem;background:rgba(255,255,255,0.14);color:#fff;font-size:0.73rem;font-weight:700;text-align:center;padding:0.35rem 0.45rem;border-radius:8px;line-height:1.3;">Select a subcategory to view packets</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Seeds & Seedlings · Vegetables</div>
+          <div class="product-name">Seed &amp; Seedling Packs</div>
+          <div class="product-desc">Browse curated seed and seedling subcategories for kitchen-garden growing — vegetables, herbs, fruit vegetables, microgreens, and roots.</div>
+          <div class="product-features">
+            <span class="feature-chip">Subcategory browsing</span>
+            <span class="feature-chip">Per packet pricing</span>
+            <span class="feature-chip">Ships in 3–5 days</span>
+          </div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">From</span>
+              <span class="price-val">KES 35</span>
+              <span class="price-gbp">Choose subcategory to view all</span>
+            </div>
+            <a class="btn-add-cart" href="products.html?seedSubcategory=Vegetables#seed-catalog-section">Browse Seeds</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium Range divider -->
+      <div class="product-divider" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#7B1FA2;font-weight:700;margin:0">The FarmBag System · Premium Range</p>
+        <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Exciting Innovations Coming — Pre-order now. First delivery: 1 September 2026.</p>
+      </div>
+
+      <!-- HYDRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#1a0533,#3d0d6b);display:flex;align-items:center;justify-content:center;">
+          <span class="product-badge badge-premium">Premium</span>
+          <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch — September 1st 2026</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Hydroponic System</div>
+          <div class="product-name">FarmBag Hydro</div>
+          <div class="product-desc">Advanced hydroponic urban farming. Full details available at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 8,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <button class="btn-add-cart" data-product="fb-hydro" onclick="addToCart('fb-hydro')">Pre-Order</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HYDRO PRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#1a0533,#3d0d6b);display:flex;align-items:center;justify-content:center;">
+          <span class="product-badge badge-premium">Premium</span>
+          <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch — September 1st 2026</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Pro Hydroponic</div>
+          <div class="product-name">FarmBag Hydro Pro</div>
+          <div class="product-desc">Professional-grade hydroponic system for serious growers. Full details at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 11,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <button class="btn-add-cart" data-product="fb-hydro-pro" onclick="addToCart('fb-hydro-pro')">Pre-Order</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQUA -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#0d2640,#1565C0);display:flex;align-items:center;justify-content:center;">
+          <span class="product-badge badge-premium">Premium</span>
+          <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch — September 1st 2026</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Aquaponic System</div>
+          <div class="product-name">FarmBag Aqua</div>
+          <div class="product-desc">Aquaponic urban farming innovation. Full details available at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 14,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <button class="btn-add-cart" data-product="fb-aqua" onclick="addToCart('fb-aqua')">Pre-Order</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQUA-HYDRO PRO -->
+      <div class="product-card fade-up">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#0d2640,#7B1FA2);display:flex;align-items:center;justify-content:center;">
+          <span class="product-badge badge-premium">Premium</span>
+          <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch — September 1st 2026</span>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Premium · Ultimate System</div>
+          <div class="product-name">FarmBag Aqua-Hydro Pro</div>
+          <div class="product-desc">The ultimate combined aquaponic-hydroponic system. Full details at official launch.</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-from">Pre-order</span>
+              <span class="price-val">KES 39,999</span>
+              <span class="price-gbp">First delivery Sep 1, 2026</span>
+            </div>
+            <button class="btn-add-cart" data-product="fb-aqua-hydro-pro" onclick="addToCart('fb-aqua-hydro-pro')">Pre-Order</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -318,42 +629,63 @@
       <p class="section-sub">Tesla made pre-orders the right way to buy a new product. We have too. Your payment confirms your order and funds production. You receive your FarmBag within 3–5 days.</p>
     </div>
     <div class="how-grid">
-      <div class="how-card fade-up">
-        <div class="how-num">1</div>
-        <h3>Choose your FarmBag</h3>
-        <p>Browse the lineup. Add your chosen products to cart. The Classic for soil growing or the Vertical for 5-direction indoor growing.</p>
-      </div>
-      <div class="how-card fade-up">
-        <div class="how-num">2</div>
-        <h3>Pay securely</h3>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">1</div><h3>Choose your product</h3></summary>
+        <p>Browse the lineup. Start with a GrowBag for the essentials, or go for the FarmBag Classic or Vertical for the full 3-zone urban farming system. Add to cart and choose your size.</p>
+      </details>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">2</div><h3>Pay securely</h3></summary>
         <p>Powered by Paystack. Pay via M-Pesa, Visa, Mastercard, or mobile money. Your payment is processed instantly and securely. You receive a confirmation email within seconds.</p>
-      </div>
-      <div class="how-card fade-up">
-        <div class="how-num">3</div>
-        <h3>We prepare your order</h3>
+      </details>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">3</div><h3>We prepare your order</h3></summary>
         <p>Your FarmBag is assembled, quality-checked, and packed at our Nairobi operations centre. Each unit is tested — reservoir integrity, net divider alignment, QC passed.</p>
-      </div>
-      <div class="how-card fade-up">
-        <div class="how-num">4</div>
-        <h3>Delivered in 3–5 days</h3>
+      </details>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">4</div><h3>Delivered in 3–5 days</h3></summary>
         <p>Nairobi: delivered within 3–5 business days. Other Kenya counties: 3–5 days. UK/UAE: quoted per order. You receive tracking updates via email and WhatsApp.</p>
-      </div>
-      <div class="how-card fade-up">
-        <div class="how-num">5</div>
-        <h3>Set up in 30 minutes</h3>
+      </details>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">5</div><h3>Set up in 30 minutes</h3></summary>
         <p>Open the sealed packet. Unfold the bag. Insert the liner, net dividers, and Grow Cube basket. Fill the reservoir. Add Afams ProSoil growing medium. Plant. Done.</p>
-      </div>
-      <div class="how-card fade-up">
-        <div class="how-num">6</div>
-        <h3>Harvest in weeks</h3>
+      </details>
+      <details class="how-card how-accordion fade-up">
+        <summary><div class="how-num">6</div><h3>Harvest in weeks</h3></summary>
         <p>Leafy greens in 3–4 weeks. Herbs in 2–3 weeks. Tomatoes in 8–10 weeks. Top up the reservoir, refill your ProSoil, and keep growing season after season.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST / PARTNERS -->
+<section class="section" id="partners" style="padding:3rem 2rem">
+  <div class="section-inner">
+    <div class="section-center" style="margin-bottom:1.5rem">
+      <div class="section-label">Partners &amp; ecosystem</div>
+    </div>
+    <div class="trust-logos">
+      <div class="trust-item">
+        <div class="trust-icon">💳</div>
+        <span>Paystack Payments</span>
       </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <p style="font-size:0.95rem;color:var(--gray-dark);margin-bottom:1rem">Interested in partnering with Afams?</p>
+      <a href="#contact" class="btn-preorder-nav" onclick="goToPartnerContact(event)">Become a Partner →</a>
     </div>
   </div>
 </section>
 
 <!-- STORY -->
-<section class="section section--gray" id="story">
+<section class="accordion-section section--gray" id="story">
+  <button class="accordion-toggle" id="story-toggle" aria-expanded="false" aria-controls="story-body">
+    <span class="accordion-label">
+      <span class="accordion-icon">📖</span>
+      Our Story
+    </span>
+    <svg class="accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="accordion-body section section--gray" id="story-body" aria-labelledby="story-toggle" hidden>
   <div class="section-inner">
     <div class="story-grid">
       <div class="story-body">
@@ -391,25 +723,7 @@
       </div>
     </div>
   </div>
-</section>
-
-<!-- TRUST / PARTNERS -->
-<section class="section" id="partners" style="padding:3rem 2rem">
-  <div class="section-inner">
-    <div class="section-center" style="margin-bottom:1.5rem">
-      <div class="section-label">Partners &amp; ecosystem</div>
-    </div>
-    <div class="trust-logos">
-      <div class="trust-item">
-        <div class="trust-icon">💳</div>
-        <span>Paystack Payments</span>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:2rem">
-      <p style="font-size:0.95rem;color:var(--gray-dark);margin-bottom:1rem">Interested in partnering with Afams?</p>
-      <a href="mailto:partner@afams.co.ke?subject=Partnership%20Enquiry" class="btn-preorder-nav">Become a Partner →</a>
-    </div>
-  </div>
+  </div><!-- /.accordion-body -->
 </section>
 
 <!-- ACCORDION GROUP — near footer -->
@@ -498,7 +812,7 @@
       </div>
     </div>
     <div style="text-align:center;margin-top:2rem">
-      <p style="font-size:0.88rem;color:var(--gray-mid)">🌍 Interested in distributing Afams in your country? <a href="#contact" onclick="scrollTo('contact')" style="color:var(--g-mid);font-weight:600">Get in touch</a></p>
+      <p style="font-size:0.88rem;color:var(--gray-mid)">🌍 Interested in distributing Afams in your country? <a href="#contact" onclick="scrollToSection('contact')" style="color:var(--g-mid);font-weight:600">Get in touch</a></p>
     </div>
   </div>
   </div><!-- /.accordion-body -->
@@ -651,37 +965,73 @@
       <p class="section-sub">Choose the right team — we respond faster when your message lands in the right inbox.</p>
     </div>
     <div class="contact-emails-grid">
-      <div class="contact-email-card fade-up" onclick="openContactForm('orders')">
+      <!-- Orders & Shopping -->
+      <a class="contact-email-card fade-up"
+         href="mailto:orders@afams.co.ke?subject=%5BORDER%20ENQUIRY%5D&body=Hi%20Afams%20Orders%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0A%0AName%3A%20%0AEnquiry%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">📦</div>
         <div class="contact-email-topic">Orders &amp; Shopping</div>
         <div class="contact-email-addr">orders@afams.co.ke</div>
-        <div class="contact-email-desc">Track an order, amend delivery details, or ask about pre-order timelines.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('support')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [ORDER ENQUIRY]</div>
+        <div class="contact-email-desc">Track an order, amend delivery details, or ask about pre-order timelines. We respond within 4 hours.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=orders%40afams.co.ke&su=%5BORDER%20ENQUIRY%5D&body=Hi%20Afams%20Orders%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0A%0AName%3A%20%0AEnquiry%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Support & Returns -->
+      <a class="contact-email-card fade-up"
+         href="mailto:support@afams.co.ke?subject=%5BSUPPORT%20REQUEST%5D&body=Hi%20Afams%20Support%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0AProduct%3A%20FarmBag%20Classic%20%2F%20FarmBag%20Vertical%20%2F%20ProSoil%20%2F%20GrowBag%0A%0AIssue%20description%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">🛠</div>
         <div class="contact-email-topic">Support &amp; Returns</div>
         <div class="contact-email-addr">support@afams.co.ke</div>
-        <div class="contact-email-desc">Product issues, returns, refunds, or anything that needs fixing. We respond in 1 business day.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('partnerships')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [SUPPORT REQUEST]</div>
+        <div class="contact-email-desc">Product issues, returns, refunds, or anything that needs fixing. We respond within 1 business day.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=support%40afams.co.ke&su=%5BSUPPORT%20REQUEST%5D&body=Hi%20Afams%20Support%20Team%2C%0A%0AOrder%20number%20(if%20applicable)%3A%20%0AProduct%3A%20FarmBag%20Classic%20%2F%20FarmBag%20Vertical%20%2F%20ProSoil%20%2F%20GrowBag%0A%0AIssue%20description%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Partnerships & B2B -->
+      <a class="contact-email-card fade-up" id="contact-partner"
+         href="mailto:partner@afams.co.ke?subject=%5BPARTNERSHIP%20ENQUIRY%5D&body=Hi%20Afams%20Partnerships%20Team%2C%0A%0AOrganisation%3A%20%0AType%3A%20School%20%2F%20Restaurant%20%2F%20Hotel%20%2F%20Corporate%20%2F%20Distributor%0A%0AWhat%20we%E2%80%99re%20looking%20for%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">🤝</div>
         <div class="contact-email-topic">Partnerships &amp; B2B</div>
         <div class="contact-email-addr">partner@afams.co.ke</div>
-        <div class="contact-email-desc">Schools, restaurants, hotels, distributors, and institutional buyers. Bulk pricing available.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
-      <div class="contact-email-card fade-up" onclick="openContactForm('press')">
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [PARTNERSHIP ENQUIRY]</div>
+        <div class="contact-email-desc">Schools, restaurants, hotels, distributors, and institutional buyers. Bulk pricing and bespoke installations available.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=partner%40afams.co.ke&su=%5BPARTNERSHIP%20ENQUIRY%5D&body=Hi%20Afams%20Partnerships%20Team%2C%0A%0AOrganisation%3A%20%0AType%3A%20School%20%2F%20Restaurant%20%2F%20Hotel%20%2F%20Corporate%20%2F%20Distributor%0A%0AWhat%20we%E2%80%99re%20looking%20for%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
+      <!-- Press & Media -->
+      <a class="contact-email-card fade-up"
+         href="mailto:press@afams.co.ke?subject=%5BPRESS%20ENQUIRY%5D&body=Hi%20Afams%20Press%20Team%2C%0A%0APublication%20%2F%20Organisation%3A%20%0AEnquiry%20type%3A%20Interview%20%2F%20Media%20kit%20%2F%20Product%20sample%20%2F%20Speaking%20engagement%0A%0AMessage%3A%20%0A%0AThank%20you"
+         target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
         <div class="contact-email-icon">📰</div>
         <div class="contact-email-topic">Press &amp; Media</div>
         <div class="contact-email-addr">press@afams.co.ke</div>
+        <div class="contact-email-subject" style="font-size:0.75rem;color:var(--gray-mid);font-style:italic;margin-top:0.1rem">Subject: [PRESS ENQUIRY]</div>
         <div class="contact-email-desc">Interview requests, media kits, product samples for review, and speaking engagements.</div>
-        <span class="contact-email-cta">Write to us →</span>
-      </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+          <span class="contact-email-cta">Open Mail App →</span>
+          <a href="https://mail.google.com/mail/?view=cm&to=press%40afams.co.ke&su=%5BPRESS%20ENQUIRY%5D&body=Hi%20Afams%20Press%20Team%2C%0A%0APublication%20%2F%20Organisation%3A%20%0AEnquiry%20type%3A%20Interview%20%2F%20Media%20kit%20%2F%20Product%20sample%20%2F%20Speaking%20engagement%0A%0AMessage%3A%20%0A%0AThank%20you"
+             target="_blank" rel="noopener" onclick="event.stopPropagation()"
+             style="font-size:0.78rem;font-weight:600;color:#155D27;text-decoration:none;border:1px solid var(--g-soft);border-radius:6px;padding:3px 9px;">Gmail ↗</a>
+        </div>
+      </a>
     </div>
     <div style="text-align:center;margin-top:2rem">
-      <p style="font-size:0.88rem;color:var(--gray-mid)">Prefer WhatsApp? <a href="https://wa.me/254702359618" target="_blank" rel="noopener" style="color:var(--g-mid);font-weight:600">Chat with us</a> · Response usually within 2 hours</p>
+      <p style="font-size:0.88rem;color:var(--gray-mid)">Prefer WhatsApp? <a href="https://wa.me/254714128514" target="_blank" rel="noopener" style="color:var(--g-mid);font-weight:600">Chat with us</a> · Response usually within 2 hours</p>
     </div>
   </div>
   </div><!-- /.accordion-body -->
@@ -740,7 +1090,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="assets/images/afams-logo.jpg" alt="Afams Logo" class="nav-logo-img"/>
+          <img src="assets/images/afams_logo_stacked.png" alt="Afams Logo" class="nav-logo-img"/>
           Afams
         </div>
         <p class="footer-desc">
@@ -755,17 +1105,18 @@
       <div class="footer-col">
         <h4>Products</h4>
         <ul>
-          <li><a href="#products" onclick="scrollTo('products')">FarmBag Classic</a></li>
-          <li><a href="#products" onclick="scrollTo('products')">FarmBag Vertical</a></li>
+          <li><a href="#products" onclick="scrollToSection('products')">GrowBag Range</a></li>
+          <li><a href="#products" onclick="scrollToSection('products')">FarmBag Classic</a></li>
+          <li><a href="#products" onclick="scrollToSection('products')">FarmBag Vertical</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Company</h4>
         <ul>
-          <li><a href="#story" onclick="scrollTo('story')">Our story</a></li>
-          <li><a href="#global" onclick="scrollTo('global')">Global presence</a></li>
-          <li><a href="#institutional" onclick="scrollTo('institutional')">Institutions</a></li>
-          <li><a href="#partners" onclick="scrollTo('partners')">Partners</a></li>
+          <li><a href="#story" onclick="scrollToSection('story')">Our story</a></li>
+          <li><a href="#global" onclick="scrollToSection('global')">Global presence</a></li>
+          <li><a href="#institutional" onclick="scrollToSection('institutional')">Institutions</a></li>
+          <li><a href="#partners" onclick="scrollToSection('partners')">Partners</a></li>
           <li><a href="#" onclick="showInfoPanel('careers'); return false;">Careers</a></li>
           <li><a href="#" onclick="showInfoPanel('press'); return false;">Press</a></li>
         </ul>
@@ -773,7 +1124,7 @@
       <div class="footer-col">
         <h4>Support</h4>
         <ul>
-          <li><a href="#faq" onclick="scrollTo('faq')">FAQ</a></li>
+          <li><a href="#faq" onclick="scrollToSection('faq')">FAQ</a></li>
           <li><a href="#" onclick="openSupportModal('track'); return false;">Track my order</a></li>
           <li><a href="returns-policy.html">Returns policy</a></li>
           <li><a href="#" onclick="openSupportModal('general'); return false;">Contact us</a></li>
@@ -799,7 +1150,7 @@
     </div>
     <div class="footer-bottom">
       <div class="footer-copy">
-        © 2026 Afams Ltd · Incorporated in Kenya · All rights reserved
+        © 2026 Afams Limited · Incorporated in Kenya · All rights reserved
       </div>
       <div class="footer-socials">
         <a href="https://www.facebook.com/AfamsLimited" target="_blank" rel="noopener noreferrer" class="social-btn" title="Facebook" aria-label="Facebook">
@@ -808,7 +1159,7 @@
         <a href="https://x.com/afams" target="_blank" rel="noopener noreferrer" class="social-btn" title="X (Twitter)" aria-label="X">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         </a>
-        <a href="https://wa.me/254702359618" target="_blank" rel="noopener noreferrer" class="social-btn" title="WhatsApp" aria-label="WhatsApp">
+        <a href="https://wa.me/254714128514" target="_blank" rel="noopener noreferrer" class="social-btn" title="WhatsApp" aria-label="WhatsApp">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
         </a>
       </div>
@@ -827,7 +1178,7 @@
     <div class="cart-empty">
       <div class="cart-empty-icon">🛒</div>
       <p style="font-weight:600;color:var(--gray-dark);margin-bottom:0.5rem">Your cart is empty</p>
-      <p style="font-size:0.85rem;color:var(--gray-mid)">Add a FarmBag to get started</p>
+      <p style="font-size:0.85rem;color:var(--gray-mid)">Add a product to get started</p>
     </div>
   </div>
   <div class="cart-footer">
@@ -836,146 +1187,19 @@
       <span id="cart-total">KES 0</span>
     </div>
     <div class="cart-note">
-      🚚 Free delivery within Nairobi · Pre-orders fulfilled in 3–5 business days ·
+      🚚 Free delivery for orders KES 2,499+ · Pre-orders fulfilled in 3–5 business days ·
       Secure payment via Paystack (M-Pesa, card, mobile money)
     </div>
-    <button class="btn-checkout" id="checkout-btn" onclick="openCheckout()" disabled>
+    <button class="btn-checkout" id="checkout-btn" onclick="proceedToCheckout()" disabled>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
       Proceed to Checkout
     </button>
   </div>
 </div>
 
-<!-- CHECKOUT MODAL -->
-<div class="modal-overlay" id="checkout-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">Complete your pre-order</div>
-        <div class="modal-sub">Secure payment powered by Paystack · M-Pesa · Cards · Mobile money</div>
-      </div>
-      <div class="cart-close" onclick="closeCheckout()">×</div>
-    </div>
-    <div class="modal-body">
-      <div class="order-summary-mini" id="order-summary-mini"></div>
-      <div class="form-row">
-        <div class="form-group required">
-          <label class="form-label">Full name</label>
-          <input type="text" id="f-name" placeholder="Jane Mwangi" required/>
-        </div>
-        <div class="form-group required">
-          <label class="form-label">Email address</label>
-          <input type="email" id="f-email" placeholder="jane@email.com" required/>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group required">
-          <label class="form-label">Phone / WhatsApp</label>
-          <input type="tel" id="f-phone" placeholder="+254 7XX XXX XXX" required/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">County / City</label>
-          <select id="f-county">
-            <option value="Nairobi">Nairobi (Free delivery)</option>
-            <option value="Mombasa">Mombasa</option>
-            <option value="Kisumu">Kisumu</option>
-            <option value="Nakuru">Nakuru</option>
-            <option value="Uasin Gishu">Uasin Gishu</option>
-            <option value="Kiambu">Kiambu</option>
-            <option value="Machakos">Machakos</option>
-            <option value="Kajiado">Kajiado</option>
-            <option value="Kilifi">Kilifi</option>
-            <option value="Kwale">Kwale</option>
-            <option value="Kitui">Kitui</option>
-            <option value="Other Kenya">Other Kenya county</option>
-            <option value="UK">United Kingdom</option>
-            <option value="UAE">UAE / Dubai</option>
-            <option value="Other">Other country</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group required">
-        <label class="form-label">Delivery address</label>
-        <input type="text" id="f-address" placeholder="Street, estate, or landmark" required/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Order notes (optional)</label>
-        <input type="text" id="f-notes" placeholder="Any special instructions or questions?"/>
-      </div>
-      <button class="btn-pay" onclick="initiatePayment()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Pay <span id="pay-btn-amount">KES 0</span> — Confirm Pre-order
-      </button>
-      <div class="payment-note">
-        🔒 Secured by Paystack · 256-bit SSL encryption
-      </div>
-      <div style="text-align:center;font-size:0.72rem;color:var(--gray-mid);margin-top:0.5rem;line-height:1.5">
-        By placing this order you agree to our
-        <a href="terms.html" target="_blank" style="color:var(--green)">Terms &amp; Conditions</a>,
-        <a href="privacy-policy.html" target="_blank" style="color:var(--green)">Privacy Policy</a>,
-        and <a href="returns-policy.html" target="_blank" style="color:var(--green)">Return Policy</a>.
-      </div>
-      <div class="payment-icons">
-        <span class="payment-icon">M-Pesa</span>
-        <span class="payment-icon">Visa</span>
-        <span class="payment-icon">Mastercard</span>
-        <span class="payment-icon">Airtel Money</span>
-        <span class="payment-icon">T-Kash</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SUCCESS MODAL -->
-<div class="modal-overlay" id="success-overlay">
-  <div class="modal success-modal">
-    <div class="modal-body">
-      <div class="success-icon">✅</div>
-      <div class="success-title">Pre-order confirmed, <span id="success-name">friend</span>!</div>
-      <div class="success-sub">Your FarmBag is secured. We are preparing your order now. Expect delivery within 3–5 business days. You will receive tracking updates via email and WhatsApp.</div>
-      <div class="order-ref" id="order-ref-display">AFAMS-...</div>
-      <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-dot active">✓</div>
-          <div class="timeline-info">
-            <div class="timeline-label">Payment confirmed</div>
-            <div class="timeline-time">Just now · confirmation sent to <span id="success-email"></span></div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-dot">2</div>
-          <div class="timeline-info">
-            <div class="timeline-label">Order in production</div>
-            <div class="timeline-time">Within 24 hours · assembly &amp; QC check</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-dot">3</div>
-          <div class="timeline-info">
-            <div class="timeline-label">Dispatched for delivery</div>
-            <div class="timeline-time">Within 2 business days · WhatsApp tracking link sent</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-dot">🌿</div>
-          <div class="timeline-info">
-            <div class="timeline-label">Delivered &amp; growing</div>
-            <div class="timeline-time">Within 3–5 business days · setup takes 30 minutes</div>
-          </div>
-        </div>
-      </div>
-      <button class="btn-close-success" onclick="closeSuccess()">Back to shop</button>
-    </div>
-  </div>
-</div>
-
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- SCROLL TO TOP -->
-<button class="scroll-top-btn" id="scroll-top-btn" onclick="scrollToTop()" aria-label="Scroll to top" title="Back to top">
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-</button>
 
 <!-- ========= SUPPORT MODAL ========= -->
 <div id="support-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
@@ -1103,6 +1327,33 @@
 })();
 </script>
 <script>
+(function() {
+  var key = 'afams_theme';
+  var btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.body.setAttribute('data-theme', 'light');
+      btn.textContent = '☀️';
+      btn.setAttribute('aria-label', 'Switch to default theme (dark)');
+      btn.setAttribute('title', 'Switch to default theme (dark)');
+    } else {
+      document.body.removeAttribute('data-theme');
+      btn.textContent = '🌙';
+      btn.setAttribute('aria-label', 'Switch to light theme');
+      btn.setAttribute('title', 'Switch to light theme');
+    }
+  }
+  var stored;
+  try { stored = localStorage.getItem(key) || 'default'; } catch (_) { stored = 'default'; }
+  applyTheme(stored);
+  btn.addEventListener('click', function() {
+    var next = document.body.getAttribute('data-theme') === 'light' ? 'default' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem(key, next); } catch (_) {}
+  });
+})();
+
 // Accordion sections
 document.querySelectorAll('.accordion-toggle').forEach(function(toggle) {
   toggle.addEventListener('click', function() {
@@ -1156,6 +1407,21 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   });
 });
 
+function goToPartnerContact(event) {
+  var ACCORDION_ANIMATION_DURATION_MS = 420;
+  if (event) event.preventDefault();
+  var contact = document.getElementById('contact');
+  var toggle = document.getElementById('contact-toggle');
+  if (toggle && toggle.getAttribute('aria-expanded') === 'false') {
+    toggle.click();
+  }
+  setTimeout(function() {
+    if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var card = document.getElementById('contact-partner');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, ACCORDION_ANIMATION_DURATION_MS);
+}
+
 // Hero product slider — highlight active slide on interval
 (function() {
   var slides = document.querySelectorAll('.hero-product-slide');
@@ -1169,6 +1435,184 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   setInterval(advance, 3000);
 })();
 </script>
+
+<!-- ═══ GROWBAG SELECTOR ═══ -->
+<script>
+// GrowBag image gallery
+(function() {
+  var GB_GALLERY_IMAGES = [
+    'assets/images/growbag-hero.jpg',
+    'assets/images/growbag-wide.jpg',
+    'assets/images/growbag-compact.jpg',
+    'assets/images/growbag-standard-wide.jpg',
+    'assets/images/growbag-sizes.jpg',
+  ];
+  var _gbGalleryIdx = 0;
+
+  window.gbSetImage = function(idx) {
+    _gbGalleryIdx = (idx + GB_GALLERY_IMAGES.length) % GB_GALLERY_IMAGES.length;
+    var mainImg = document.getElementById('growbag-main-img');
+    if (mainImg) {
+      mainImg.src = GB_GALLERY_IMAGES[_gbGalleryIdx];
+      mainImg.style.display = '';
+    }
+    document.querySelectorAll('#growbag-img-strip .gb-thumb').forEach(function(t, i) {
+      t.classList.toggle('gb-thumb-active', i === _gbGalleryIdx);
+    });
+  };
+
+  window.gbGalleryNav = function(dir) {
+    gbSetImage(_gbGalleryIdx + dir);
+  };
+})();
+(function() {
+  var gbSize    = 'Standard';
+  var gbVariant = 'Wide';
+  var gbQty     = 5;
+
+  var GB_DATA = {
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 99,   volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 59,   volume: '6 L'  },
+                crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 199,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 159,  volume: '14 L' },
+                crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 299,  volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 259,  volume: '28 L' },
+                crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 699,  volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 659,  volume: '44 L' },
+                vertical: { sku: 'GB-LRG-V',  price: 799,  volume: '50 L' },
+                crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1099, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 999,  volume: '62 L' },
+                vertical: { sku: 'GB-XL-V',   price: 1399, volume: '70 L' },
+                crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
+  };
+  var VERTICAL_SIZES = { Large: true, XL: true };
+
+  var GB_VARIANT_DESC = {
+    Wide:     'Broad and squat. Best for balconies and rooftops.',
+    Compact:  'Narrower and taller. Best for tight corners and small spaces.',
+    Vertical: 'Tall and upright. Maximises vertical growing on small balconies.',
+  };
+
+  function getCurrent() {
+    var d = GB_DATA[gbSize] || GB_DATA['Standard'];
+    return gbVariant === 'Wide' ? d.wide : gbVariant === 'Compact' ? d.compact : (d.vertical || d.wide);
+  }
+
+  function updateCard() {
+    var cur  = getCurrent();
+    var data = GB_DATA[gbSize];
+
+    var nameEl = document.getElementById('growbag-name');
+    if (nameEl) nameEl.textContent = 'GrowBag ' + gbSize + ' \u2014 ' + gbVariant;
+
+    var volEl = document.getElementById('growbag-volume');
+    if (volEl) volEl.textContent = cur.volume + ' \u00B7 PP geotextile \u00B7 Bonded liner';
+
+    var priceEl = document.getElementById('growbag-price');
+    if (priceEl) priceEl.textContent = 'KES ' + cur.price.toLocaleString('en-KE');
+
+    var badge = document.getElementById('growbag-badge');
+    if (badge) {
+      if (gbSize === 'Standard' && gbVariant === 'Wide') {
+        badge.textContent = 'Most Popular';
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    var descEl = document.getElementById('growbag-variant-desc');
+    if (descEl) descEl.textContent = GB_VARIANT_DESC[gbVariant];
+
+    var cropsEl = document.getElementById('growbag-crops');
+    if (cropsEl) {
+      cropsEl.innerHTML = data.crops.map(function(c) {
+        return '<span class="gb-crop-tag">' + c + '</span>';
+      }).join('');
+    }
+  }
+
+  window.selectGrowBagSize = function(size) {
+    gbSize = size;
+    if (gbVariant === 'Vertical' && !VERTICAL_SIZES[size]) gbVariant = 'Wide';
+    gbQty  = GB_DATA[size].defaultQty;
+    var qEl = document.getElementById('growbag-qty');
+    if (qEl) qEl.textContent = gbQty;
+    document.querySelectorAll('.gb-size-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.size === size);
+    });
+    document.querySelectorAll('.gb-variant-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.variant === gbVariant);
+      if (b.dataset.variant === 'Vertical') b.style.display = VERTICAL_SIZES[size] ? '' : 'none';
+    });
+    updateCard();
+  };
+
+  window.selectGrowBagVariant = function(variant) {
+    gbVariant = variant;
+    document.querySelectorAll('.gb-variant-btn').forEach(function(b) {
+      b.classList.toggle('gb-active', b.dataset.variant === variant);
+    });
+    updateCard();
+  };
+
+  window.changeGBQty = function(delta) {
+    gbQty = Math.max(1, gbQty + delta);
+    var qEl = document.getElementById('growbag-qty');
+    if (qEl) qEl.textContent = gbQty;
+  };
+
+  window.addGrowBagToCart = function() {
+    var cur  = getCurrent();
+    var name = 'GrowBag ' + gbSize + ' \u2014 ' + gbVariant;
+    addToCart({
+      sku:        cur.sku,
+      name:       name,
+      unit_price: cur.price,
+      qty:        gbQty,
+      image:      'assets/images/growbag-hero.jpg',
+      type:       'growbag',
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCard();
+  });
+})();
+</script>
+<!-- ═══ END GROWBAG SELECTOR ═══ -->
+
+<!-- ── WHATSAPP BUSINESS FAB ── -->
+<a id="wa-fab"
+   href="https://wa.me/254714128514?text=Hi%20Afams%21%20I%27d%20like%20to%20know%20more%20about%20your%20products."
+   target="_blank" rel="noopener noreferrer"
+   class="wa-fab" aria-label="Chat on WhatsApp Business">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+  </svg>
+  <div class="wa-fab-label">
+    Chat with us
+    <span>WhatsApp Business</span>
+  </div>
+</a>
+<script>
+// Bump WhatsApp FAB above cookie banner when visible
+(function() {
+  var fab = document.getElementById('wa-fab');
+  var banner = document.getElementById('cookie-banner');
+  if (!fab || !banner) return;
+  var obs = new MutationObserver(function() {
+    fab.classList.toggle('bump-up', banner.style.display !== 'none');
+  });
+  obs.observe(banner, { attributes: true, attributeFilter: ['style'] });
+  fab.classList.toggle('bump-up', banner.style.display !== 'none');
+})();
+</script>
+<!-- ── END WHATSAPP FAB ── -->
 
 </body>
 </html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="350" viewBox="0 0 1200 350"
+     xmlns="http://www.w3.org/2000/svg"
+     font-family="Poppins, Liberation Sans, DejaVu Sans, sans-serif">
+
+  <rect width="1200" height="350" fill="#FFFFFF"/>
+
+  <text x="132" y="278"
+        font-family="Poppins, Liberation Sans, sans-serif"
+        font-weight="800" font-size="148" letter-spacing="-4"
+        fill="#1B4332">Afams</text>
+
+  <text x="136" y="322"
+        font-family="Poppins, Liberation Sans, sans-serif"
+        font-weight="400" font-size="28" letter-spacing="5"
+        fill="#2D6A4F">Farming into the future</text>
+
+  <line x1="136" y1="336" x2="870" y2="336"
+        stroke="#52B788" stroke-width="2" opacity="0.50"/>
+
+  <!-- Leaves, base at y=172 (just 2px above cap top ~170), cx=392 between a&m -->
+  <g transform="translate(392, 172)">
+    <g transform="rotate(-30)">
+      <path d="M 0 0 C -22 -11, -42 -52, 0 -92 C 42 -52, 22 -11, 0 0 Z"
+            fill="#1B4332"/>
+      <line x1="0" y1="-3" x2="0" y2="-85"
+            stroke="#52B788" stroke-width="1.8" stroke-linecap="round" opacity="0.50"/>
+    </g>
+    <g transform="rotate(30)">
+      <path d="M 0 0 C -22 -11, -42 -52, 0 -92 C 42 -52, 22 -11, 0 0 Z"
+            fill="#2D6A4F"/>
+      <line x1="0" y1="-3" x2="0" y2="-85"
+            stroke="#1B4332" stroke-width="1.8" stroke-linecap="round" opacity="0.40"/>
+    </g>
+    <circle cx="0" cy="-103" r="7" fill="#52B788"/>
+  </g>
+
+</svg>

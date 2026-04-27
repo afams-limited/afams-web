@@ -3,17 +3,46 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <meta name="description" content="Browse all Afams FarmBag products — urban farming systems for homes, schools and institutions."/>
-  <meta property="og:title" content="Afams FarmBag — Products"/>
-  <meta property="og:description" content="Browse all FarmBag urban farming systems. Pre-order yours today."/>
+  <meta name="description" content="Browse all Afams products — GrowBag range (5 sizes), FarmBag Classic, FarmBag Vertical, and ProSoil growing medium. Urban farming systems for homes, schools and institutions."/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="Afams Limited"/>
+  <link rel="canonical" href="https://afams.co.ke/products.html"/>
+  <meta property="og:title" content="Afams Products — GrowBag, FarmBag &amp; ProSoil"/>
+  <meta property="og:description" content="Browse the full Afams lineup: GrowBag (from KES 550), FarmBag Classic, FarmBag Vertical, and Afams ProSoil. Pre-order and ship in 3–5 days."/>
   <meta property="og:type" content="website"/>
-  <title>Products — Afams FarmBag</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <meta property="og:url" content="https://afams.co.ke/products.html"/>
+  <meta property="og:image" content="https://afams.co.ke/assets/images/growbag-hero.jpg"/>
+  <meta property="og:image:alt" content="Afams products including GrowBag and FarmBag range"/>
+  <meta property="og:site_name" content="Afams"/>
+  <meta property="og:locale" content="en_KE"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:site" content="@afams"/>
+  <meta name="twitter:title" content="Afams Products — GrowBag, FarmBag &amp; ProSoil"/>
+  <meta name="twitter:description" content="Browse the full Afams lineup: GrowBag (from KES 550), FarmBag Classic, FarmBag Vertical, and Afams ProSoil."/>
+  <meta name="twitter:image" content="https://afams.co.ke/assets/images/growbag-hero.jpg"/>
+  <title>Products — Afams | GrowBag, FarmBag &amp; ProSoil</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/afams_favicon_32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/afams_favicon_512.svg"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/afams_favicon_512.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
-  <script src="js/cart.js" defer></script>
+  <script src="js/cart.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Afams Products",
+    "url": "https://afams.co.ke/products.html",
+    "description": "Browse all Afams products — GrowBag range, FarmBag systems, and ProSoil growing medium.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Afams Limited",
+      "url": "https://afams.co.ke"
+    }
+  }
+  </script>
   <style>
     /* Products page overrides */
     .products-hero {
@@ -70,10 +99,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: none;
     }
-    .product-image img.loaded { display: block; }
-    .product-emoji { font-size: 4rem; transition: opacity 0.3s; }
+    .product-image img.failed { display: none; }
     .product-badge-pill {
       position: absolute;
       top: 0.85rem;
@@ -90,6 +117,7 @@
     .badge-premium    { background: #7B1FA2; color: #fff; }
     .badge-preorder   { background: #F57C00; color: #fff; }
     .badge-prosoil    { background: #2D6A4F; color: #fff; }
+    .badge-popular    { background: linear-gradient(135deg,#2D6A4F,#52B788); color: #fff; }
     .badge-indoor-safe { background: #1E7D34; color: #fff; left: auto; right: 0.85rem; }
     .product-body {
       padding: 1.5rem;
@@ -183,13 +211,48 @@
       color: #718096;
       font-size: 1rem;
     }
+    .seed-filter-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 0.75rem 0 0.35rem;
+    }
+    .seed-filter-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #155D27;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .seed-filter-select {
+      min-width: 240px;
+      max-width: 320px;
+      border: 1.5px solid #C3DFC7;
+      border-radius: 10px;
+      padding: 0.55rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      color: #1F2937;
+      background: #fff;
+    }
+    .seed-filter-note {
+      grid-column: 1 / -1;
+      border: 1px dashed #C3DFC7;
+      border-radius: 10px;
+      background: #F5FAF6;
+      color: #4B5563;
+      padding: 0.9rem 1rem;
+      font-size: 0.84rem;
+    }
   </style>
 </head>
 <body>
 
 <!-- ANNOUNCE BAR -->
 <div class="announce">
-  🌿 Pre-orders now open — ships within 3–5 days · Free delivery in Nairobi ·
+  🌿 Pre-orders now open — ships within 3–5 days · Free delivery on orders KES 2,499+ ·
   <a href="checkout.html">Order yours →</a>
 </div>
 
@@ -197,7 +260,7 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="assets/images/afams-logo.jpg" alt="Afams Logo" class="nav-logo-img"/>
+      <img src="assets/images/afams_logo_stacked.png" alt="Afams Logo" class="nav-logo-img"/>
       Afams
     </a>
     <div class="nav-links">
@@ -231,7 +294,7 @@
 
 <!-- HERO -->
 <div class="products-hero">
-  <h1>FarmBag Products</h1>
+  <h1>Afams Products</h1>
   <p>Choose your urban farming system. Pre-order today — ships within 3–5 business days.</p>
 </div>
 
@@ -254,12 +317,12 @@
     <a href="returns-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.5rem;text-decoration:none;">Returns Policy</a>
     <a href="partnership-guidelines.html" style="color:rgba(255,255,255,0.55);margin:0 0.5rem;text-decoration:none;">Partnership Guidelines</a>
   </div>
-  <p>© 2026 Afams Ltd ·  Incorporated in Kenya · afams.co.ke · info@afams.co.ke</p>
+  <p>© 2026 Afams Limited ·  Incorporated in Kenya · afams.co.ke · info@afams.co.ke</p>
 </footer>
 
 <script>
 /* ── Products catalogue (shown when Supabase is not available) ── */
-const STATIC_PRODUCTS = [
+const MAIN_PRODUCTS = [
   { sku: 'FB-CLS-01', name: 'FarmBag Classic',   category: 'Flagship',        badge: 'flagship', emoji: '🌿',
     desc: '3-zone urban farming system. Compost zone, Grow Zone, and Seedbed in one sealed canvas bag. Zero soil mess.',
     features: ['3 growing zones','Indoor safe'], priceKES: 7500, image: 'assets/images/farmbag-classic.jpg',
@@ -271,94 +334,553 @@ const STATIC_PRODUCTS = [
   { sku: 'PS-25KG',   name: 'Afams ProSoil 25kg', category: 'Growing Medium',  badge: 'prosoil',  emoji: '🪴',
     desc: 'Pre-mixed, pH-balanced, sterilised growing medium. Topsoil + compost + perlite + slow-release fertiliser. Pour in, water and plant immediately.',
     features: ['pH 6.2–6.8','Sterilised','Ready to plant','Made in Kenya'], priceKES: 399, image: 'assets/images/prosoil-front.jpg',
-    promoBadge: '🎁 Every 3 bags, 1 free',
-    type: 'prosoil', link: 'prosoil.html' },
+    promoBadge: '🎁 Every 3 bags, 1 free (max 3) — first-time customers',
+    type: 'prosoil', link: null, detailsLink: 'prosoil.html' },
 ];
+
+const SEED_PRODUCTS = [
+  // --- VEGETABLES ---
+  { id: 'seed-kale-sukuma-wiki',         name: 'Sukuma Wiki (Kale)',            category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-KAL-SW-001', description: 'High-yield, heat-tolerant kale. Matures in 6–8 weeks.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-kale-pasolata',            name: 'Kale Pasolata',                  category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-KAL-PA-001', description: 'Italian lacinato-type kale. Dark, tender leaves.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-kale-thousand-headed',     name: 'Thousand Headed Kale',           category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-KAL-TH-001', description: 'Prolific multi-shoot variety. Great for continuous harvest.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-spinach-prickly',          name: 'Spinach (Prickly)',              category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-SPN-PR-001', description: 'Fast-growing, high iron. Ideal for containers.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-spinach-f1',               name: 'Spinach F1 Hybrid',              category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-SPN-F1-001', description: 'Uniform, bolt-resistant F1. Suited to Nairobi conditions.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-amaranth-local',           name: 'Amaranth (Terere) Local',        category: 'Seeds', price: 35, unit: 'packet', sku: 'SD-AMR-LO-001', description: 'Indigenous leafy green. Fast, nutritious, drought-tolerant.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-amaranth-f1',              name: 'Amaranth F1 Hybrid',             category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-AMR-F1-001', description: 'High-yield F1 amaranth. Excellent for urban farms.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-ethiopian-kale',           name: 'Ethiopian Kale (Gitembe)',       category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-ETK-GI-001', description: 'Mild flavour, fast maturing. Popular in Kenyan households.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-cabbage-gloria',           name: 'Cabbage Gloria F1',              category: 'Seeds', price: 60, unit: 'packet', sku: 'SD-CAB-GL-001', description: 'Compact, dense head. Disease-resistant F1.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-cabbage-drumhead',         name: 'Cabbage Drumhead',               category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-CAB-DH-001', description: 'Classic large-head variety. Good for open pollination.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-broccoli-green-magic',     name: 'Broccoli Green Magic F1',        category: 'Seeds', price: 70, unit: 'packet', sku: 'SD-BRO-GM-001', description: 'Tight, blue-green heads. Excellent shelf life.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-cauliflower-snowball',     name: 'Cauliflower Snowball',           category: 'Seeds', price: 60, unit: 'packet', sku: 'SD-CAU-SB-001', description: 'Pure white curds. Best in cool highland conditions.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-lettuce-greatlakes',       name: 'Lettuce Great Lakes',            category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-LET-GL-001', description: 'Crisp iceberg-type. Superb for grow bags.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-lettuce-lollo-rossa',      name: 'Lettuce Lollo Rossa',            category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-LET-LR-001', description: 'Frilly red-leaf lettuce. Decorative and tasty.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-lettuce-butterhead',       name: 'Lettuce Butterhead',             category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-LET-BH-001', description: 'Soft, buttery leaves. Loose-head type, easy to grow.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-swiss-chard-rainbow',      name: 'Swiss Chard Rainbow',            category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-SCH-RB-001', description: 'Multi-coloured stems. Ornamental and edible.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-bok-choy',                 name: 'Bok Choy',                        category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-BOK-CH-001', description: 'Fast-maturing Asian green. Ideal for small containers.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-spring-onion',             name: 'Spring Onion',                    category: 'Seeds', price: 35, unit: 'packet', sku: 'SD-SPO-ON-001', description: 'Bunching type. Continuous harvest in 6 weeks.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-onion-red-creole',         name: 'Onion Red Creole',               category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-ONI-RC-001', description: 'Pungent, firm bulbs. Well-adapted to Kenyan conditions.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-tomato-anna-f1',           name: 'Tomato Anna F1',                 category: 'Seeds', price: 70, unit: 'packet', sku: 'SD-TOM-AN-001', description: 'Determinate, high-yield. Resistant to Fusarium and TMV.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-tomato-money-maker',       name: 'Tomato Money Maker',             category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-TOM-MM-001', description: 'Classic open-pollinated. Large, meaty fruits.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-tomato-cherry-f1',         name: 'Tomato Cherry F1',               category: 'Seeds', price: 75, unit: 'packet', sku: 'SD-TOM-CH-001', description: 'Sweet cherry tomatoes. Prolific producer in containers.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-capsicum-california',      name: 'Capsicum California Wonder',     category: 'Seeds', price: 60, unit: 'packet', sku: 'SD-CAP-CW-001', description: 'Large blocky sweet pepper. Thick walls, mild flavour.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-chilli-pilipili',          name: 'Chilli Pilipili Kichaa',         category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-CHL-PK-001', description: 'Hot local chilli. Very productive in small pots.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-cucumber-poinsette',       name: 'Cucumber Poinsette',             category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-CUC-PO-001', description: 'Straight, dark-green fruits. Disease-tolerant.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-courgette-zucchini',       name: 'Courgette / Zucchini',           category: 'Seeds', price: 60, unit: 'packet', sku: 'SD-COU-ZU-001', description: 'Fast-fruiting. Perfect for vertical grow bags.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-peas-sugar-snap',          name: 'Peas Sugar Snap',                category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-PEA-SS-001', description: 'Edible pod peas. Sweet and crunchy straight from the vine.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-french-beans-Amy',         name: 'French Beans Amy',               category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-FRB-AM-001', description: 'Fine stringless pods. Widely grown for local and export.', seedGroup: 'Vegetables', type: 'seed' },
+  { id: 'seed-climbing-beans-rosecoco',  name: 'Climbing Beans Rosecoco',        category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-CLB-RC-001', description: 'Dual-purpose: green pods and dry beans.', seedGroup: 'Vegetables', type: 'seed' },
+  // --- HERBS ---
+  { id: 'seed-coriander',                name: 'Coriander (Dhania)',             category: 'Seeds', price: 35, unit: 'packet', sku: 'SD-HRB-CO-001', description: 'Essential Kenyan herb. Grow in any container.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-basil-sweet',              name: 'Basil Sweet',                     category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-HRB-BA-001', description: 'Aromatic Italian basil. Perfect companion for tomatoes.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-parsley-plain',            name: 'Parsley Plain Leaf',              category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-HRB-PA-001', description: 'Flat-leaf Italian parsley. Rich in vitamins C and K.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-dill',                     name: 'Dill',                            category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-HRB-DI-001', description: 'Feathery aromatic herb. Great for salads and pickling.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-mint-peppermint',          name: 'Mint Peppermint',                category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-HRB-MI-001', description: 'Vigorous spreader — best in its own container.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-rosemary',                 name: 'Rosemary',                        category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-HRB-RO-001', description: 'Woody, drought-tolerant herb. Long-lived perennial.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-thyme',                    name: 'Thyme',                           category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-HRB-TH-001', description: 'Low-growing, compact. Excellent in herb grow bags.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-sage',                     name: 'Sage',                            category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-HRB-SA-001', description: 'Silvery aromatic leaves. Perennial in Nairobi conditions.', seedGroup: 'Herbs', type: 'seed' },
+  { id: 'seed-chives',                   name: 'Chives',                          category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-HRB-CH-001', description: 'Mild onion flavour. Compact and easy in containers.', seedGroup: 'Herbs', type: 'seed' },
+  // --- FRUIT VEGETABLES ---
+  { id: 'seed-watermelon-sugar-baby',    name: 'Watermelon Sugar Baby',          category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-WMN-SB-001', description: 'Compact 2–3 kg melons. Ideal for small urban plots.', seedGroup: 'Fruit Vegetables', type: 'seed' },
+  { id: 'seed-pumpkin-local',            name: 'Pumpkin Local (Malenge)',        category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-PMP-LO-001', description: 'Fast-growing, high-yield. Leaves also edible.', seedGroup: 'Fruit Vegetables', type: 'seed' },
+  { id: 'seed-okra-clemson-spineless',   name: 'Okra Clemson Spineless',         category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-OKR-CS-001', description: 'Tender, ribbed pods. Heat-loving and productive.', seedGroup: 'Fruit Vegetables', type: 'seed' },
+  // --- MICROGREENS ---
+  { id: 'seed-micro-radish',             name: 'Microgreens Radish',             category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-MCR-RA-001', description: 'Ready in 7 days. Peppery, nutrient-dense.', seedGroup: 'Microgreens', type: 'seed' },
+  { id: 'seed-micro-sunflower',          name: 'Microgreens Sunflower',          category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-MCR-SU-001', description: 'Crunchy, nutty flavour. High in vitamins B and D.', seedGroup: 'Microgreens', type: 'seed' },
+  { id: 'seed-micro-wheatgrass',         name: 'Microgreens Wheatgrass',         category: 'Seeds', price: 50, unit: 'packet', sku: 'SD-MCR-WG-001', description: 'Detox superfood. Harvest in 10 days.', seedGroup: 'Microgreens', type: 'seed' },
+  { id: 'seed-micro-peas',               name: 'Microgreens Pea Shoots',         category: 'Seeds', price: 55, unit: 'packet', sku: 'SD-MCR-PS-001', description: 'Sweet tender shoots. High in vitamins C and A.', seedGroup: 'Microgreens', type: 'seed' },
+  // --- ROOTS & BULBS ---
+  { id: 'seed-carrot-nantes',            name: 'Carrot Nantes',                  category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-CRT-NA-001', description: 'Cylindrical, sweet roots. Deep containers required.', seedGroup: 'Roots & Bulbs', type: 'seed' },
+  { id: 'seed-radish-scarlet-globe',     name: 'Radish Scarlet Globe',           category: 'Seeds', price: 35, unit: 'packet', sku: 'SD-RAD-SG-001', description: 'Ready in 25 days. Ideal quick-win crop for beginners.', seedGroup: 'Roots & Bulbs', type: 'seed' },
+  { id: 'seed-beetroot-detroit',         name: 'Beetroot Detroit Dark Red',      category: 'Seeds', price: 45, unit: 'packet', sku: 'SD-BET-DD-001', description: 'Globe-shaped, deep red. Tops also edible as greens.', seedGroup: 'Roots & Bulbs', type: 'seed' },
+  { id: 'seed-turnip-purple-top',        name: 'Turnip Purple Top',              category: 'Seeds', price: 40, unit: 'packet', sku: 'SD-TRN-PT-001', description: 'Dual-use root and leaf vegetable. Fast maturing.', seedGroup: 'Roots & Bulbs', type: 'seed' },
+];
+
+const ALL_PRODUCTS = [...MAIN_PRODUCTS, ...SEED_PRODUCTS];
+const SEEDS_CATEGORY_LABEL = 'Seeds & Seedlings';
+const seedParams = new URLSearchParams(window.location.search);
+const INITIAL_SEED_SUBCATEGORY = seedParams.get('seedSubcategory') || '';
+let selectedSeedSubcategoryState = INITIAL_SEED_SUBCATEGORY;
+
+function getProductPrice(product) {
+  return product.priceKES || product.unit_price || product.price || 0;
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderProductCard(p) {
+  const seedSubcategory = p.seedGroup || '';
+  const displayCategory = p.category === 'Seeds'
+    ? (seedSubcategory ? (SEEDS_CATEGORY_LABEL + ' · ' + seedSubcategory) : SEEDS_CATEGORY_LABEL)
+    : (p.category || '');
+  const badgeHtml = p.badge
+    ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : p.badge === 'popular' ? 'Most Popular' : 'Pre-order'}</span>`
+    : '';
+  const indoorSafe = (p.features || []).some(f => f.toLowerCase() === 'indoor safe');
+  const indoorBadgeHtml = indoorSafe
+    ? `<span class="product-badge-pill badge-indoor-safe">🌿 Indoor Safe</span>`
+    : '';
+  const featuresHtml = (p.features || []).map(f =>
+    `<span class="product-feature">${f}</span>`
+  ).join('');
+  const imageHtml = p.image
+    ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.classList.add('failed');" />`
+    : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
+  const shouldRenderMedia = p.category !== 'Seeds';
+  const mediaHtml = shouldRenderMedia
+    ? `<div class="product-image">
+         ${badgeHtml}
+         ${indoorBadgeHtml}
+         ${imageHtml}
+       </div>`
+    : '';
+
+  const unitPrice = getProductPrice(p);
+  const cartData = JSON.stringify({
+    id: p.id || '',
+    sku: p.sku,
+    name: p.name,
+    unit_price: unitPrice,
+    price: unitPrice,
+    qty: 1,
+    image: p.image || '',
+    type: p.type || 'product',
+    category: p.category || '',
+    seedGroup: p.seedGroup || '',
+  });
+  const actionHtml = p.detailsLink
+    ? `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
+         <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
+         <a href="${p.detailsLink}" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">View Details →</a>
+       </div>`
+    : `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
+         <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
+         <a href="checkout.html?sku=${p.sku}&qty=1" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">Order Now →</a>
+       </div>`;
+
+  return `
+    <div class="product-card">
+      ${mediaHtml}
+      <div class="product-body">
+        <div class="product-category">${displayCategory}</div>
+        <h2 class="product-name">${p.name}</h2>
+        <p class="product-desc">${p.desc || p.description || ''}</p>
+        <div class="product-features">${featuresHtml}</div>
+        <div class="product-footer">
+          <div>
+            <div class="product-price">KES ${unitPrice.toLocaleString()}</div>
+            <div class="product-price-sub">${p.sku === 'PS-25KG' ? 'Per bag · Free delivery on orders KES 2,499+' : p.category === 'Seeds' ? 'Per packet · Ships in 3–5 days' : 'Pre-order · Ships in 3–5 days'}</div>
+            ${p.promoBadge ? `<span class="product-promo-badge">${p.promoBadge}</span>` : ''}
+          </div>
+          ${actionHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function renderProducts(products) {
   const grid = document.getElementById('products-grid');
-  grid.innerHTML = products.map(p => {
-    const badgeHtml = p.badge
-      ? `<span class="product-badge-pill badge-${p.badge}">${p.badge === 'flagship' ? 'Flagship' : p.badge === 'new' ? 'New' : p.badge === 'premium' ? 'Premium' : p.badge === 'prosoil' ? 'Growing Medium' : 'Pre-order'}</span>`
-      : '';
-    const indoorSafe = (p.features || []).some(f => f.toLowerCase() === 'indoor safe');
-    const indoorBadgeHtml = indoorSafe
-      ? `<span class="product-badge-pill badge-indoor-safe">🌿 Indoor Safe</span>`
-      : '';
-    const featuresHtml = (p.features || []).map(f =>
-      `<span class="product-feature">${f}</span>`
-    ).join('');
-    const imageHtml = p.image
-      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded');this.parentElement.querySelector('.product-emoji').style.opacity='0';"/><span class="product-emoji">${p.emoji || '🌿'}</span>`
-      : `<span class="product-emoji">${p.emoji || '🌿'}</span>`;
+  const mainProducts = products.filter(function(p) { return p.category !== 'Seeds'; });
+  const seedProducts = products.filter(function(p) { return p.category === 'Seeds'; });
+  const seedGroups = seedProducts
+    .map(function(seed) { return seed.seedGroup || ''; })
+    .filter(Boolean);
+  const seedSubCategories = Array.from(new Set(seedGroups)).sort();
+  const requestedSubCategory = selectedSeedSubcategoryState || INITIAL_SEED_SUBCATEGORY || '';
+  const selectedSubCategory = seedSubCategories.includes(requestedSubCategory) ? requestedSubCategory : '';
+  const visibleSeedProducts = selectedSubCategory
+    ? seedProducts.filter(function(seed) { return (seed.seedGroup || '') === selectedSubCategory; })
+    : [];
+  const seedHeader = `
+    <div id="seed-catalog-section" style="grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px">
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#155D27;font-weight:700;margin:0">${SEEDS_CATEGORY_LABEL}</p>
+      <p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Choose high-quality seed packets for your kitchen garden and container setup.</p>
+      <div class="seed-filter-wrap">
+        <label class="seed-filter-label" for="seed-subcategory-filter">Subcategory</label>
+        <select id="seed-subcategory-filter" class="seed-filter-select">
+          <option value="">Select a subcategory…</option>
+          ${seedSubCategories.map(function(name) {
+            var selected = name === selectedSubCategory ? ' selected' : '';
+            var safeName = escapeHtml(name);
+            return '<option value="' + safeName + '"' + selected + '>' + safeName + '</option>';
+          }).join('')}
+        </select>
+      </div>
+    </div>
+  `;
+  const seedContent = selectedSubCategory
+    ? visibleSeedProducts.map(renderProductCard).join('')
+    : '<div class="seed-filter-note">Choose a seed subcategory first to view available seed and seedling packets.</div>';
+  grid.innerHTML = mainProducts.map(renderProductCard).join('')
+    + (seedProducts.length ? (seedHeader + seedContent) : '');
+  renderGrowBagCard(grid);
+  renderPremiumRange(grid);
 
-    // ProSoil links to its product page; FarmBags get Add-to-Cart + Order Now
-    const cartData = JSON.stringify({ sku: p.sku, name: p.name, unit_price: p.priceKES || p.unit_price || 0, qty: 1, image: p.image || '', type: p.type || 'product' });
-    const actionHtml = p.link
-      ? `<a href="${p.link}" class="btn-order">View &amp; Order</a>`
-      : `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
-           <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
-           <a href="checkout.html?sku=${p.sku}&qty=1" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">Order Now →</a>
-         </div>`;
+  const seedFilter = document.getElementById('seed-subcategory-filter');
+  if (seedFilter) {
+    seedFilter.addEventListener('change', function() {
+      selectedSeedSubcategoryState = seedFilter.value;
+      renderProducts(products);
+    });
+  }
+}
 
-    return `
-      <div class="product-card">
-        <div class="product-image">
-          ${badgeHtml}
-          ${indoorBadgeHtml}
-          ${imageHtml}
+let freeSeedModalEl = null;
+
+function ensureFreeSeedsModal() {
+  if (freeSeedModalEl) return freeSeedModalEl;
+  freeSeedModalEl = document.createElement('div');
+  freeSeedModalEl.id = 'free-seeds-modal';
+  freeSeedModalEl.style.cssText = 'position:fixed;inset:0;background:rgba(7,26,11,0.55);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;';
+  freeSeedModalEl.innerHTML = `
+    <div style="background:#fff;border-radius:12px;max-width:760px;width:100%;max-height:88vh;overflow:auto;padding:16px 16px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:1rem;color:#071A0B;">Pick up to 2 free seed packets</h3>
+          <p style="margin:0;font-size:0.82rem;color:#64748b;">Optional FarmBag promo. Selected packets are added to cart at KES 0.</p>
         </div>
-        <div class="product-body">
-          <div class="product-category">${p.category || ''}</div>
-          <h2 class="product-name">${p.name}</h2>
-          <p class="product-desc">${p.desc || ''}</p>
-          <div class="product-features">${featuresHtml}</div>
-          <div class="product-footer">
-            <div>
-              <div class="product-price">KES ${(p.priceKES || p.unit_price || 0).toLocaleString()}</div>
-              <div class="product-price-sub">${p.sku === 'PS-25KG' ? 'Per bag · Free delivery in Nairobi' : 'Pre-order · Ships in 3–5 days'}</div>
-              ${p.promoBadge ? `<span class="product-promo-badge">${p.promoBadge}</span>` : ''}
-            </div>
-            ${actionHtml}
+        <button type="button" id="free-seeds-close" style="border:none;background:transparent;font-size:1.2rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div id="free-seeds-groups"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;">
+        <span id="free-seeds-counter" style="font-size:0.8rem;color:#475569;">0 selected</span>
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="free-seeds-skip" class="btn-order" style="background:#64748b;">Skip</button>
+          <button type="button" id="free-seeds-confirm" class="btn-order">Add selected seeds</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(freeSeedModalEl);
+  return freeSeedModalEl;
+}
+
+function groupSeedProductsBySubCategory() {
+  return SEED_PRODUCTS.reduce(function(acc, seed) {
+    var group = seed.seedGroup || 'Seeds';
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(seed);
+    return acc;
+  }, {});
+}
+
+function triggerFreeSeedsPicker(maxFree) {
+  const modal = ensureFreeSeedsModal();
+  if (modal.style.display === 'flex') return;
+  const groupsWrap = modal.querySelector('#free-seeds-groups');
+  const counter = modal.querySelector('#free-seeds-counter');
+  const grouped = groupSeedProductsBySubCategory();
+  const selected = new Set();
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  function rerenderState() {
+    const selectedCount = selected.size;
+    counter.textContent = selectedCount + ' selected';
+    modal.querySelectorAll('input[type="checkbox"][data-seed-id]').forEach(function(input) {
+      if (!input.checked && selectedCount >= maxFree) {
+        input.disabled = true;
+      } else {
+        input.disabled = false;
+      }
+    });
+  }
+
+  groupsWrap.innerHTML = Object.keys(grouped).map(function(groupName) {
+    const items = grouped[groupName];
+    return '<div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;">'
+      + '<div style="font-size:0.82rem;font-weight:700;color:#155D27;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">' + groupName + '</div>'
+      + items.map(function(seed) {
+        return '<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #edf2f7;">'
+          + '<span style="font-size:0.84rem;color:#1f2937;">' + seed.name + '</span>'
+          + '<input type="checkbox" data-seed-id="' + seed.id + '" />'
+          + '</label>';
+      }).join('')
+      + '</div>';
+  }).join('');
+
+  groupsWrap.querySelectorAll('input[type="checkbox"][data-seed-id]').forEach(function(input) {
+    input.addEventListener('change', function() {
+      const id = input.dataset.seedId;
+      if (input.checked) selected.add(id);
+      else selected.delete(id);
+      rerenderState();
+    });
+  });
+
+  modal.querySelector('#free-seeds-close').onclick = closeModal;
+  modal.querySelector('#free-seeds-skip').onclick = closeModal;
+  modal.querySelector('#free-seeds-confirm').onclick = function() {
+    const cart = getCart();
+    Array.from(selected).forEach(function(seedId, index) {
+      const seed = SEED_PRODUCTS.find(function(s) { return s.id === seedId; });
+      if (!seed) return;
+      const counterVal = (window.__afamsFreeSeedCounter = (window.__afamsFreeSeedCounter || 0) + 1);
+      const uniqueSuffix = (window.crypto && typeof window.crypto.randomUUID === 'function')
+        ? window.crypto.randomUUID()
+        : (Date.now() + '-' + counterVal + '-' + index);
+      cart.items.push({
+        id: seed.id,
+        slug: seed.id,
+        sku: seed.sku + '-FREE-' + uniqueSuffix,
+        name: seed.name,
+        unit_price: 0,
+        price: 0,
+        qty: 1,
+        image: '',
+        type: 'seed',
+        category: 'Seeds',
+        freePromo: true
+      });
+    });
+    saveCart(cart);
+    closeModal();
+  };
+
+  rerenderState();
+  modal.style.display = 'flex';
+}
+
+function isFarmBagProduct(item) {
+  return (item && (
+    (typeof item.id === 'string' && item.id.indexOf('farmbag-') === 0) ||
+    item.category === 'FarmBags' ||
+    (typeof item.sku === 'string' && item.sku.indexOf('FB-') === 0) ||
+    item.type === 'farmbag'
+  ));
+}
+
+function onAddToCart(product) {
+  addToCart(product);
+  if (isFarmBagProduct(product)) {
+    triggerFreeSeedsPicker(2);
+  }
+}
+
+function renderGrowBagCard(grid) {
+  const GB_DATA = {
+    Mini:     { wide: { sku: 'GB-MINI-W', price: 99,   volume: '8 L'  },
+                compact: { sku: 'GB-MINI-C', price: 59,   volume: '6 L'  },
+                crops: ['Herbs', 'Chillies', 'Spring onions', 'Microgreens'], defaultQty: 5 },
+    Medium:   { wide: { sku: 'GB-MED-W',  price: 199,  volume: '17 L' },
+                compact: { sku: 'GB-MED-C',  price: 159,  volume: '14 L' },
+                crops: ['Spinach', 'Sukuma wiki', 'Capsicum', 'Lettuce'], defaultQty: 5 },
+    Standard: { wide: { sku: 'GB-STD-W',  price: 299,  volume: '32 L' },
+                compact: { sku: 'GB-STD-C',  price: 259,  volume: '28 L' },
+                crops: ['Kale', 'Beans', 'Capsicum', 'Coriander', 'Spinach'], defaultQty: 5 },
+    Large:    { wide: { sku: 'GB-LRG-W',  price: 699,  volume: '50 L' },
+                compact: { sku: 'GB-LRG-C',  price: 659,  volume: '44 L' },
+                vertical: { sku: 'GB-LRG-V',  price: 799,  volume: '50 L' },
+                crops: ['Tomatoes', 'Aubergine', 'Large kale', 'Capsicum'], defaultQty: 3 },
+    XL:       { wide: { sku: 'GB-XL-W',   price: 1099, volume: '70 L' },
+                compact: { sku: 'GB-XL-C',   price: 999,  volume: '62 L' },
+                vertical: { sku: 'GB-XL-V',   price: 1399, volume: '70 L' },
+                crops: ['Tomatoes', 'Sweet potato', 'Multi-plant', 'Large crops'], defaultQty: 2 },
+  };
+  const VERTICAL_SIZES = new Set(['Large', 'XL']);
+  const GB_VARIANT_DESC = {
+    Wide:     'Broad and squat. Best for balconies and rooftops.',
+    Compact:  'Narrower and taller. Best for tight corners and small spaces.',
+    Vertical: 'Tall and upright. Maximises vertical growing on small balconies.',
+  };
+
+  let gbSize = 'Standard', gbVariant = 'Wide', gbQty = 5;
+
+  function getCurrent() { return gbVariant === 'Wide' ? (GB_DATA[gbSize] || GB_DATA['Standard']).wide : gbVariant === 'Compact' ? (GB_DATA[gbSize] || GB_DATA['Standard']).compact : ((GB_DATA[gbSize] || GB_DATA['Standard']).vertical || (GB_DATA[gbSize] || GB_DATA['Standard']).wide); }
+
+  function updateGBCard() {
+    const cur = getCurrent();
+    const el = id => document.getElementById(id);
+    if (el('pg-name'))    el('pg-name').textContent = `GrowBag ${gbSize} \u2014 ${gbVariant}`;
+    if (el('pg-volume'))  el('pg-volume').textContent = `${cur.volume} · PP geotextile · Bonded liner`;
+    if (el('pg-price'))   el('pg-price').textContent = `KES ${cur.price.toLocaleString()}`;
+    const badge = el('pg-badge');
+    if (badge) {
+      const show = gbSize === 'Standard' && gbVariant === 'Wide';
+      badge.style.display = show ? 'inline-block' : 'none';
+    }
+    if (el('pg-vdesc')) el('pg-vdesc').textContent = GB_VARIANT_DESC[gbVariant];
+    if (el('pg-crops')) {
+      el('pg-crops').innerHTML = GB_DATA[gbSize].crops
+        .map(c => `<span class="product-feature" style="background:#E6F0E7;color:#155D27;">${c}</span>`).join('');
+    }
+  }
+
+  window.pgSelectSize = function(size) {
+    gbSize = size; gbQty = GB_DATA[size].defaultQty;
+    if (gbVariant === 'Vertical' && !VERTICAL_SIZES.has(size)) gbVariant = 'Wide';
+    const qEl = document.getElementById('pg-qty');
+    if (qEl) qEl.textContent = gbQty;
+    document.querySelectorAll('.pg-size-btn').forEach(b => b.classList.toggle('pg-active', b.dataset.size === size));
+    document.querySelectorAll('.pg-variant-btn').forEach(b => {
+      const v = b.dataset.v;
+      b.classList.toggle('pg-active', v === gbVariant);
+      if (v === 'Vertical') b.style.display = VERTICAL_SIZES.has(size) ? '' : 'none';
+    });
+    updateGBCard();
+  };
+  window.pgSelectVariant = function(v) {
+    gbVariant = v;
+    document.querySelectorAll('.pg-variant-btn').forEach(b => b.classList.toggle('pg-active', b.dataset.v === v));
+    updateGBCard();
+  };
+  window.pgChangeQty = function(d) {
+    gbQty = Math.max(1, gbQty + d);
+    const qEl = document.getElementById('pg-qty');
+    if (qEl) qEl.textContent = gbQty;
+  };
+  window.pgAddToCart = function() {
+    const cur = getCurrent();
+    addToCart({ sku: cur.sku, name: `GrowBag ${gbSize} \u2014 ${gbVariant}`, unit_price: cur.price, qty: gbQty, image: 'assets/images/growbag-hero.jpg', type: 'growbag' });
+  };
+
+  const btns = s => `<button class="pg-size-btn${s==='Standard'?' pg-active':''}" data-size="${s}" onclick="pgSelectSize('${s}')">${s}</button>`;
+  const vBtns = v => `<button class="pg-variant-btn${v==='Wide'?' pg-active':''}" data-v="${v}" onclick="pgSelectVariant('${v}')" title="${v==='Wide'?'Broad and squat':v==='Compact'?'Narrower and taller':'Tall and upright'}"${v==='Vertical'?' style="display:none"':''}>${v}</button>`;
+
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.id = 'growbag-products-card';
+  card.innerHTML = `
+    <div class="product-image" style="position:relative;">
+      <img id="pg-main-img" src="assets/images/growbag-hero.jpg" alt="Afams GrowBag" loading="lazy" onerror="this.classList.add('failed');" />
+      <span id="pg-badge" class="product-badge-pill" style="background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;top:0.85rem;left:0.85rem;">Most Popular</span>
+      <button onclick="pgGalleryNav(-1)" class="gb-gallery-arrow gb-gallery-arrow-left" aria-label="Previous image">&#8249;</button>
+      <button onclick="pgGalleryNav(1)"  class="gb-gallery-arrow gb-gallery-arrow-right" aria-label="Next image">&#8250;</button>
+    </div>
+    <div class="gb-img-strip" id="pg-img-strip">
+      <img src="assets/images/growbag-hero.jpg" alt="GrowBag Hero" class="gb-thumb gb-thumb-active" onclick="pgSetImage(0)" loading="lazy"/>
+      <img src="assets/images/growbag-wide.jpg" alt="GrowBag Wide" class="gb-thumb" onclick="pgSetImage(1)" loading="lazy"/>
+      <img src="assets/images/growbag-compact.jpg" alt="GrowBag Compact" class="gb-thumb" onclick="pgSetImage(2)" loading="lazy"/>
+      <img src="assets/images/growbag-standard-wide.jpg" alt="GrowBag Standard Wide" class="gb-thumb" onclick="pgSetImage(3)" loading="lazy"/>
+      <img src="assets/images/growbag-sizes.jpg" alt="GrowBag Sizes" class="gb-thumb" onclick="pgSetImage(4)" loading="lazy"/>
+    </div>
+    <div class="product-body">
+      <div class="product-category">GrowBag · Basic Range</div>
+      <h2 class="product-name" id="pg-name">GrowBag Standard — Wide</h2>
+      <p class="product-desc" style="font-size:0.82rem;color:#718096;margin-bottom:0.75rem" id="pg-volume">32 L · PP geotextile · Bonded liner</p>
+
+      <div style="margin-bottom:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Size</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['Mini','Medium','Standard','Large','XL'].map(btns).join('')}
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 6px">Shape</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['Wide','Compact','Vertical'].map(vBtns).join('')}
+        </div>
+        <p id="pg-vdesc" style="font-size:11px;color:#A0AEC0;margin:5px 0 0;line-height:1.5">Broad and squat. Best for balconies and rooftops.</p>
+      </div>
+
+      <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <p style="font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.06em;margin:0">Qty</p>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="pgChangeQty(-1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">−</button>
+          <span id="pg-qty" style="font-size:0.95rem;font-weight:700;color:#071A0B;min-width:24px;text-align:center">5</span>
+          <button onclick="pgChangeQty(1)" style="width:28px;height:28px;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;font-size:1rem;cursor:pointer;color:#155D27;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1">+</button>
+        </div>
+      </div>
+
+      <div id="pg-crops" class="product-features" style="margin-bottom:1rem"></div>
+
+      <div class="product-footer">
+        <div>
+          <div class="product-price" id="pg-price">KES 1,050</div>
+          <div class="product-price-sub">Basic range · Ships in 3–5 days</div>
+        </div>
+        <button class="btn-order" onclick="pgAddToCart()">Add to Cart</button>
+      </div>
+    </div>
+  `;
+  grid.insertAdjacentElement('afterbegin', card);
+
+  // GrowBag gallery for products page
+  var PG_GALLERY = [
+    'assets/images/growbag-hero.jpg',
+    'assets/images/growbag-wide.jpg',
+    'assets/images/growbag-compact.jpg',
+    'assets/images/growbag-standard-wide.jpg',
+    'assets/images/growbag-sizes.jpg',
+  ];
+  var _pgGalleryIdx = 0;
+  window.pgSetImage = function(idx) {
+    _pgGalleryIdx = (idx + PG_GALLERY.length) % PG_GALLERY.length;
+    var mainImg = document.getElementById('pg-main-img');
+    if (mainImg) { mainImg.src = PG_GALLERY[_pgGalleryIdx]; mainImg.classList.remove('failed'); }
+    document.querySelectorAll('#pg-img-strip .gb-thumb').forEach(function(t, i) {
+      t.classList.toggle('gb-thumb-active', i === _pgGalleryIdx);
+    });
+  };
+  window.pgGalleryNav = function(dir) { pgSetImage(_pgGalleryIdx + dir); };
+
+  // Inject selector button styles
+  if (!document.getElementById('pg-styles')) {
+    const style = document.createElement('style');
+    style.id = 'pg-styles';
+    style.textContent = `.pg-size-btn,.pg-variant-btn{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid #C3DFC7;background:#fff;color:#4A5568;cursor:pointer;font-family:inherit;transition:all 0.15s;}.pg-size-btn:hover,.pg-variant-btn:hover{border-color:#1E7D34;color:#155D27;}.pg-size-btn.pg-active,.pg-variant-btn.pg-active{background:#155D27;border-color:#155D27;color:#fff;}.gb-gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(7,26,11,0.55);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:1.4rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:2;padding:0;}.gb-gallery-arrow:hover{background:rgba(7,26,11,0.85);}.gb-gallery-arrow-left{left:8px;}.gb-gallery-arrow-right{right:8px;}.gb-thumb{cursor:pointer;opacity:0.65;transition:opacity 0.2s,border-color 0.2s;border:2px solid transparent!important;}.gb-thumb:hover{opacity:1;}.gb-thumb.gb-thumb-active{opacity:1;border-color:#1E7D34!important;}`;
+    document.head.appendChild(style);
+  }
+
+  updateGBCard();
+}
+
+function loadProducts() {
+  renderProducts(ALL_PRODUCTS);
+}
+
+function renderPremiumRange(grid) {
+  const PREMIUM = [
+    { name: 'FarmBag Hydro',          sku: 'FB-HYD-01', category: 'Premium · Hydroponic',       price: 8999,  emoji: '💧', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Hydro Pro',       sku: 'FB-HYP-01', category: 'Premium · Pro Hydroponic',   price: 11999, emoji: '🔬', bgStyle: 'background:linear-gradient(135deg,#1a0533,#3d0d6b)' },
+    { name: 'FarmBag Aqua',            sku: 'FB-AQA-01', category: 'Premium · Aquaponic',        price: 14999, emoji: '🌊', bgStyle: 'background:linear-gradient(135deg,#0d2640,#1565C0)' },
+    { name: 'FarmBag Aqua-Hydro Pro',  sku: 'FB-AHP-01', category: 'Premium · Ultimate System',  price: 39999, emoji: '🚀', bgStyle: 'background:linear-gradient(135deg,#0d2640,#7B1FA2)' },
+  ];
+
+  // Insert divider
+  const divider = document.createElement('div');
+  divider.style.cssText = 'grid-column:1/-1;padding:28px 0 8px;border-top:1px solid rgba(0,0,0,0.07);margin-top:8px';
+  divider.innerHTML = '<p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#7B1FA2;font-weight:700;margin:0">The FarmBag System · Premium Range</p>'
+    + '<p style="font-size:13px;color:#718096;margin:4px 0 0;font-weight:400">Exciting Innovations Coming — Pre-order now. First delivery: 1 September 2026.</p>';
+  grid.appendChild(divider);
+
+  PREMIUM.forEach(function(p) {
+    const cartItem = { sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' };
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="product-image" style="${p.bgStyle};display:flex;align-items:center;justify-content:center;">
+        <span class="product-badge-pill badge-premium" style="position:absolute;top:0.85rem;left:0.85rem;">Premium</span>
+        <span style="color:rgba(255,255,255,0.82);font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">Official reveal coming soon</span>
+        <span style="position:absolute;left:0.6rem;right:0.6rem;bottom:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:700;text-align:center;padding:0.38rem 0.45rem;border-radius:8px;line-height:1.3;">Awaiting Official Launch-September 1st 2026</span>
+      </div>
+      <div class="product-body">
+        <div class="product-category">${p.category}</div>
+        <h2 class="product-name">${p.name}</h2>
+        <p class="product-desc">Advanced urban farming innovation. Full product details will be revealed at official launch.</p>
+        <div class="product-footer">
+          <div>
+            <div class="product-price">KES ${p.price.toLocaleString()}</div>
+            <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
           </div>
+          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;">Pre-Order</button>
         </div>
       </div>
     `;
-  }).join('');
-}
-async function loadProducts() {
-  // Try to load active products from Supabase
-  const supabaseUrl  = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const anonKey      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-
-  try {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/products?active=eq.true&order=sku`,
-      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
-    );
-    if (res.ok) {
-      const rows = await res.json();
-      if (Array.isArray(rows) && rows.length > 0) {
-        // Map Supabase rows to display format using static catalogue for enrichment
-        const enriched = rows.map(row => {
-          const s = STATIC_PRODUCTS.find(p => p.sku === row.sku) || {};
-          // Spread DB row over static defaults, then restore display-only fields
-          // (link, type, badge) that have no DB column — ?? prevents a future
-          // nullable column from silently overwriting the static fallback values.
-          const merged = { ...s, ...row, priceKES: row.unit_price };
-          merged.link  = row.link  ?? s.link  ?? null;
-          merged.type  = row.type  ?? s.type  ?? 'product';
-          merged.badge = row.badge ?? s.badge ?? null;
-          return merged;
-        });
-        renderProducts(enriched);
-        return;
-      }
-    }
-  } catch (_) { /* fall through to static products */ }
-
-  // Fallback: render the static catalogue
-  renderProducts(STATIC_PRODUCTS);
+    // Set data-cart via setAttribute to avoid any HTML-encoding issues
+    card.querySelector('.btn-add-to-cart').setAttribute('data-cart', JSON.stringify(cartItem));
+    grid.appendChild(card);
+  });
 }
 
 // Add-to-cart via event delegation (avoids inline onclick with user data)
@@ -367,7 +889,7 @@ document.getElementById('products-grid').addEventListener('click', function(e) {
   if (!btn) return;
   try {
     var item = JSON.parse(btn.dataset.cart);
-    addToCart(item);
+    onAddToCart(item);
   } catch (_) { /* ignore */ }
 });
 
@@ -383,5 +905,20 @@ window.addEventListener('scroll', () => {
 
 loadProducts();
 </script>
+
+<!-- ── WHATSAPP BUSINESS FAB ── -->
+<a href="https://wa.me/254714128514?text=Hi%20Afams%21%20I%27d%20like%20to%20know%20more%20about%20your%20products."
+   target="_blank" rel="noopener noreferrer"
+   class="wa-fab" aria-label="Chat on WhatsApp Business">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+  </svg>
+  <div class="wa-fab-label">
+    Chat with us
+    <span>WhatsApp Business</span>
+  </div>
+</a>
+<!-- ── END WHATSAPP FAB ── -->
+
 </body>
 </html>

@@ -1,210 +1,248 @@
-// ============================================================
+// supabase/functions/paystack-webhook/index.ts
 // Afams Ltd — Paystack Webhook Handler
-// Path: supabase/functions/paystack-webhook/index.ts
-// Runtime: Supabase Edge Functions (Deno)
-// Deploy:  supabase functions deploy paystack-webhook --no-verify-jwt
-// ============================================================
+// Deno runtime — Supabase Edge Functions
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ── HMAC-SHA512 signature verification ───────────────────────
-async function verifySignature(
-  body: string,
-  signature: string,
+const CORS = {
+  'Access-Control-Allow-Origin': 'https://afams.co.ke',
+  'Access-Control-Allow-Headers': 'content-type, x-paystack-signature',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
+};
+
+// HMAC-SHA512 using Web Crypto — no external deps
+async function verifyHmac(
   secret: string,
+  rawBody: string,
+  sig: string,
 ): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-512" },
-    false,
-    ["sign"],
-  );
-  const signatureBuffer = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(body),
-  );
-  const hex = Array.from(new Uint8Array(signatureBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hex === signature;
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign'],
+    );
+    const buf = await crypto.subtle.sign(
+      'HMAC', key, new TextEncoder().encode(rawBody),
+    );
+    const expected = Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+    return expected === sig;
+  } catch {
+    return false;
+  }
 }
 
-// ── Main handler ─────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
+
+  // CORS preflight
+  if (req.method === 'OPTIONS')
+    return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== 'POST')
+    return new Response(JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: CORS });
+
+  // Step 1: Read raw body FIRST — required for HMAC, do not parse before this
+  let rawBody: string;
+  try {
+    rawBody = await req.text();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Could not read body' }),
+      { status: 400, headers: CORS });
   }
 
-  const paystackSecret = Deno.env.get("PAYSTACK_SECRET_KEY");
-  if (!paystackSecret) {
-    console.error("[Webhook] PAYSTACK_SECRET_KEY is not set");
-    return new Response(JSON.stringify({ error: "Server misconfigured" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  // Step 2: Verify HMAC signature
+  const secret = Deno.env.get('PAYSTACK_SECRET_KEY') ?? '';
+  const sig    = req.headers.get('x-paystack-signature') ?? '';
+
+  if (!secret) {
+    console.error('[webhook] PAYSTACK_SECRET_KEY not set');
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }),
+      { status: 500, headers: CORS });
+  }
+  if (!await verifyHmac(secret, rawBody, sig)) {
+    console.error('[webhook] HMAC verification failed');
+    return new Response(JSON.stringify({ error: 'Invalid signature' }),
+      { status: 401, headers: CORS });
   }
 
-  // Read raw body — required for HMAC verification
-  const rawBody = await req.text();
-  const signature = req.headers.get("x-paystack-signature") ?? "";
-
-  if (!signature || !(await verifySignature(rawBody, signature, paystackSecret))) {
-    console.error("[Webhook] Invalid Paystack signature");
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
+  // Step 3: Parse JSON
   let payload: Record<string, unknown>;
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    return new Response(JSON.stringify({ error: "Bad Request" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }),
+      { status: 400, headers: CORS });
   }
 
-  const eventType = payload.event as string | undefined;
-  const data = payload.data as Record<string, unknown> | undefined;
-  console.log(`[Webhook] Event: ${eventType} | Ref: ${(data as { reference?: string })?.reference}`);
+  // Step 4: Only handle charge.success — acknowledge everything else
+  if (payload.event !== 'charge.success') {
+    console.log('[webhook] Ignoring event:', payload.event);
+    return new Response(JSON.stringify({ received: true }),
+      { status: 200, headers: CORS });
+  }
 
-  // ── Handle charge.success ───────────────────────────────────
-  if (eventType === "charge.success" && data) {
-    const reference = data.reference as string | undefined;
-    const amount = data.amount as number | undefined;
-    const customer = data.customer as Record<string, string> | undefined;
-    const metadata = (data.metadata ?? {}) as Record<string, unknown>;
-    const paid_at = data.paid_at as string | undefined;
+  const data     = (payload.data     ?? {}) as Record<string, unknown>;
+  const meta     = (data.metadata    ?? {}) as Record<string, unknown>;
+  const customer = (data.customer    ?? {}) as Record<string, unknown>;
+  const paystackRef = String(data.reference ?? '').trim();
 
-    if (!reference) {
-      console.error("[Webhook] charge.success missing reference");
-      return new Response(JSON.stringify({ error: "Missing reference" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+  if (!paystackRef)
+    return new Response(JSON.stringify({ error: 'No reference in payload' }),
+      { status: 400, headers: CORS });
 
-    if (!paid_at) {
-      console.warn(`[Webhook] paid_at missing for ref ${reference} — using server time`);
-    }
+  console.log('[webhook] Processing charge.success — ref:', paystackRef);
+  console.log('[webhook] metadata.items:', JSON.stringify(meta.items));
 
-    const totalKes = Math.round((amount ?? 0) / 100); // kobo/cents → KES
+  // Step 5: Supabase service-role client — bypasses RLS
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
 
-    // metadata shape set during Paystack popup initialisation:
-    // { customer_name, customer_phone, product_sku, product_name,
-    //   quantity, unit_price, delivery_address, county }
-    const customer_name = metadata.customer_name as string | undefined;
-    const customer_phone = metadata.customer_phone as string | undefined;
-    const product_sku = metadata.product_sku as string | undefined;
-    const product_name = metadata.product_name as string | undefined;
-    const quantity = metadata.quantity as string | number | undefined;
-    const unit_price = metadata.unit_price as string | number | undefined;
-    const delivery_address = metadata.delivery_address as string | undefined;
-    const county = metadata.county as string | undefined;
+  // Step 6: Idempotency — skip if this reference was already processed
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('id, order_number')
+    .eq('paystack_ref', paystackRef)
+    .maybeSingle();
 
-    // Add-on fields (set by checkout.html for FarmBag orders)
-    const rawFreeSeeds   = metadata.free_seeds   as string | undefined;
-    const rawExtraSeeds  = metadata.extra_seeds  as string | undefined;
-    const extra_seeds_count = parseInt(String(metadata.extra_seeds_count  ?? "0"), 10) || 0;
-    const extra_seeds_total = parseInt(String(metadata.extra_seeds_total  ?? "0"), 10) || 0;
-    const prosoil_qty       = parseInt(String(metadata.prosoil_qty        ?? "0"), 10) || 0;
-    const prosoil_total     = parseInt(String(metadata.prosoil_total      ?? "0"), 10) || 0;
-    const prosoil_promo_bag = metadata.prosoil_promo_bag === true || metadata.prosoil_promo_bag === "true";
-    const addons_total      = parseInt(String(metadata.addons_total       ?? "0"), 10) || 0;
-
-    // Compute prosoil_promo_qty: from metadata if provided, otherwise derive from cart_items
-    let prosoil_promo_qty   = parseInt(String(metadata.prosoil_promo_qty  ?? "0"), 10) || 0;
-    if (!prosoil_promo_qty && metadata.cart_items) {
-      try {
-        const cartItems = JSON.parse(String(metadata.cart_items));
-        const hasFarmBag = Array.isArray(cartItems) &&
-          cartItems.some((i: any) => ["FB-CLS-01", "FB-GRW-01"].includes(i.sku));
-        if (hasFarmBag && prosoil_qty >= 3) {
-          prosoil_promo_qty = Math.floor(prosoil_qty / 3);
-        }
-      } catch { /* ignore parse errors */ }
-    }
-
-    let free_seeds: unknown[] = [];
-    let extra_seeds: unknown[] = [];
-    try { free_seeds  = rawFreeSeeds  ? JSON.parse(rawFreeSeeds)  : []; } catch { free_seeds  = []; }
-    try { extra_seeds = rawExtraSeeds ? JSON.parse(rawExtraSeeds) : []; } catch { extra_seeds = []; }
-
-    // Supabase client — SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  if (existing) {
+    console.log('[webhook] Duplicate — already processed:', paystackRef);
+    return new Response(
+      JSON.stringify({ received: true, duplicate: true, order: existing.order_number }),
+      { status: 200, headers: CORS },
     );
-
-    // Idempotency check — skip duplicate events
-    const { data: existing } = await supabase
-      .from("orders")
-      .select("id")
-      .eq("paystack_ref", reference)
-      .single();
-
-    if (existing) {
-      console.log(`[Webhook] Duplicate ref ${reference} — skipping`);
-      return new Response(JSON.stringify({ status: "duplicate" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const resolvedCustomerName = customer_name || customer?.name;
-    if (!resolvedCustomerName) {
-      console.warn(`[Webhook] customer_name missing for ref ${reference} — order will be flagged as Unknown`);
-    }
-
-    // Write order to Supabase
-    const { error } = await supabase.from("orders").insert({
-      customer_name:    resolvedCustomerName || "Unknown",
-      customer_email:   customer?.email,
-      customer_phone:   customer_phone || customer?.phone,
-      delivery_address: delivery_address || null,
-      county:           county || null,
-      product_sku:      product_sku || null,
-      product_name:     product_name || "FarmBag Product",
-      quantity:         parseInt(String(quantity ?? "1"), 10) || 1,
-      unit_price:       parseInt(String(unit_price ?? "0"), 10) || 0,
-      total_amount:     totalKes,
-      paystack_ref:     reference,
-      payment_method:   "paystack",
-      status:           "paid",
-      paid_at:          paid_at || new Date().toISOString(),
-      free_seeds:       free_seeds,
-      extra_seeds:      extra_seeds,
-      extra_seeds_count: extra_seeds_count,
-      extra_seeds_total: extra_seeds_total,
-      prosoil_qty:      prosoil_qty,
-      prosoil_total:    prosoil_total,
-      prosoil_promo_bag: prosoil_promo_bag,
-      prosoil_promo_qty: prosoil_promo_qty,
-      addons_total:     addons_total,
-    });
-
-    if (error) {
-      console.error("[Webhook] Supabase insert error:", error);
-      return new Response(JSON.stringify({ error: "DB write failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`[Webhook] Order created — ${customer?.email} KES ${totalKes}`);
   }
 
-  // Acknowledge all other events
-  return new Response(JSON.stringify({ received: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
+  // Step 7: Extract items array from metadata
+  // checkout.html sends metadata.items as a full array — that is the source of truth.
+  // Fall back through cart → cart_items strings if needed.
+  // Final fallback: build single-item array from flat metadata fields.
+  type RawItem = Record<string, unknown>;
+  let rawItems: RawItem[] = [];
+
+  if (Array.isArray(meta.items) && (meta.items as RawItem[]).length > 0) {
+    rawItems = meta.items as RawItem[];
+    console.log('[webhook] Using metadata.items — count:', rawItems.length);
+  } else if (typeof meta.cart === 'string' && meta.cart.length > 2) {
+    try { rawItems = JSON.parse(meta.cart); } catch { /* ignore */ }
+    console.log('[webhook] Parsed metadata.cart — count:', rawItems.length);
+  } else if (typeof meta.cart_items === 'string' && meta.cart_items.length > 2) {
+    try { rawItems = JSON.parse(meta.cart_items); } catch { /* ignore */ }
+    console.log('[webhook] Parsed metadata.cart_items — count:', rawItems.length);
+  }
+
+  if (rawItems.length === 0) {
+    console.warn('[webhook] All item arrays empty — using single-product fallback');
+    rawItems = [{
+      sku:   meta.product_sku,
+      name:  meta.product_name ?? 'Product',
+      price: meta.unit_price   ?? 0,
+      qty:   meta.quantity     ?? 1,
+    }];
+  }
+
+  // Step 8: Normalise each item
+  const normItems = rawItems.map((item) => {
+    const qty       = Math.max(1, parseInt(String(item.qty ?? item.quantity ?? 1), 10));
+    const unitPrice = Math.max(0, Math.round(Number(item.price ?? item.unit_price ?? 0)));
+    return {
+      product_sku:  String(item.sku  ?? item.id  ?? '').trim() || null,
+      product_name: String(item.name ?? 'Product').trim(),
+      quantity:     qty,
+      unit_price:   unitPrice,
+      item_type:    String(item.type  ?? 'product'),
+      is_free:      item.is_free === true,
+    };
   });
+
+  // Step 9: Calculate totals
+  const itemsTotal    = normItems.reduce(
+    (s, i) => s + (i.is_free ? 0 : i.unit_price * i.quantity), 0,
+  );
+  const paystackTotal = Math.round(Number(data.amount ?? 0) / 100); // kobo → KES
+  const totalAmount   = paystackTotal > 0 ? paystackTotal : itemsTotal;
+
+  console.log('[webhook] Items total:', itemsTotal, '| Paystack total:', paystackTotal, '| Using:', totalAmount);
+  console.log('[webhook] Normalised items:', JSON.stringify(normItems));
+
+  // Step 10: Primary item for backward-compat flat columns on orders row
+  const primary = normItems.find(i => !i.is_free) ?? normItems[0];
+
+  // Step 11: Insert parent order row
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      paystack_ref:     paystackRef,
+      customer_name:    String(meta.customer_name  ?? `${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim()),
+      customer_email:   String(meta.customer_email ?? customer.email ?? ''),
+      customer_phone:   String(meta.customer_phone ?? ''),
+      delivery_address: String(meta.delivery_address ?? ''),
+      county:           String(meta.county   ?? ''),
+      // Flat backward-compat columns — keep populated for queries that don't join
+      product_sku:      primary.product_sku,
+      product_name:     primary.product_name,
+      quantity:         primary.quantity,
+      unit_price:       primary.unit_price,
+      total_amount:     totalAmount,
+      items:            normItems,       // full array written to JSONB column
+      status:           'paid',
+      paid_at:          new Date().toISOString(),
+      payment_method:   'paystack',
+    })
+    .select('id, order_number')
+    .single();
+
+  if (orderErr || !order) {
+    console.error('[webhook] ORDER INSERT FAILED:', orderErr?.message);
+    return new Response(
+      JSON.stringify({ error: 'Order insert failed', detail: orderErr?.message }),
+      { status: 500, headers: CORS },
+    );
+  }
+
+  console.log('[webhook] Order created:', order.order_number, '| id:', order.id);
+
+  // Step 12: Bulk insert ALL line items — single DB call, all items atomically
+  const lineItems = normItems.map(item => ({
+    order_id:     order.id,
+    product_sku:  item.product_sku  || null,
+    product_name: item.product_name,
+    quantity:     item.quantity,
+    unit_price:   item.unit_price,
+    item_type:    item.item_type,
+    is_free:      item.is_free,
+  }));
+
+  console.log('[webhook] Inserting', lineItems.length, 'row(s) into order_items');
+
+  const { error: itemsErr } = await supabase
+    .from('order_items')
+    .insert(lineItems);
+
+  if (itemsErr) {
+    // Log but do not fail — order row is saved; items are recoverable from JSONB
+    console.error('[webhook] ORDER_ITEMS FAILED:', itemsErr.message, itemsErr.hint);
+  } else {
+    console.log('[webhook] order_items OK —', lineItems.length, 'item(s) for', order.order_number);
+  }
+
+  // Step 13: Respond to Paystack BEFORE sending email — prevents 30s timeout
+  const webhookResponse = new Response(
+    JSON.stringify({ received: true, order_id: order.id, order_number: order.order_number }),
+    { status: 200, headers: CORS },
+  );
+
+  // Step 14: Trigger confirmation email — fire and forget, non-blocking
+  supabase.functions.invoke('send-order-email', {
+    body: { order_id: order.id, email_type: 'order_received' },
+  }).catch((e: Error) =>
+    console.error('[webhook] Email invoke failed:', e.message),
+  );
+
+  return webhookResponse;
 });

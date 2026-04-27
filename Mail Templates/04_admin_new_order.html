@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[ADMIN] New Paid Order — Afams</title>
+</head>
+<body style="margin:0;padding:0;background-color:#1B2E24;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">[ADMIN] New paid order {{params.order_number}} — {{params.customer_name}} — {{params.total_amount}}. Review now.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#1B2E24;">
+    <tr><td align="center" style="padding:24px 12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:600px;background-color:#FFFFFF;">
+        <tr><td align="center" style="background-color:#1B4332;padding:28px 24px 20px;">
+          <img src="https://afams.co.ke/assets/images/afams_logo_stacked.png" alt="Afams" width="150" style="display:block;width:150px;max-width:150px;height:auto;border:0;" />
+        </td></tr>
+        <tr><td align="center" style="background-color:#0D1F14;padding:12px 24px;font-family:Arial,sans-serif;font-size:13px;line-height:18px;color:#FFFFFF;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Internal Order Alert</td></tr>
+        <tr><td style="padding:24px 24px 8px;font-family:Arial,sans-serif;color:#1B4332;">
+          <div style="font-size:12px;line-height:18px;color:#2D6A4F;font-weight:bold;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">New Paid Order Alert</div>
+          <div style="font-family:Georgia,serif;font-size:28px;line-height:34px;font-weight:bold;margin-bottom:8px;">Order {{params.order_number}}</div>
+          <div style="font-family:Georgia,serif;font-size:24px;line-height:30px;color:#2D6A4F;font-weight:bold;">{{params.total_amount}}</div>
+        </td></tr>
+        <tr><td style="padding:12px 24px 8px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#F5F0E8;border:1px solid #E0D9CE;">
+            <tr><td colspan="2" style="padding:16px 18px;font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#2D6A4F;font-weight:bold;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #E0D9CE;">Customer Information</td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Full Name</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.customer_name}}</td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Email</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;border-bottom:1px solid #E0D9CE;"><a href="mailto:{{params.customer_email}}" style="color:#2D6A4F;text-decoration:none;font-weight:bold;">{{params.customer_email}}</a></td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Phone</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;border-bottom:1px solid #E0D9CE;"><a href="tel:{{params.customer_phone}}" style="color:#2D6A4F;text-decoration:none;font-weight:bold;">{{params.customer_phone}}</a></td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;">County</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;">{{params.county}}</td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:12px 24px 8px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#F5F0E8;border:1px solid #E0D9CE;">
+            <tr><td colspan="2" style="padding:16px 18px;font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#2D6A4F;font-weight:bold;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #E0D9CE;">Order Details</td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Product</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.product_name}}</td></tr>
+            <tr><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Quantity</td><td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.quantity}}</td></tr>
+            <tr><td style="padding:14px 18px;font-family:Arial,sans-serif;font-size:15px;line-height:22px;color:#1B4332;font-weight:bold;">Total (Paid)</td><td style="padding:14px 18px;font-family:Georgia,serif;font-size:22px;line-height:26px;color:#2D6A4F;font-weight:bold;">{{params.total_amount}}</td></tr>
+          </table>
+        </td></tr>
+        <tr><td align="center" style="padding:20px 24px 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="padding:0 6px 0 0;"><a href="https://afams.co.ke/admin" target="_blank" style="display:inline-block;background-color:#2D6A4F;color:#FFFFFF;font-family:Arial,sans-serif;font-size:14px;line-height:20px;font-weight:bold;text-decoration:none;padding:14px 20px;">Open Admin Dashboard</a></td>
+            <td style="padding:0 0 0 6px;"><a href="https://app.supabase.com/project/dvquyzzqsnlcassvgdzz/editor" target="_blank" style="display:inline-block;background-color:#FFFFFF;color:#2D6A4F;font-family:Arial,sans-serif;font-size:14px;line-height:20px;font-weight:bold;text-decoration:none;padding:12px 18px;border:2px solid #2D6A4F;">View in Supabase</a></td>
+          </tr></table>
+        </td></tr>
+
+          <tr>
+            <td align="center" style="background-color:#0D1F14;padding:20px 24px;font-family:Arial,sans-serif;">
+              <div style="font-size:12px;line-height:20px;color:#DDE7E0;margin-bottom:6px;">Internal notification — Afams admin only. Do not forward.</div>
+              <div style="font-size:11px;line-height:18px;color:#B8C8BE;">AFAMS LTD &middot; Thika Rd-Kiambu, Kenya &middot; <a href="https://afams.co.ke/admin" style="color:#9FD3B6;text-decoration:none;">Admin Panel</a></div>
+            </td>
+          </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

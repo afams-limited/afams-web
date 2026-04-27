@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — Afams</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F0EBE1;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Your Afams order {{params.order_number}} is confirmed — we're getting it ready for you.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#F0EBE1;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:600px;background-color:#FFFFFF;">
+          <tr>
+            <td align="center" style="background-color:#1B4332;padding:28px 24px 20px;">
+              <img src="https://afams.co.ke/assets/images/afams_logo_stacked.png" alt="Afams" width="150" style="display:block;width:150px;max-width:150px;height:auto;border:0;" />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background-color:#2D6A4F;padding:12px 24px;font-family:Arial,sans-serif;font-size:13px;line-height:18px;color:#FFFFFF;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">
+              Order Confirmed
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 24px 12px;font-family:Arial,sans-serif;color:#1B4332;">
+              <div style="font-family:Georgia,serif;font-size:28px;line-height:34px;font-weight:bold;margin-bottom:12px;">Hello, {{params.customer_name}}!</div>
+              <div style="font-size:15px;line-height:24px;color:#3D5A47;">Thank you for shopping with Afams. We've received your order and it is now in our queue. We will send you another update once the order is dispatched.</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#F5F0E8;border:1px solid #E0D9CE;">
+                <tr>
+                  <td colspan="2" style="padding:16px 18px;font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#2D6A4F;font-weight:bold;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #E0D9CE;">Order Summary</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Order REF</td>
+                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.order_ref}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Product</td>
+                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.product_name}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Quantity</td>
+                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.quantity}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#6B7C6B;border-bottom:1px solid #E0D9CE;">Payment Method</td>
+                  <td align="right" style="padding:12px 18px;font-family:Arial,sans-serif;font-size:14px;line-height:20px;color:#1B4332;font-weight:bold;border-bottom:1px solid #E0D9CE;">{{params.payment_method}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px;font-family:Arial,sans-serif;font-size:15px;line-height:22px;color:#1B4332;font-weight:bold;">Total Amount</td>
+                  <td align="right" style="padding:14px 18px;font-family:Georgia,serif;font-size:22px;line-height:26px;color:#2D6A4F;font-weight:bold;">{{params.total_amount}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 8px;font-family:Arial,sans-serif;font-size:14px;line-height:24px;color:#3D5A47;">
+              Our team will process your order and reach out to confirm your delivery details. Questions? Email us at <a href="mailto:orders@afams.co.ke" style="color:#2D6A4F;text-decoration:none;font-weight:bold;">orders@afams.co.ke</a>.
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:16px 24px 36px;">
+              <a href="https://afams.co.ke" target="_blank" style="display:inline-block;background-color:#2D6A4F;color:#FFFFFF;font-family:Arial,sans-serif;font-size:14px;line-height:20px;font-weight:bold;text-decoration:none;padding:14px 28px;">Visit Afams Store</a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background-color:#1B4332;padding:24px;font-family:Arial,sans-serif;">
+              <div style="font-family:Georgia,serif;font-size:16px;line-height:22px;color:#F5F0E8;font-weight:bold;margin-bottom:6px;">AFAMS LTD</div>
+              <div style="font-size:12px;line-height:20px;color:#DDE7E0;margin-bottom:10px;">Thika Rd-Kiambu, Kenya &middot; Growing Food Security, One Bag at a Time</div>
+              <div style="font-size:12px;line-height:20px;margin-bottom:10px;">
+                <a href="https://afams.co.ke/#products" style="color:#9FD3B6;text-decoration:none;">Products</a>
+                <span style="color:#88A897;"> &nbsp;|&nbsp; </span>
+                <a href="https://afams.co.ke/#how-it-works" style="color:#9FD3B6;text-decoration:none;">How It Works</a>
+                <span style="color:#88A897;"> &nbsp;|&nbsp; </span>
+                <a href="https://afams.co.ke/#contact" style="color:#9FD3B6;text-decoration:none;">Contact</a>
+                <span style="color:#88A897;"> &nbsp;|&nbsp; </span>
+                <a href="https://afams.co.ke/privacy-policy.html" style="color:#9FD3B6;text-decoration:none;">Privacy</a>
+              </div>
+              <div style="font-size:11px;line-height:18px;color:#B8C8BE;">&copy; 2026 Afams Ltd. &middot; <a href="mailto:info@afams.co.ke" style="color:#B8C8BE;text-decoration:none;">info@afams.co.ke</a></div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

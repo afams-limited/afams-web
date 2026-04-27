@@ -5,229 +5,342 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <meta name="robots" content="noindex"/>
   <title>Order Confirmed — Afams FarmBag</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/afams_favicon_32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/afams_favicon_512.svg"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/afams_favicon_512.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --green:       #1E7D34;
-      --green-dark:  #0D3D1A;
-      --green-pale:  #E6F0E7;
-      --green-soft:  #C3DFC7;
-      --slate:       #1A2028;
-      --gray-mid:    #718096;
-      --gray-light:  #F7F9F7;
-      --white:       #FFFFFF;
-      --gold:        #B8860B;
-      --gold-pale:   #FFF8E6;
+      --ink: #102a1f;
+      --ink-soft: #4c6358;
+      --green-900: #1b4332;
+      --green-800: #2d6a4f;
+      --green-700: #40916c;
+      --green-100: #d8f3dc;
+      --paper: #ffffff;
+      --paper-edge: #ebf3ed;
+      --bg: #f5f8f6;
+      --line: #e6ece8;
+      --accent: #f6b73c;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: var(--gray-light);
-      color: var(--slate);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(64,145,108,0.12) 0%, rgba(64,145,108,0) 26%),
+        radial-gradient(circle at 88% 18%, rgba(246,183,60,0.12) 0%, rgba(246,183,60,0) 18%),
+        var(--bg);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    h1,h2,h3 { font-family: 'Playfair Display', Georgia, serif; }
-
-    /* ── NAV ── */
     .nav {
-      background: var(--green-dark);
+      background: var(--green-900);
       padding: 1rem 1.5rem;
     }
     .nav-logo {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       color: #fff;
       text-decoration: none;
-      font-family: 'Playfair Display', serif;
+      font-family: 'Playfair Display', Georgia, serif;
       font-size: 1.25rem;
       font-weight: 700;
-      width: fit-content;
     }
     .nav-logo img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
-
-    /* ── HERO ── */
-    .confirm-hero {
-      background: linear-gradient(135deg, var(--green-dark) 0%, #155D27 100%);
-      color: #fff;
-      text-align: center;
-      padding: 4.5rem 1.5rem 3.5rem;
-    }
-    .check-circle {
-      width: 80px;
-      height: 80px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 50%;
+    .print-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.5rem;
-      animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(17, 43, 32, 0.96);
+      color: #d6e4dc;
+      font-size: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    @keyframes pop {
-      from { transform: scale(0); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
+    .print-toolbar button {
+      border: none;
+      background: var(--green-700);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      cursor: pointer;
     }
-    .confirm-hero h1 {
-      font-size: clamp(1.75rem, 4vw, 2.8rem);
-      margin-bottom: 0.5rem;
-    }
-    .confirm-hero p {
-      color: rgba(255,255,255,0.82);
-      font-size: 1.05rem;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    /* ── CONTENT ── */
-    .confirm-content {
-      max-width: 680px;
-      margin: 2.5rem auto;
-      padding: 0 1.25rem 5rem;
+    .wrapper {
+      width: min(920px, 100% - 2rem);
+      margin: 2rem auto 3rem;
       flex: 1;
     }
-
-    /* ── CARD ── */
-    .card {
-      background: var(--white);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-    }
-    .card h2 {
-      font-size: 1.15rem;
-      margin-bottom: 1.25rem;
-      color: var(--slate);
-    }
-
-    /* ── REFERENCE BOX ── */
-    .ref-box {
-      background: var(--green-pale);
-      border: 1.5px solid var(--green-soft);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .ref-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--green);
-    }
-    .ref-value {
-      font-family: 'Courier New', monospace;
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--green-dark);
-      word-break: break-all;
-    }
-
-    /* ── TIMELINE ── */
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .timeline-item {
-      display: flex;
-      gap: 1rem;
-      padding-bottom: 1.5rem;
-      position: relative;
-    }
-    .timeline-item:last-child { padding-bottom: 0; }
-    .timeline-item:not(:last-child)::before {
-      content: '';
-      position: absolute;
-      left: 15px;
-      top: 32px;
-      bottom: 0;
-      width: 2px;
-      background: var(--green-pale);
-    }
-    .timeline-dot {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 0.9rem;
-    }
-    .dot-done  { background: var(--green);      color: #fff; }
-    .dot-wait  { background: var(--gold-pale);  color: var(--gold); border: 2px solid var(--gold); }
-    .dot-later { background: var(--green-pale); color: var(--green); border: 2px solid var(--green-soft); }
-    .timeline-body { padding-top: 0.35rem; }
-    .timeline-title {
-      font-weight: 700;
-      font-size: 0.9rem;
-      margin-bottom: 0.15rem;
-    }
-    .timeline-sub {
-      font-size: 0.8rem;
-      color: var(--gray-mid);
-    }
-
-    /* ── ACTIONS ── */
-    .actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .btn-primary {
-      padding: 0.75rem 1.5rem;
-      background: var(--green);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
+    .success-chip {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      transition: background 0.2s;
+      gap: 0.55rem;
+      margin-bottom: 1rem;
+      border: 1px solid #b7e4c7;
+      background: #effaf2;
+      color: var(--green-800);
+      padding: 0.5rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
-    .btn-primary:hover { background: var(--green-dark); }
-    .btn-secondary {
-      padding: 0.75rem 1.5rem;
-      background: transparent;
-      color: var(--slate);
-      border: 1.5px solid #E2E8F0;
+    .receipt-paper {
+      background: var(--paper);
+      border: 1px solid var(--paper-edge);
+      box-shadow: 0 18px 40px rgba(18, 47, 35, 0.12);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+    .receipt-paper::before,
+    .receipt-paper::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 13px;
+      background-image: radial-gradient(circle at 10px -2px, transparent 10px, var(--bg) 11px);
+      background-size: 20px 13px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .receipt-paper::before { top: -1px; }
+    .receipt-paper::after { bottom: -1px; transform: rotate(180deg); }
+    .receipt-top {
+      padding: 1.5rem 1.5rem 1.2rem;
+      border-bottom: 3px solid var(--green-800);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      background: linear-gradient(180deg, #fcfffd 0%, #f8fbf9 100%);
+    }
+    .brand-block img {
+      width: min(210px, 65vw);
+      height: auto;
+      display: block;
+      margin-bottom: 0.55rem;
+    }
+    .brand-copy {
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+    .meta-block { text-align: right; min-width: 230px; }
+    .meta-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green-900);
+      margin-bottom: 0.45rem;
+    }
+    .meta-row {
+      font-size: 0.78rem;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+    .meta-row strong { color: var(--green-900); }
+    .paid-badge {
+      display: inline-block;
+      margin-top: 0.45rem;
+      border-radius: 999px;
+      border: 1px solid #7bd196;
+      background: #eaffef;
+      color: #0d683a;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .receipt-body { padding: 1.35rem 1.5rem 1.5rem; }
+    .receipt-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .pane {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      background: #fff;
+    }
+    .pane-title {
+      color: var(--green-800);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 0.55rem;
+    }
+    .line {
+      font-size: 0.86rem;
+      color: var(--ink);
+      margin-bottom: 0.35rem;
+      line-height: 1.4;
+    }
+    .line:last-child { margin-bottom: 0; }
+    .line.muted { color: var(--ink-soft); }
+    .emphasis {
+      font-family: 'Courier New', monospace;
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--green-900);
+      word-break: break-word;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .summary-table th,
+    .summary-table td {
+      font-size: 0.84rem;
+      padding: 0.72rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    .summary-table th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #356450;
+      background: #f4faf6;
+      width: 35%;
+    }
+    .summary-table tr:last-child td,
+    .summary-table tr:last-child th { border-bottom: none; }
+    .summary-table .total-cell {
+      font-size: 1.03rem;
+      font-weight: 800;
+      color: var(--green-900);
+    }
+    .timeline-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      background: #fcfefd;
+    }
+    .timeline {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 0.65rem;
+      align-items: flex-start;
+    }
+    .timeline-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 0.1rem;
+    }
+    .dot-done { background: var(--green-800); }
+    .dot-wait { background: #f6b73c; }
+    .dot-later { background: #8ab59f; }
+    .timeline-title { font-size: 0.82rem; font-weight: 700; color: var(--ink); }
+    .timeline-sub { font-size: 0.76rem; color: var(--ink-soft); margin-top: 0.12rem; }
+    .receipt-note {
+      margin-top: 1rem;
+      border: 1px dashed #acd8b7;
+      background: #f3fbf5;
+      color: #1f5c41;
       border-radius: 10px;
+      padding: 0.8rem 0.9rem;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+    .actions {
+      margin-top: 1.15rem;
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-primary,
+    .btn-secondary {
       font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 600;
+      font-size: 0.83rem;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 0.68rem 1rem;
       cursor: pointer;
       text-decoration: none;
-      transition: border-color 0.2s;
-    }
-    .btn-secondary:hover { border-color: var(--green); color: var(--green); }
-
-    /* ── WHATSAPP NOTE ── */
-    .whatsapp-note {
-      background: #E8F5E9;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      font-size: 0.85rem;
-      color: var(--green-dark);
-      display: flex;
+      border: 1px solid transparent;
+      display: inline-flex;
       align-items: center;
-      gap: 0.6rem;
-      margin-bottom: 1.5rem;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .btn-primary {
+      background: var(--green-800);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(45,106,79,0.25);
+    }
+    .btn-primary:hover { background: #245844; transform: translateY(-1px); }
+    .btn-secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: #d8e4dd;
+    }
+    .btn-secondary:hover { border-color: var(--green-800); color: var(--green-800); }
+    .page-footer {
+      background: #0D3D1A;
+      color: rgba(255,255,255,0.58);
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.78rem;
+      margin-top: auto;
+    }
+    .page-footer a { color: rgba(255,255,255,0.58); text-decoration: none; margin: 0 0.35rem; }
+    @media (max-width: 740px) {
+      .receipt-grid { grid-template-columns: 1fr; }
+      .meta-block { text-align: left; min-width: 0; }
+      .receipt-top { padding: 1.15rem 1rem; }
+      .receipt-body { padding: 1rem; }
+      .print-toolbar { padding: 0.7rem 0.85rem; }
+      .print-toolbar span { max-width: 68%; }
+    }
+    @media print {
+      body { background: #fff; }
+      .nav, .print-toolbar, .actions, .page-footer { display: none !important; }
+      .wrapper { width: 100%; margin: 0; }
+      .success-chip { display: none; }
+      .receipt-paper {
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .receipt-paper::before,
+      .receipt-paper::after { display: none; }
+      .receipt-top { padding-top: 0; }
+      @page { size: A4; margin: 10mm; }
     }
   </style>
 </head>
@@ -235,161 +348,382 @@
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">
-    <img src="assets/images/afams-logo.jpg" alt="Afams"/>
+    <img src="assets/images/afams_logo_stacked.png" alt="Afams"/>
     Afams
   </a>
 </nav>
 
-<div class="confirm-hero">
-  <div class="check-circle">
-    <svg width="36" height="36" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24">
-      <path d="M20 6L9 17l-5-5"/>
-    </svg>
-  </div>
-  <h1>Payment confirmed!</h1>
-  <p>Thank you for your pre-order. Your FarmBag is being prepared.</p>
+<div class="print-toolbar">
+  <span>Afams customer receipt</span>
+  <button type="button" id="toolbar-print-btn">🖨 Print / Save PDF</button>
 </div>
 
-<div class="confirm-content">
-
-  <!-- Reference -->
-  <div class="ref-box">
-    <div>
-      <div class="ref-label">Order reference</div>
-      <div class="ref-value" id="order-ref">—</div>
-    </div>
-    <div id="order-name" style="margin-left:auto;font-size:0.85rem;color:var(--gray-mid)"></div>
+<main class="wrapper">
+  <div class="success-chip">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.7" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+    Payment confirmed
   </div>
 
-  <!-- WhatsApp note -->
-  <div class="whatsapp-note">
-    <span style="font-size:1.3rem">💬</span>
-    Save your order reference above. We'll confirm your order via WhatsApp at
-    <strong style="margin-left:0.25rem">+254 702 359 618</strong>.
-  </div>
-
-  <!-- Delivery timeline -->
-  <div class="card">
-    <h2>Delivery timeline</h2>
-    <div class="timeline">
-      <div class="timeline-item">
-        <div class="timeline-dot dot-done">✓</div>
-        <div class="timeline-body">
-          <div class="timeline-title">Payment confirmed</div>
-          <div class="timeline-sub" id="ts-now">Just now</div>
-        </div>
+  <section class="receipt-paper" aria-label="Customer receipt">
+    <div class="receipt-top">
+      <div class="brand-block">
+        <img src="assets/images/afams_logo_horizontal.png" alt="Afams Limited"/>
+        <div class="brand-copy">afams.co.ke · orders@afams.co.ke · +254 714 128 514<br/>Nairobi, Kenya</div>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-dot dot-wait">2</div>
-        <div class="timeline-body">
-          <div class="timeline-title">Order being prepared</div>
-          <div class="timeline-sub">Within 24 hours</div>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot dot-later">3</div>
-        <div class="timeline-body">
-          <div class="timeline-title">Dispatched to courier</div>
-          <div class="timeline-sub" id="ts-dispatch">Within 1–2 business days</div>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot dot-later">🏡</div>
-        <div class="timeline-body">
-          <div class="timeline-title">Delivered to you</div>
-          <div class="timeline-sub" id="ts-delivery">Within 3–5 business days</div>
-        </div>
+      <div class="meta-block">
+        <div class="meta-title">Customer Receipt</div>
+        <div class="meta-row"><strong>Receipt No:</strong> <span id="receipt-no">—</span></div>
+        <div class="meta-row"><strong>Order Ref:</strong> <span id="order-ref">—</span></div>
+        <div class="meta-row"><strong>Generated:</strong> <span id="generated-at">—</span></div>
+        <div class="paid-badge">Paid</div>
       </div>
     </div>
-  </div>
 
-  <!-- Actions -->
-  <div class="card">
-    <h2>What's next?</h2>
-    <p style="font-size:0.875rem;color:var(--gray-mid);margin-bottom:1.25rem">
-      Keep an eye on your email and WhatsApp for dispatch notifications.
-      You can also browse more products below.
-    </p>
-    <div class="actions">
-      <a href="products.html" class="btn-primary">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-        Browse more products
-      </a>
-      <a href="index.html" class="btn-secondary">Back to home</a>
+    <div class="receipt-body">
+      <div class="receipt-grid">
+        <div class="pane">
+          <div class="pane-title">Billed to</div>
+          <div class="line" id="order-name">Customer</div>
+          <div class="line muted" id="order-email">—</div>
+          <div class="line muted">Receipt sent via email and available on this page.</div>
+        </div>
+        <div class="pane">
+          <div class="pane-title">Payment summary</div>
+          <div class="line">Amount paid</div>
+          <div class="line total-cell emphasis" id="amount-paid">KES —</div>
+          <div class="line muted">Status: Successful</div>
+        </div>
+      </div>
+
+      <!-- Order line items -->
+      <div style="margin-bottom:1rem;">
+        <div class="pane-title" style="margin-bottom:0.6rem;">Items ordered</div>
+        <table class="summary-table" id="items-table" aria-label="Items ordered">
+          <thead>
+            <tr>
+              <th style="width:auto;">Product</th>
+              <th style="width:80px;text-align:center;">Qty</th>
+              <th style="width:110px;text-align:right;">Unit price</th>
+              <th style="width:110px;text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody">
+            <!-- Populated by JS -->
+            <tr id="items-loading-row">
+              <td colspan="4" style="color:#718096;font-size:0.82rem;">Loading order details…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <table class="summary-table" aria-label="Receipt details">
+        <tbody>
+          <tr>
+            <th>Reference</th>
+            <td class="emphasis" id="order-ref-copy">—</td>
+          </tr>
+          <tr>
+            <th>Payment confirmed</th>
+            <td id="ts-now">Just now</td>
+          </tr>
+          <tr>
+            <th>Estimated dispatch</th>
+            <td id="ts-dispatch">Within 1–2 business days</td>
+          </tr>
+          <tr>
+            <th>Estimated delivery</th>
+            <td id="ts-delivery">Within 3–5 business days</td>
+          </tr>
+          <tr>
+            <th>Total paid</th>
+            <td class="total-cell" id="amount-paid-copy">KES —</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="timeline-wrap">
+        <div class="pane-title">What happens next</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot dot-done">✓</div>
+            <div>
+              <div class="timeline-title">Payment confirmed</div>
+              <div class="timeline-sub">Your order is now secured.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot dot-wait">2</div>
+            <div>
+              <div class="timeline-title">Order prep</div>
+              <div class="timeline-sub">Our team packs your order within 24 hours.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot dot-later">3</div>
+            <div>
+              <div class="timeline-title">Dispatch & delivery</div>
+              <div class="timeline-sub">You’ll get updates via WhatsApp and email.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-note">
+        Save this receipt number for support and delivery follow-up. For urgent help, message us on WhatsApp: <strong>+254 714 128 514</strong>.
+      </div>
     </div>
+  </section>
+
+  <div class="actions">
+    <a href="products.html" class="btn-primary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Continue shopping
+    </a>
+    <a href="index.html" class="btn-secondary">Back to home</a>
   </div>
-
-</div>
-
+</main>
 <script>
-// Read URL params
-const params  = new URLSearchParams(window.location.search);
-const ref     = params.get('ref')    || '';
-const name    = params.get('name')   || '';
-const email   = params.get('email')  || '';
-const amount  = params.get('amount') || '';
+// order-confirm.html — full <script> block replacement
 
-// Display reference
-document.getElementById('order-ref').textContent = ref || 'Check your email';
-if (name) document.getElementById('order-name').textContent = 'Hi, ' + name + '!';
+const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+const CURRENCY = 'KES';
+
+// Read URL params — available instantly, no async needed
+const params = new URLSearchParams(window.location.search);
+const ref    = params.get('ref')    || '';
+const name   = params.get('name')   || '';
+const email  = params.get('email')  || '';
+const amount = Number(params.get('amount') || 0);
+
+// Render static fields immediately from URL params
+document.getElementById('order-ref').textContent      = ref || 'Check your email';
+document.getElementById('order-ref-copy').textContent = ref || 'Check your email';
+if (name)  document.getElementById('order-name').textContent  = name;
+if (email) document.getElementById('order-email').textContent = email;
+
+const receiptNo = 'CR-' + (ref || 'AFAMS')
+  .replace(/[^a-zA-Z0-9-]/g, '').slice(0, 14).toUpperCase()
+  + '-' + Date.now().toString(36).toUpperCase().slice(-4);
+document.getElementById('receipt-no').textContent = receiptNo;
+
+function fmtAmt(val) {
+  const n = Number(val);
+  return (!Number.isFinite(n) || n <= 0)
+    ? CURRENCY + ' —'
+    : CURRENCY + ' ' + n.toLocaleString('en-KE');
+}
+
+// Show URL-param amount immediately — replaced by DB value once fetched
+document.getElementById('amount-paid').textContent      = fmtAmt(amount);
+document.getElementById('amount-paid-copy').textContent = fmtAmt(amount);
 
 // Timestamps
 const now = new Date();
-document.getElementById('ts-now').textContent = now.toLocaleString('en-KE', {
-  day: 'numeric', month: 'short', year: 'numeric',
-  hour: '2-digit', minute: '2-digit',
-});
+const dtOpts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+document.getElementById('ts-now').textContent       = now.toLocaleString('en-KE', dtOpts);
+document.getElementById('generated-at').textContent = now.toLocaleString('en-KE', dtOpts);
 
-function addBusinessDays(date, days) {
-  const d = new Date(date);
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() !== 0 && d.getDay() !== 6) added++;
+function addBizDays(d, n) {
+  const r = new Date(d); let a = 0;
+  while (a < n) {
+    r.setDate(r.getDate() + 1);
+    if (r.getDay() !== 0 && r.getDay() !== 6) a++;
   }
-  return d;
+  return r;
+}
+const shortFmt = { day: 'numeric', month: 'short', weekday: 'short' };
+document.getElementById('ts-dispatch').textContent =
+  'By ' + addBizDays(now, 2).toLocaleDateString('en-KE', shortFmt);
+document.getElementById('ts-delivery').textContent =
+  'By ' + addBizDays(now, 5).toLocaleDateString('en-KE', shortFmt);
+
+// Inject items table into DOM — inserted right after .receipt-grid
+const receiptGrid = document.querySelector('.receipt-grid');
+if (receiptGrid) {
+  const wrap = document.createElement('div');
+  wrap.style.marginBottom = '1rem';
+  wrap.innerHTML = `
+    <div class="pane-title" style="margin-bottom:0.6rem;color:var(--green-800);
+      font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;">
+      Items ordered
+    </div>
+    <table class="summary-table" id="items-table"
+      style="width:100%;border-collapse:collapse;
+             border:1px solid var(--line);border-radius:12px;overflow:hidden;">
+      <thead>
+        <tr>
+          <th style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;
+            color:#356450;background:#f4faf6;padding:0.72rem 0.85rem;
+            text-align:left;border-bottom:1px solid var(--line);">Product</th>
+          <th style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;
+            color:#356450;background:#f4faf6;padding:0.72rem 0.85rem;
+            text-align:center;border-bottom:1px solid var(--line);width:60px;">Qty</th>
+          <th style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;
+            color:#356450;background:#f4faf6;padding:0.72rem 0.85rem;
+            text-align:right;border-bottom:1px solid var(--line);width:110px;">Unit</th>
+          <th style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;
+            color:#356450;background:#f4faf6;padding:0.72rem 0.85rem;
+            text-align:right;border-bottom:1px solid var(--line);width:110px;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="items-tbody">
+        <tr id="items-placeholder">
+          <td colspan="4" style="padding:0.72rem 0.85rem;font-size:0.82rem;
+            color:#718096;">Loading order details…</td>
+        </tr>
+      </tbody>
+    </table>`;
+  receiptGrid.insertAdjacentElement('afterend', wrap);
 }
 
-const deliveryDate = addBusinessDays(now, 5);
-const dispatchDate = addBusinessDays(now, 2);
+// Fetch order from Supabase with retry
+// The webhook may not have inserted the row yet when the customer lands here
+async function fetchOrder(paystackRef, retries = 5, waitMs = 2500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/orders`
+        + `?paystack_ref=eq.${encodeURIComponent(paystackRef)}`
+        + `&select=id,order_number,customer_name,customer_email,total_amount,items,status,`
+        + `order_items(product_name,product_sku,quantity,unit_price,subtotal,is_free,item_type)`
+        + `&limit=1`;
 
-const fmt = { day: 'numeric', month: 'short', weekday: 'short' };
-document.getElementById('ts-dispatch').textContent = 'By ' + dispatchDate.toLocaleDateString('en-KE', fmt);
-document.getElementById('ts-delivery').textContent = 'By ' + deliveryDate.toLocaleDateString('en-KE', fmt);
+      const res = await fetch(url, {
+        headers: {
+          'apikey':        SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Accept':        'application/json',
+        },
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      if (rows && rows.length > 0) {
+        console.log('[confirm] Order found on attempt', i + 1);
+        return rows[0];
+      }
+    } catch (e) {
+      console.warn('[confirm] Attempt', i + 1, 'failed:', e.message);
+    }
+    if (i < retries - 1) {
+      console.log('[confirm] Retrying in', waitMs, 'ms…');
+      await new Promise(r => setTimeout(r, waitMs));
+    }
+  }
+  return null;
+}
 
-// Clear cart if using the localStorage cart from index.html
-try { localStorage.removeItem('afams_cart'); } catch(_) {}
+function renderItems(order) {
+  const tbody = document.getElementById('items-tbody');
+  if (!tbody) return;
 
-// After successful order, silently add to subscribers list (buyer auto-enrolment)
-const orderData = { email: email, full_name: name };
-if (orderData.email) {
-  const SUPABASE_URL      = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-  fetch(SUPABASE_URL + '/rest/v1/subscribers', {
+  // Prefer order_items rows (relational); fall back to items JSONB
+  const lines =
+    (Array.isArray(order.order_items) && order.order_items.length > 0)
+      ? order.order_items
+      : (Array.isArray(order.items) && order.items.length > 0)
+        ? order.items
+        : [];
+
+  if (lines.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4"
+      style="padding:0.72rem 0.85rem;color:#718096;font-size:0.82rem;">
+      Item details will arrive in your confirmation email.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  const cellStyle = 'padding:0.72rem 0.85rem;font-size:0.84rem;border-bottom:1px solid var(--line);';
+
+  lines.forEach(function (item) {
+    const qty      = Number(item.quantity  ?? item.qty   ?? 1);
+    const up       = Number(item.unit_price ?? item.price ?? 0);
+    const sub      = Number(item.subtotal  ?? (qty * up));
+    const isFree   = Boolean(item.is_free);
+    const pName    = String(item.product_name ?? item.name ?? 'Product');
+    const freeTag  = isFree
+      ? ' <span style="color:#0d683a;font-weight:700;font-size:0.72rem;">(FREE)</span>'
+      : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td style="${cellStyle}">${pName}${freeTag}</td>`
+      + `<td style="${cellStyle}text-align:center;">${qty}</td>`
+      + `<td style="${cellStyle}text-align:right;">${isFree ? '—' : fmtAmt(up)}</td>`
+      + `<td style="${cellStyle}text-align:right;font-weight:700;">${isFree ? 'FREE' : fmtAmt(sub)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Replace URL-param amount with authoritative DB total
+  if (order.total_amount) {
+    const t = fmtAmt(order.total_amount);
+    document.getElementById('amount-paid').textContent      = t;
+    document.getElementById('amount-paid-copy').textContent = t;
+  }
+  // Replace URL-param name/email/ref with authoritative DB values
+  if (order.customer_name)
+    document.getElementById('order-name').textContent  = order.customer_name;
+  if (order.customer_email)
+    document.getElementById('order-email').textContent = order.customer_email;
+  if (order.order_number) {
+    document.getElementById('order-ref').textContent      = order.order_number;
+    document.getElementById('order-ref-copy').textContent = order.order_number;
+  }
+}
+
+// Kick off Supabase fetch — non-blocking, UI already visible from URL params above
+if (ref) {
+  fetchOrder(ref)
+    .then(function (order) {
+      if (order) {
+        renderItems(order);
+      } else {
+        const ph = document.getElementById('items-placeholder');
+        if (ph) ph.innerHTML = `<td colspan="4"
+          style="padding:0.72rem 0.85rem;color:#718096;font-size:0.82rem;">
+          Item details will arrive in your confirmation email shortly.</td>`;
+      }
+    })
+    .catch(function (e) {
+      console.error('[confirm] Fatal fetch error:', e);
+    });
+} else {
+  const ph = document.getElementById('items-placeholder');
+  if (ph) ph.innerHTML = `<td colspan="4"
+    style="padding:0.72rem 0.85rem;color:#718096;">
+    No order reference found. Please check your email.</td>`;
+}
+
+// Print button
+var printBtn = document.getElementById('toolbar-print-btn');
+if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+
+// Silent subscriber enrol — unchanged logic from original file
+try { localStorage.removeItem('afams_cart'); } catch (_) {}
+if (email) {
+  fetch(SUPABASE_URL + '/rest/v1/subscribers?on_conflict=email', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
       'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Prefer': 'return=minimal',
+      'Prefer':        'resolution=merge-duplicates,return=minimal',
     },
     body: JSON.stringify({
-      email: orderData.email,
-      first_name: orderData.full_name ? orderData.full_name.split(' ')[0] : null,
-      source: 'checkout',
-      status: 'active',
-      tags: ['product_updates', 'promotions', 'growing_tips'],
-    })
-  }).catch(() => {}); // Silent fail — don't block order confirmation UX
+      email,
+      first_name: name ? name.split(' ')[0] : null,
+      source:     'checkout',
+      status:     'active',
+      tags:       ['product_updates', 'promotions', 'growing_tips'],
+    }),
+  }).catch(function () {});
 }
 </script>
 
-<footer style="background:#0D3D1A;color:rgba(255,255,255,0.55);text-align:center;padding:1.5rem 1rem;font-size:0.78rem;">
+<footer class="page-footer">
   <div style="margin-bottom:0.5rem;">
-    <a href="privacy-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Privacy Policy</a>·
-    <a href="cookie-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Cookie Policy</a>·
-    <a href="terms.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Terms &amp; Conditions</a>·
-    <a href="returns-policy.html" style="color:rgba(255,255,255,0.55);margin:0 0.4rem;text-decoration:none;">Returns Policy</a>
+    <a href="privacy-policy.html">Privacy Policy</a>·
+    <a href="cookie-policy.html">Cookie Policy</a>·
+    <a href="terms.html">Terms &amp; Conditions</a>·
+    <a href="returns-policy.html">Returns Policy</a>
   </div>
   <p>© 2026 Afams Ltd · Reg. PVT-5JUEG2R2 · Incorporated in Kenya · All rights reserved</p>
 </footer>

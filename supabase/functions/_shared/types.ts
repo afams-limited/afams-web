@@ -32,24 +32,30 @@ export interface Order {
   prosoil_unit_price: number;
   prosoil_total: number;
   prosoil_promo_bag: boolean;
+  prosoil_promo_qty: number;
   addons_total: number;
 }
 
 // CRITICAL: These are the ONLY valid status values.
 // The Postgres enum rejects any capitalised or unknown string.
+// Flow: paid (webhook) → processing → shipped → delivered
+//       cancelled / refunded at any time by admin
 export type OrderStatus =
   | "pending"
   | "paid"
   | "processing"
   | "shipped"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "refunded";
 
-// Brevo template IDs — replaced with real IDs after Phase 1
+// Brevo transactional template IDs.
+// Override at runtime via BREVO_TEMPLATE_* env vars (recommended).
+// These defaults match the numbering in the Mail Templates folder.
 export const BREVO_TEMPLATES = {
-  order_received: 1,
+  order_received:  1,
   payment_success: 2,
-  payment_failed: 3,
+  payment_failed:  3,
   admin_new_order: 4,
   order_dispatched: 5,
   order_delivered: 6,
