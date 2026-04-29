@@ -236,7 +236,11 @@ Deno.serve(async (req: Request) => {
   // so stock never goes negative.  Errors are logged but never fail the webhook response —
   // the order is already committed and the admin can correct stock manually if needed.
   for (const item of normItems) {
-    if (item.is_free || !item.product_sku) continue;
+    if (item.is_free) continue;
+    if (!item.product_sku) {
+      console.warn('[webhook] No product_sku on item, skipping stock deduction:', item.product_name);
+      continue;
+    }
     const { data: newQty, error: stockErr } = await supabase
       .rpc('deduct_stock_by_sku', { p_sku: item.product_sku, p_qty: item.quantity });
     if (stockErr) {

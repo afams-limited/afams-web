@@ -271,7 +271,7 @@ function addToCart(arg) {
     // Object format: addToCart({sku, name, unit_price, qty, image, type})
     cartItem = Object.assign({}, arg, { qty: arg.qty || 1 });
   } else {
-    return;
+    return; // arg is null/undefined/invalid — nothing to add
   }
 
   // Stock guard: block if product is confirmed out of stock

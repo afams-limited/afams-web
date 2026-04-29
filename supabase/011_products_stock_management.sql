@@ -30,8 +30,11 @@ CREATE TRIGGER set_products_updated_at
   EXECUTE FUNCTION public.set_updated_at();
 
 -- ── Seed initial stock for existing main products ────────────────────────────
--- Set generous initial stock so the storefront shows "In Stock" by default.
--- Admin can fine-tune these values from the dashboard at any time.
+-- Set conservative initial values so the storefront shows "In Stock" by default.
+-- Admin should review and adjust these from the dashboard before going live:
+--   50  → FarmBags and GrowBags (physical stocked goods with limited batch production)
+--   100 → Seeds (small packets, higher stock throughput)
+--   25  → Everything else (default fallback — conservative)
 UPDATE public.products
 SET stock_quantity = CASE
   WHEN product_line IN ('farmbag', 'growbag', 'prosoil') THEN 50
