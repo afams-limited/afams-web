@@ -231,13 +231,28 @@ Deno.serve(async (req: Request) => {
     console.log('[webhook] order_items OK —', lineItems.length, 'item(s) for', order.order_number);
   }
 
-  // Step 13: Respond to Paystack BEFORE sending email — prevents 30s timeout
+  // Step 13: Deduct stock for each ordered product (non-free items with a known SKU)
+  // Uses the deduct_stock_by_sku RPC which runs SECURITY DEFINER and uses GREATEST(0, ...)
+  // so stock never goes negative.  Errors are logged but never fail the webhook response —
+  // the order is already committed and the admin can correct stock manually if needed.
+  for (const item of normItems) {
+    if (item.is_free || !item.product_sku) continue;
+    const { data: newQty, error: stockErr } = await supabase
+      .rpc('deduct_stock_by_sku', { p_sku: item.product_sku, p_qty: item.quantity });
+    if (stockErr) {
+      console.error('[webhook] Stock deduction failed for', item.product_sku, ':', stockErr.message);
+    } else {
+      console.log('[webhook] Stock deducted for', item.product_sku, '— new qty:', newQty);
+    }
+  }
+
+  // Step 14: Respond to Paystack BEFORE sending email — prevents 30s timeout
   const webhookResponse = new Response(
     JSON.stringify({ received: true, order_id: order.id, order_number: order.order_number }),
     { status: 200, headers: CORS },
   );
 
-  // Step 14: Trigger confirmation email — fire and forget, non-blocking
+  // Step 15: Trigger confirmation email — fire and forget, non-blocking
   supabase.functions.invoke('send-order-email', {
     body: { order_id: order.id, email_type: 'order_received' },
   }).catch((e: Error) =>
