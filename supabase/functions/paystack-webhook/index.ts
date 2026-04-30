@@ -231,23 +231,16 @@ Deno.serve(async (req: Request) => {
     console.log('[webhook] order_items OK —', lineItems.length, 'item(s) for', order.order_number);
   }
 
-  // Step 13: Deduct stock for each ordered product (non-free items with a known SKU)
-  // Uses the deduct_stock_by_sku RPC which runs SECURITY DEFINER and uses GREATEST(0, ...)
-  // so stock never goes negative.  Errors are logged but never fail the webhook response —
-  // the order is already committed and the admin can correct stock manually if needed.
-  for (const item of normItems) {
-    if (item.is_free) continue;
-    if (!item.product_sku) {
-      console.warn('[webhook] No product_sku on item, skipping stock deduction:', item.product_name);
-      continue;
-    }
-    const { data: newQty, error: stockErr } = await supabase
-      .rpc('deduct_stock_by_sku', { p_sku: item.product_sku, p_qty: item.quantity });
-    if (stockErr) {
-      console.error('[webhook] Stock deduction failed for', item.product_sku, ':', stockErr.message);
-    } else {
-      console.log('[webhook] Stock deducted for', item.product_sku, '— new qty:', newQty);
-    }
+  // Step 13: Deduct stock for the order via the deployed RPC.
+  // deduct_stock_after_order runs SECURITY DEFINER, uses GREATEST(0, ...) to prevent negative
+  // stock, and handles the items JSONB array internally.  Errors are logged but never fail the
+  // webhook response — the order is already committed and the admin can correct stock manually.
+  const { error: stockErr } = await supabase
+    .rpc('deduct_stock_after_order', { p_order_id: order.id });
+  if (stockErr) {
+    console.error('[webhook] Stock deduction failed for order', order.order_number, ':', stockErr.message);
+  } else {
+    console.log('[webhook] Stock deducted for order', order.order_number);
   }
 
   // Step 14: Respond to Paystack BEFORE sending email — prevents 30s timeout
