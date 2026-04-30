@@ -1,592 +1,164 @@
-# Afams Stock Management Implementation Brief for GitHub Copilot
+# Afams Stock Management — GitHub Copilot Implementation Brief
 
 **Project:** Afams Website  
 **Site:** https://afams.co.ke/  
-**Admin dashboard:** https://afams.co.ke/admin  
-**Target pages:**  
-- `https://afams.co.ke/`
-- `https://afams.co.ke/index.html`
+**Admin Dashboard:** https://afams.co.ke/admin  
+**Supabase Project:** `dvquyzzqsnlcassvgdzz`
+
+**Target pages / routes:**
+- `https://afams.co.ke/` (`index.html`)
 - `https://afams.co.ke/products.html`
-- Admin dashboard route/page
+- `/admin` (admin dashboard)
+
+---
+
+## ⚠️ Actual Schema — Read Before Touching Anything
+
+The Supabase `products` table does **not** use a UUID `id` column. Read carefully:
+
+| Column used in codebase | Actual column name in Supabase |
+|---|---|
+| Primary key | `sku` (text, e.g. `"FB-CLS-01"`) |
+| Price | `unit_price` (integer, KES) |
+| Active/visible flag | `active` (boolean) |
+| Images | `images` (jsonb array) |
+| Stock quantity | `stock_quantity` (integer) ← **already added** |
+| Last updated | `updated_at` (timestamptz) ← **already added** |
+
+The `orders` table is **flat** — there is no separate `order_items` table. Every order record directly contains `product_sku`, `quantity`, `unit_price`, `total_amount`, plus `prosoil_qty` for ProSoil add-ons, and an `items` jsonb array for any additional line items.
+
+ProSoil SKU: **`PS-25KG`**
 
 ---
 
 ## 1. Goal
 
-Build a proper product stock management system for Afams products.
-
-The admin should be able to set and update stock quantity for every product from the admin dashboard. The public website should **not expose the exact stock number** to customers. Instead:
-
-- If product stock is greater than `0`, show: **In Stock**
-- If product stock is `0`, show: **Out of Stock**
-- If product stock is `0`, prevent customers from adding that product to cart
-- When an order is successfully placed, reduce stock automatically on the admin side
-- Stock updates should sync through Supabase and ideally support real-time updates
-- The solution must work for all products currently available on the site and be scalable for future products
+Build product stock management across the Afams platform. The admin sets stock quantities per product. The public site only ever shows **In Stock** or **Out of Stock** — never the exact number. When a paid/accepted order is created, stock reduces automatically and securely through Supabase.
 
 ---
 
-## 2. Expected Customer-Facing Behaviour
+## 2. Database — What Is Already Done ✅
 
-### Product Card / Product Detail Behaviour
+The following has been applied directly to Supabase (`dvquyzzqsnlcassvgdzz`):
 
-For each product displayed on:
-
-- `index.html`
-- `products.html`
-- Any product listing component
-- Any product detail modal/page if available
-
-Show stock status as a label/badge:
-
-```txt
-In Stock
+```sql
+-- Column: stock_quantity (default 0, non-negative constraint enforced)
+-- Column: updated_at (auto-updated by trigger)
+-- Trigger: set_products_updated_at (fires before update)
+-- RPC function: deduct_stock_after_order(p_order_id uuid)
+-- Realtime: products table added to supabase_realtime publication
 ```
 
-when:
+All products currently have `stock_quantity = 0`. The first task for the admin is to set the correct opening stock for each product.
+
+---
+
+## 3. Customer-Facing Behaviour
+
+### Stock Badge
+
+Display on every product card and product detail view on `index.html`, `products.html`, and any modal/drawer:
 
 ```ts
-stock_quantity > 0
+// Source of truth — always derived from Supabase, never hardcoded
+const inStock = product.stock_quantity > 0;
 ```
 
-Show:
+| Condition | Badge text | Badge style |
+|---|---|---|
+| `stock_quantity > 0` | **In Stock** | green pill |
+| `stock_quantity <= 0` | **Out of Stock** | red pill |
 
-```txt
-Out of Stock
+Do **not** show the exact number to customers (`"Only 7 left"` etc.) unless that is a deliberate future decision.
+
+### Add to Cart Button
+
+| Condition | Button text | Button state |
+|---|---|---|
+| In stock | `Add to Cart` | active |
+| Out of stock | `Out of Stock` | disabled (`disabled` attribute + `cursor: not-allowed`) |
+
+Out-of-stock products must also be blocked at checkout and at the database level — not only by the button state.
+
+---
+
+## 4. Admin Dashboard Behaviour (`/admin`)
+
+The admin must be able to:
+
+1. View all products with exact stock quantity
+2. Edit stock quantity inline
+3. Set quantity to zero (manually mark out of stock)
+4. Increase quantity (restock)
+5. See stock reduce automatically after a successful order, in real-time
+
+### Stock Table Columns
+
+```
+Product Image | Product Name | SKU | Category | Unit Price (KES) | Stock Qty | Stock Status | Last Updated | Actions
 ```
 
-when:
+### Stock Status Logic (Admin)
 
 ```ts
-stock_quantity <= 0
+stock_quantity > 10               → "In Stock"       (green)
+stock_quantity > 0 && <= 10       → "Low Stock"       (amber) — optional
+stock_quantity === 0              → "Out of Stock"    (red)
 ```
 
-### Add to Cart Behaviour
+### Admin Actions per Row
 
-If product is in stock:
-
-- Add to Cart button is active
-- Product can be added to cart
-
-If product is out of stock:
-
-- Add to Cart button is disabled
-- Button text should change to something like:
-
-```txt
-Out of Stock
 ```
-
-or:
-
-```txt
-Unavailable
-```
-
-- Product cannot be added to cart through UI
-- Product should also be blocked at checkout/server/database level, not only through frontend checks
-
-### Important
-
-Do **not** show exact quantity to customers.
-
-Do not show:
-
-```txt
-Only 7 left
-```
-
-unless intentionally added later.
-
-For now, public display should only be:
-
-```txt
-In Stock
-Out of Stock
+[Edit Stock]  [+ Increase]  [Set to Zero]  [Save]  [Cancel]
 ```
 
 ---
 
-## 3. Expected Admin Dashboard Behaviour
-
-Inside:
-
-```txt
-/admin
-```
-
-the admin should be able to:
-
-1. View all products
-2. See the exact stock quantity for each product
-3. Edit stock quantity manually
-4. Set product stock to `0`
-5. Mark stock as available by setting quantity above `0`
-6. See stock reduce automatically after successful orders
-7. Ideally see real-time updates without refreshing the page
-
-Suggested admin table columns:
-
-```txt
-Product Image
-Product Name
-SKU / Slug
-Category
-Price
-Current Stock
-Stock Status
-Last Updated
-Actions
-```
-
-Suggested stock status logic:
-
-```ts
-stock_quantity > 0 ? "In Stock" : "Out of Stock"
-```
-
-Suggested actions:
-
-```txt
-Edit Stock
-Increase Stock
-Set to Zero
-Save
-Cancel
-```
-
----
-
-## 4. Supabase Database Requirements
-
-The implementation should inspect the existing database first before creating duplicate tables or columns.
-
-### Preferred Product Table
-
-If a `products` table already exists, update it.
-
-If no products table exists, create one.
-
-Recommended columns:
-
-```sql
-id uuid primary key default gen_random_uuid(),
-name text not null,
-slug text unique,
-sku text unique,
-description text,
-category text,
-price numeric(12,2) not null default 0,
-image_url text,
-is_active boolean not null default true,
-stock_quantity integer not null default 0,
-stock_status text generated always as (
-  case
-    when stock_quantity > 0 then 'in_stock'
-    else 'out_of_stock'
-  end
-) stored,
-created_at timestamptz not null default now(),
-updated_at timestamptz not null default now()
-```
-
-If Supabase does not allow generated columns in the current setup, use application logic instead and only store:
-
-```sql
-stock_quantity integer not null default 0
-```
-
-Then derive status in code.
-
-### Add Stock Quantity to Existing Products Table
-
-If `products` already exists but lacks stock quantity:
-
-```sql
-alter table public.products
-add column if not exists stock_quantity integer not null default 0;
-```
-
-Optional:
-
-```sql
-alter table public.products
-add column if not exists is_active boolean not null default true;
-
-alter table public.products
-add column if not exists updated_at timestamptz not null default now();
-```
-
-### Stock Quantity Constraint
-
-Prevent negative stock:
-
-```sql
-alter table public.products
-add constraint products_stock_quantity_non_negative
-check (stock_quantity >= 0);
-```
-
-If the constraint already exists, do not duplicate it.
-
----
-
-## 5. Updated At Trigger
-
-Create or reuse a trigger to update `updated_at`.
-
-```sql
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-drop trigger if exists set_products_updated_at on public.products;
-
-create trigger set_products_updated_at
-before update on public.products
-for each row
-execute function public.set_updated_at();
-```
-
----
-
-## 6. Order and Stock Deduction Logic
-
-Stock must reduce only when an order is successfully accepted/created.
-
-The safest approach is to deduct stock inside a Supabase PostgreSQL transaction using a database function.
-
-Do not rely only on frontend JavaScript for stock deduction.
-
-### Assumed Order Structure
-
-If current order tables already exist, adapt to them.
-
-Likely tables:
-
-```txt
-orders
-order_items
-products
-```
-
-Recommended `order_items` fields:
-
-```sql
-id uuid primary key default gen_random_uuid(),
-order_id uuid references public.orders(id) on delete cascade,
-product_id uuid references public.products(id),
-product_name text not null,
-quantity integer not null check (quantity > 0),
-unit_price numeric(12,2) not null,
-total_price numeric(12,2) not null,
-created_at timestamptz not null default now()
-```
-
-### Stock Deduction Rule
-
-For every product in the cart:
-
-1. Confirm product exists
-2. Confirm product is active
-3. Confirm `stock_quantity >= requested_quantity`
-4. Insert order
-5. Insert order items
-6. Deduct stock
-7. If any item fails, rollback entire order
-
----
-
-## 7. Recommended Supabase RPC Function
-
-Create an RPC function for checkout/order creation if the current code does not already have a secure server-side process.
-
-This is a suggested pattern. Adjust field names to the existing Afams schema.
-
-```sql
-create or replace function public.create_order_with_stock_check(
-  p_customer_name text,
-  p_customer_email text,
-  p_customer_phone text,
-  p_delivery_address text,
-  p_payment_method text,
-  p_items jsonb
-)
-returns uuid
-language plpgsql
-security definer
-as $$
-declare
-  v_order_id uuid;
-  v_item jsonb;
-  v_product_id uuid;
-  v_quantity integer;
-  v_product record;
-  v_total numeric(12,2) := 0;
-begin
-  if jsonb_array_length(p_items) = 0 then
-    raise exception 'Cart is empty';
-  end if;
-
-  -- Validate stock first
-  for v_item in select * from jsonb_array_elements(p_items)
-  loop
-    v_product_id := (v_item->>'product_id')::uuid;
-    v_quantity := (v_item->>'quantity')::integer;
-
-    if v_quantity <= 0 then
-      raise exception 'Invalid quantity';
-    end if;
-
-    select *
-    into v_product
-    from public.products
-    where id = v_product_id
-    for update;
-
-    if not found then
-      raise exception 'Product not found';
-    end if;
-
-    if coalesce(v_product.is_active, true) = false then
-      raise exception 'Product is inactive';
-    end if;
-
-    if v_product.stock_quantity < v_quantity then
-      raise exception 'Insufficient stock for %', v_product.name;
-    end if;
-
-    v_total := v_total + (v_product.price * v_quantity);
-  end loop;
-
-  -- Create order
-  insert into public.orders (
-    customer_name,
-    customer_email,
-    customer_phone,
-    delivery_address,
-    payment_method,
-    total_amount,
-    status,
-    created_at
-  )
-  values (
-    p_customer_name,
-    p_customer_email,
-    p_customer_phone,
-    p_delivery_address,
-    p_payment_method,
-    v_total,
-    'pending',
-    now()
-  )
-  returning id into v_order_id;
-
-  -- Insert order items and deduct stock
-  for v_item in select * from jsonb_array_elements(p_items)
-  loop
-    v_product_id := (v_item->>'product_id')::uuid;
-    v_quantity := (v_item->>'quantity')::integer;
-
-    select *
-    into v_product
-    from public.products
-    where id = v_product_id
-    for update;
-
-    insert into public.order_items (
-      order_id,
-      product_id,
-      product_name,
-      quantity,
-      unit_price,
-      total_price,
-      created_at
-    )
-    values (
-      v_order_id,
-      v_product.id,
-      v_product.name,
-      v_quantity,
-      v_product.price,
-      v_product.price * v_quantity,
-      now()
-    );
-
-    update public.products
-    set stock_quantity = stock_quantity - v_quantity
-    where id = v_product.id;
-  end loop;
-
-  return v_order_id;
-end;
-$$;
-```
-
-### Important Security Notes
-
-After creating the function:
-
-- Restrict direct product stock updates to admin users only
-- Allow public users to read product stock status, but not edit stock
-- Public users should not be able to manually call stock update queries
-- Checkout should use a controlled server/API/RPC flow
-
----
-
-## 8. Public Read Policy
-
-Customers need to view products.
-
-Example RLS policy:
-
-```sql
-alter table public.products enable row level security;
-
-create policy "Public can view active products"
-on public.products
-for select
-using (is_active = true);
-```
-
----
-
-## 9. Admin Update Policy
-
-Use the existing admin authentication system if already available.
-
-If the project has an `admins`, `profiles`, or role-based table, integrate with that.
-
-Example only:
-
-```sql
-create policy "Admins can update products"
-on public.products
-for update
-using (
-  exists (
-    select 1
-    from public.profiles
-    where profiles.id = auth.uid()
-    and profiles.role = 'admin'
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.profiles
-    where profiles.id = auth.uid()
-    and profiles.role = 'admin'
-  )
-);
-```
-
-If the existing admin dashboard does not use Supabase Auth, do not blindly apply this. Match the current authentication flow.
-
----
-
-## 10. Real-Time Stock Updates
-
-Enable Supabase Realtime for the `products` table.
-
-In Supabase dashboard:
-
-```txt
-Database → Replication → Enable Realtime for products
-```
-
-Or via SQL where applicable:
-
-```sql
-alter publication supabase_realtime add table public.products;
-```
-
-If this fails because the table is already added, ignore the duplicate error.
-
-Frontend should subscribe to product changes:
-
-```ts
-const channel = supabase
-  .channel('products-stock-changes')
-  .on(
-    'postgres_changes',
-    {
-      event: '*',
-      schema: 'public',
-      table: 'products',
-    },
-    (payload) => {
-      // Update local product state
-      // If product stock becomes 0, immediately disable Add to Cart
-      // If admin increases stock, immediately show In Stock
-    }
-  )
-  .subscribe();
-
-return () => {
-  supabase.removeChannel(channel);
-};
-```
-
----
-
-## 11. Frontend Product Type
-
-Update product type/interface.
+## 5. Frontend Product Type — Update This Interface
 
 ```ts
 export interface Product {
-  id: string;
+  sku: string;           // Primary key (e.g. "FB-CLS-01")
   name: string;
-  slug?: string;
-  sku?: string;
   description?: string;
   category?: string;
-  price: number;
-  image_url?: string;
-  is_active?: boolean;
+  product_line?: string;
+  variant?: string;
+  size_label?: string;
+  unit_price: number;    // Integer, KES (e.g. 7500 = KES 7,500)
+  images?: any[];        // jsonb array
+  active: boolean;       // Not "is_active"
   stock_quantity: number;
+  sort_order?: number;
   created_at?: string;
   updated_at?: string;
 }
 ```
 
-Helper:
+Helper functions:
 
 ```ts
-export function isProductInStock(product: Product): boolean {
-  return Number(product.stock_quantity || 0) > 0;
+export function isInStock(product: Product): boolean {
+  return Number(product.stock_quantity ?? 0) > 0;
 }
 
 export function getPublicStockLabel(product: Product): 'In Stock' | 'Out of Stock' {
-  return isProductInStock(product) ? 'In Stock' : 'Out of Stock';
+  return isInStock(product) ? 'In Stock' : 'Out of Stock';
 }
 ```
 
 ---
 
-## 12. Product Card UI Logic
-
-Update every product card/listing component.
-
-Example:
+## 6. Product Card UI Pattern
 
 ```tsx
 const inStock = product.stock_quantity > 0;
 
 return (
   <div className="product-card">
-    <img src={product.image_url} alt={product.name} />
-
+    <img src={product.images?.[0]?.url} alt={product.name} />
     <h3>{product.name}</h3>
-
-    <p>{formatCurrency(product.price)}</p>
+    <p>{formatCurrency(product.unit_price)}</p>
 
     <span className={inStock ? 'stock-badge stock-in' : 'stock-badge stock-out'}>
       {inStock ? 'In Stock' : 'Out of Stock'}
@@ -594,10 +166,7 @@ return (
 
     <button
       disabled={!inStock}
-      onClick={() => {
-        if (!inStock) return;
-        addToCart(product);
-      }}
+      onClick={() => { if (!inStock) return; addToCart(product); }}
       className={inStock ? 'btn-primary' : 'btn-disabled'}
     >
       {inStock ? 'Add to Cart' : 'Out of Stock'}
@@ -608,9 +177,9 @@ return (
 
 ---
 
-## 13. Cart Validation
+## 7. Cart Validation
 
-When adding to cart:
+### Adding to Cart
 
 ```ts
 function addToCart(product: Product) {
@@ -618,75 +187,100 @@ function addToCart(product: Product) {
     toast.error('This product is currently out of stock.');
     return;
   }
-
-  // Continue existing cart logic
+  // continue existing cart logic
 }
 ```
 
-When increasing cart quantity:
+### Increasing Cart Quantity
 
 ```ts
-function increaseCartQuantity(productId: string) {
-  const product = products.find((item) => item.id === productId);
-  const cartItem = cart.find((item) => item.product_id === productId);
-
+function increaseCartQuantity(sku: string) {
+  const product = products.find(p => p.sku === sku);
+  const cartItem = cart.find(item => item.sku === sku);
   if (!product || !cartItem) return;
 
   if (cartItem.quantity + 1 > product.stock_quantity) {
     toast.error('You cannot add more than the available stock.');
     return;
   }
-
-  // Continue increasing quantity
+  // continue increasing
 }
 ```
 
-Customer still should not see exact stock number. The above logic only prevents adding beyond available quantity.
+Note: the quantity cap uses `stock_quantity` internally but never exposes the number in the UI.
 
 ---
 
-## 14. Checkout Validation
+## 8. Checkout Validation
 
-Before submitting order:
+Before submitting an order:
 
-1. Re-fetch latest product stock from Supabase
-2. Compare cart quantities against stock
-3. Block checkout if any item is unavailable
-4. Use RPC/server-side function for final stock deduction
-
-Example user-facing messages:
+1. Re-fetch the latest `stock_quantity` for all cart items from Supabase
+2. Compare cart quantities against current stock
+3. Block checkout if any item is unavailable, with a clear message:
 
 ```txt
-Some items in your cart are no longer available.
-Please review your cart before checkout.
+Some items in your cart are no longer available. Please review your cart.
 ```
 
-or:
+or more specific:
 
 ```txt
-FarmBag XL — Wide is currently out of stock.
+FarmBag Classic is currently out of stock.
 ```
 
-Avoid exposing exact stock numbers unless business wants it later.
+4. On the server/Edge Function side, call the RPC function for the actual stock deduction (see Section 9).
 
 ---
 
-## 15. Admin Stock Editor Component
+## 9. Stock Deduction — RPC Function (Already Deployed)
 
-Create or update admin product management component.
+The function `public.deduct_stock_after_order(p_order_id uuid)` is already live in Supabase.
 
-Suggested state shape:
+Call it **after** a successful Paystack payment verification or COD order acceptance:
 
 ```ts
+// In your Paystack webhook handler or order-success Edge Function:
+const { error } = await supabase.rpc('deduct_stock_after_order', {
+  p_order_id: orderId,
+});
+
+if (error) {
+  console.error('Stock deduction failed:', error.message);
+  // Alert admin — do not silently fail
+}
+```
+
+### What the Function Does
+
+1. Looks up the order by `id`
+2. Deducts `quantity` from `products` where `sku = order.product_sku` (row-locked)
+3. Deducts `prosoil_qty` from `products` where `sku = 'PS-25KG'`
+4. Iterates `order.items` jsonb and deducts any additional line items
+5. Raises an exception (rolls back) if stock is insufficient for any item
+6. Uses `FOR UPDATE` row locking to prevent race conditions
+
+### Deduction Trigger Points
+
+| Payment method | Deduct stock when |
+|---|---|
+| Paystack | After `payment.verified` webhook succeeds and order is created |
+| COD / Preorder | When order is created/accepted in the system |
+
+**Never deduct on payment initialization** — only on confirmed success.
+
+---
+
+## 10. Admin Stock Editor Component
+
+```ts
+// State shape
 const [products, setProducts] = useState<Product[]>([]);
-const [editingProductId, setEditingProductId] = useState<string | null>(null);
+const [editingId, setEditingId] = useState<string | null>(null); // sku
 const [stockDraft, setStockDraft] = useState<number>(0);
-```
 
-Update stock:
-
-```ts
-async function updateProductStock(productId: string, newStock: number) {
+// Update stock
+async function updateProductStock(sku: string, newStock: number) {
   if (newStock < 0) {
     toast.error('Stock cannot be negative.');
     return;
@@ -695,11 +289,10 @@ async function updateProductStock(productId: string, newStock: number) {
   const { error } = await supabase
     .from('products')
     .update({ stock_quantity: newStock })
-    .eq('id', productId);
+    .eq('sku', sku); // ← PK is sku, not id
 
   if (error) {
-    console.error(error);
-    toast.error('Failed to update stock.');
+    toast.error('Failed to update stock. Please try again.');
     return;
   }
 
@@ -707,64 +300,102 @@ async function updateProductStock(productId: string, newStock: number) {
 }
 ```
 
-Admin should be allowed to see exact quantity:
+Admin table row example:
 
 ```tsx
 <td>{product.stock_quantity}</td>
-<td>{product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}</td>
+<td>
+  <span className={product.stock_quantity > 0 ? 'badge-in-stock' : 'badge-out-of-stock'}>
+    {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
+  </span>
+</td>
+<td>{new Date(product.updated_at).toLocaleDateString('en-KE')}</td>
 ```
 
 ---
 
-## 16. Admin Dashboard UX Requirements
+## 11. Realtime Subscription
 
-Admin page should include:
-
-### Product Stock Table
-
-- Search products
-- Filter by:
-  - All
-  - In Stock
-  - Out of Stock
-- Sort by:
-  - Name
-  - Stock quantity
-  - Last updated
-- Inline stock editing
-
-### Low Stock Optional Feature
-
-Optional but recommended:
-
-Add `low_stock_threshold` column later:
-
-```sql
-alter table public.products
-add column if not exists low_stock_threshold integer not null default 5;
-```
-
-Admin display:
-
-```txt
-Low Stock
-```
-
-when:
+Products are already added to the Supabase realtime publication. Subscribe in both the public storefront and the admin dashboard:
 
 ```ts
-stock_quantity > 0 && stock_quantity <= low_stock_threshold
+useEffect(() => {
+  const channel = supabase
+    .channel('products-stock')
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'products' },
+      (payload) => {
+        const updated = payload.new as Product;
+        setProducts(prev =>
+          prev.map(p => p.sku === updated.sku ? { ...p, ...updated } : p)
+        );
+      }
+    )
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}, []);
 ```
 
-Public users should still only see:
+On the public site, when a product's `stock_quantity` drops to `0`, the Add to Cart button should disable immediately without a page reload.
 
-```txt
-In Stock
+---
+
+## 12. RLS Policies
+
+```sql
+-- Public: can read active products (stock_quantity included — do not hide it at DB level,
+-- hide it at the UI level instead)
+create policy "Public can view active products"
+  on public.products for select
+  using (active = true);
+
+-- Admin: can update products (adapt to your existing auth check)
+create policy "Admins can update products"
+  on public.products for update
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = auth.uid()
+      and profiles.role = 'admin'
+    )
+  );
+```
+
+If the admin dashboard does not use Supabase Auth (e.g. it uses a separate auth mechanism), do not blindly apply the admin policy — match the existing auth flow.
+
+---
+
+## 13. Admin Dashboard UX
+
+The stock management section in `/admin` should support:
+
+- **Search** products by name or SKU
+- **Filter** by: All · In Stock · Out of Stock
+- **Sort** by: Name · Stock Quantity · Last Updated
+- **Inline editing** with Save / Cancel per row
+- **Bulk restock** input (optional, Phase 2)
+
+### Low Stock Warning (Optional)
+
+```sql
+-- Add when ready:
+alter table public.products
+  add column if not exists low_stock_threshold integer not null default 10;
+```
+
+```ts
+// Admin only — never shown publicly
+const stockStatus =
+  qty === 0 ? 'Out of Stock' :
+  qty <= product.low_stock_threshold ? 'Low Stock' :
+  'In Stock';
 ```
 
 ---
 
-## 17. CSS Suggestions
+## 14. CSS Badges
 
 ```css
 .stock-badge {
@@ -774,273 +405,154 @@ In Stock
   padding: 0.25rem 0.65rem;
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
-.stock-in {
-  background: #dcfce7;
-  color: #166534;
-}
+.stock-in  { background: #dcfce7; color: #166534; }
+.stock-out { background: #fee2e2; color: #991b1b; }
+.stock-low { background: #fef9c3; color: #854d0e; } /* admin only */
 
-.stock-out {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.btn-disabled,
-button:disabled {
+button:disabled,
+.btn-disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 ```
 
+Use `#2D6A4F` (Afams forest green) for In Stock badges if you want them on-brand instead of the default green above.
+
 ---
 
-## 18. Order Status and Stock Deduction Decision
+## 15. Paystack Flow — Do Not Break This
 
-Important business decision:
-
-Stock should reduce when order is created successfully.
-
-For Afams, this likely means:
-
-- For Paystack paid orders: reduce stock after payment verification succeeds
-- For preorder/COD/manual orders: reduce stock when the order is accepted/created in the system
-
-Avoid reducing stock too early if the user abandons payment.
-
-Recommended:
-
-### Paystack Flow
-
-```txt
+```
 Customer starts checkout
-↓
-Paystack payment initialized
-↓
-Payment succeeds
-↓
-Backend verifies payment
-↓
-Order is created
-↓
-Stock is deducted
-↓
-Confirmation email/WhatsApp/admin notification sent
+        ↓
+Paystack payment initialized (do NOT deduct stock here)
+        ↓
+Customer completes payment
+        ↓
+Paystack webhook → payment.verified
+        ↓
+Edge Function: verify reference, create order row in Supabase
+        ↓
+Edge Function: call deduct_stock_after_order(order_id)  ← add here
+        ↓
+Send confirmation email / WhatsApp / admin notification
 ```
-
-### COD / Preorder Flow
-
-```txt
-Customer submits order
-↓
-Order is created as pending
-↓
-Stock is deducted/reserved
-↓
-Admin processes order
-```
-
-If Afams wants stricter stock handling later, add `reserved_stock` and release stock when pending orders are cancelled.
-
----
-
-## 19. Optional Future Upgrade: Stock Movements Table
-
-For serious inventory tracking, create a stock movement ledger.
-
-This is recommended for later, but not mandatory for the first implementation.
-
-```sql
-create table if not exists public.stock_movements (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid references public.products(id) on delete cascade,
-  movement_type text not null check (
-    movement_type in ('manual_adjustment', 'sale', 'restock', 'order_cancelled', 'correction')
-  ),
-  quantity_change integer not null,
-  previous_quantity integer not null,
-  new_quantity integer not null,
-  order_id uuid,
-  note text,
-  created_by uuid,
-  created_at timestamptz not null default now()
-);
-```
-
-Benefits:
-
-- Admin can audit who changed stock
-- Easier to debug missing stock
-- Useful when Afams starts mass production
-- Useful for reports
-
----
-
-## 20. Migration Order
-
-Copilot should apply implementation in this order:
-
-1. Inspect current Supabase schema
-2. Identify current product source:
-   - Hardcoded JS/TS array?
-   - Supabase `products` table?
-   - JSON file?
-3. If products are hardcoded, migrate them into Supabase `products`
-4. Add `stock_quantity` to products
-5. Add non-negative stock constraint
-6. Add/update admin stock editing UI
-7. Update public product cards to show `In Stock` / `Out of Stock`
-8. Disable Add to Cart for out-of-stock products
-9. Add cart quantity validation
-10. Add checkout stock validation
-11. Add transactional stock deduction through Supabase RPC/server route
-12. Enable Supabase realtime for products
-13. Subscribe frontend/admin to realtime stock changes
-14. Test full order flow
-15. Test Paystack flow carefully without breaking current checkout/payment logic
-
----
-
-## 21. Critical Rule: Do Not Break Existing Paystack Checkout
-
-Existing Paystack payment and checkout logic should be preserved.
 
 Before modifying checkout:
-
-- Locate current Paystack initialization
-- Locate current payment verification
+- Locate current Paystack initialization code
+- Locate current webhook/payment verification handler
 - Locate current order insert logic
-- Add stock deduction after confirmed successful order/payment
-- Do not rewrite the entire payment flow unless absolutely necessary
+- Insert the `deduct_stock_after_order` call **after** the order is confirmed
 
-Add stock management as a safe layer around existing checkout.
+Do not rewrite the payment flow — add stock deduction as a thin layer on top.
 
 ---
 
-## 22. Required Tests
+## 16. COD / Preorder Flow
 
-### Public Site Tests
-
-Test on:
-
-```txt
-/
-index.html
-products.html
+```
+Customer submits order form
+        ↓
+Order created in Supabase as status = 'pending'
+        ↓
+call deduct_stock_after_order(order_id)  ← deduct immediately on acceptance
+        ↓
+Admin processes / ships order
 ```
 
-Cases:
-
-1. Product with stock `10`
-   - Shows `In Stock`
-   - Add to Cart works
-
-2. Product with stock `1`
-   - Shows `In Stock`
-   - Customer can add only 1
-   - Increasing quantity beyond 1 is blocked
-
-3. Product with stock `0`
-   - Shows `Out of Stock`
-   - Add to Cart disabled
-   - Product cannot be added through direct JS/cart manipulation
-
-4. Admin changes product from `0` to `5`
-   - Public site updates to `In Stock`
-   - Add to Cart becomes available
-
-5. Admin changes product from `5` to `0`
-   - Public site updates to `Out of Stock`
-   - Add to Cart becomes disabled
-
-### Admin Dashboard Tests
-
-1. Admin can view all products
-2. Admin can update stock quantity
-3. Admin cannot set negative stock
-4. Stock changes save to Supabase
-5. Stock updates in real-time after an order
-6. Stock status changes correctly
-
-### Checkout Tests
-
-1. Successful order deducts stock
-2. Failed payment does not deduct stock
-3. Out-of-stock product cannot be ordered
-4. Two users attempting to buy the last item should not create negative stock
-5. Order with multiple products deducts all correctly
-6. If one item has insufficient stock, the entire order should fail or ask user to update cart
+If you want to be more conservative later, add a `reserved_stock` field and release it on cancellation. Not required for v1.
 
 ---
 
-## 23. Error Messages
+## 17. Implementation Order for Copilot
 
-Use clean customer-facing messages:
+Apply in this exact sequence to avoid breaking existing functionality:
 
-```txt
+1. Confirm `stock_quantity` and `updated_at` exist in `products` (they do — already applied)
+2. Confirm `deduct_stock_after_order` function exists (it does — already applied)
+3. Update the `Product` interface/type to include `stock_quantity` and `updated_at`
+4. Update `fetchProducts` queries to include `stock_quantity` in the `select`
+5. Update public product card components to show In Stock / Out of Stock badge
+6. Disable Add to Cart button when `stock_quantity <= 0`
+7. Add stock check in `addToCart()` function
+8. Add quantity cap in `increaseCartQuantity()` function
+9. Add pre-checkout stock re-validation (fetch fresh stock before submitting)
+10. Locate Paystack webhook / payment success handler
+11. Add `supabase.rpc('deduct_stock_after_order', { p_order_id })` call after order creation
+12. Update admin dashboard to show stock column and stock editor
+13. Add Supabase realtime subscription in storefront and admin
+14. Test the full order flow end-to-end (see Section 18)
+15. Confirm existing Paystack checkout and email flows still work
+
+---
+
+## 18. Required Tests
+
+### Public Site
+
+| Test | Expected |
+|---|---|
+| Product with `stock_quantity = 10` | Shows "In Stock", Add to Cart enabled |
+| Product with `stock_quantity = 1` | Shows "In Stock", cart capped at 1 |
+| Product with `stock_quantity = 0` | Shows "Out of Stock", button disabled |
+| Admin changes `0 → 5` | Public site updates to "In Stock" in real-time |
+| Admin changes `5 → 0` | Public site updates to "Out of Stock" in real-time |
+
+### Admin Dashboard
+
+| Test | Expected |
+|---|---|
+| View all products | Exact stock quantity visible |
+| Edit stock | Saves to Supabase, `updated_at` refreshes |
+| Set negative stock | Blocked — "Stock cannot be negative" |
+| After successful order | Stock reduces, admin sees update in real-time |
+
+### Checkout
+
+| Test | Expected |
+|---|---|
+| Successful Paystack order | Stock deducted after payment verified |
+| Abandoned payment | Stock NOT deducted |
+| Checkout with out-of-stock item | Blocked with clear error message |
+| Two users buying last item simultaneously | Row lock prevents negative stock |
+| Order with ProSoil add-on | `PS-25KG` stock deducted by `prosoil_qty` |
+
+---
+
+## 19. Customer-Facing Error Messages
+
+```
 This product is currently out of stock.
-```
-
-```txt
 Some items in your cart are no longer available.
+Your cart has been updated because stock has changed.
+Order could not be completed — one or more products are unavailable.
 ```
 
-```txt
-Your cart has been updated because stock changed.
+Admin-only messages:
+
 ```
-
-```txt
-Order could not be completed because one or more products are unavailable.
-```
-
-Admin messages:
-
-```txt
 Stock updated successfully.
-```
-
-```txt
 Stock cannot be negative.
-```
-
-```txt
 Failed to update stock. Please try again.
 ```
 
 ---
 
-## 24. Suggested File/Code Areas to Inspect
-
-Copilot should inspect the repository for files related to:
-
-```txt
-products
-cart
-checkout
-orders
-admin
-supabase
-paystack
-payment
-ProductCard
-Cart
-Checkout
-AdminDashboard
-Orders
-```
-
-Likely searches:
+## 20. Files to Inspect First
 
 ```bash
 grep -R "addToCart" .
-grep -R "products" .
-grep -R "Paystack" .
+grep -R "product_sku\|products" .
+grep -R "Paystack\|paystack" .
 grep -R "supabase" .
 grep -R "orders" .
 grep -R "admin" .
 ```
 
-For Windows PowerShell:
+PowerShell equivalent:
 
 ```powershell
 Get-ChildItem -Recurse | Select-String "addToCart"
@@ -1049,79 +561,112 @@ Get-ChildItem -Recurse | Select-String "supabase"
 Get-ChildItem -Recurse | Select-String "orders"
 ```
 
----
+Likely relevant files:
 
-## 25. Acceptance Criteria
-
-This task is complete when:
-
-- Admin can set stock quantity for every product
-- Public website only shows `In Stock` or `Out of Stock`
-- Exact stock quantity is hidden from customers
-- Out-of-stock products cannot be added to cart
-- Checkout blocks unavailable products
-- Successful orders reduce stock automatically
-- Stock never becomes negative
-- Admin dashboard reflects updated stock after orders
-- Supabase stores stock data properly
-- Realtime updates work where supported
-- Existing Paystack checkout is not broken
-- Existing order emails/notifications are not broken
+```
+products   → wherever products are fetched / displayed
+cart       → addToCart, increaseQuantity logic
+checkout   → pre-order validation, Paystack init
+orders     → order creation, webhook handler
+admin      → AdminDashboard, ProductTable
+supabase   → client init, type definitions
+```
 
 ---
 
-## 26. Suggested Commit Message
+## 21. Optional Future Upgrade — Stock Movements Ledger
 
-```txt
+Not required for v1, but recommended when Afams reaches production scale:
+
+```sql
+create table if not exists public.stock_movements (
+  id              uuid primary key default gen_random_uuid(),
+  product_sku     text references public.products(sku) on delete cascade,
+  movement_type   text not null check (
+                    movement_type in ('sale', 'restock', 'manual_adjustment', 'order_cancelled', 'correction')
+                  ),
+  quantity_change integer not null,
+  previous_qty    integer not null,
+  new_qty         integer not null,
+  order_id        uuid,
+  note            text,
+  created_by      uuid,
+  created_at      timestamptz not null default now()
+);
+```
+
+Benefits: full audit trail, easier stock discrepancy debugging, useful for reports when Afams scales manufacturing.
+
+---
+
+## 22. Acceptance Criteria
+
+This task is complete when all of the following are true:
+
+- [ ] Admin can set and edit stock quantity per product from `/admin`
+- [ ] Public site shows only **In Stock** or **Out of Stock** — never the number
+- [ ] Out-of-stock products cannot be added to cart (button disabled + JS guard)
+- [ ] Checkout blocks out-of-stock products at the validation layer
+- [ ] Successful Paystack payments deduct stock via `deduct_stock_after_order`
+- [ ] COD/preorder orders deduct stock on creation
+- [ ] `stock_quantity` never goes negative (DB constraint + row lock)
+- [ ] Admin dashboard reflects stock changes in real-time after orders
+- [ ] Realtime subscription updates public product badges without page reload
+- [ ] Existing Paystack checkout, webhook, and email flows are unbroken
+- [ ] `product.sku` is used as the product identifier everywhere (not `product.id`)
+
+---
+
+## 23. Suggested Commit Message
+
+```
 feat: add product stock management with admin controls and checkout validation
 ```
 
----
-
-## 27. Suggested Pull Request Summary
+## 24. Suggested PR Summary
 
 ```md
 ## Summary
-Adds stock management for Afams products.
+Adds stock management to the Afams platform.
 
 ## Changes
-- Added stock quantity support to products
-- Added admin stock editing
-- Added public In Stock / Out of Stock labels
-- Disabled cart actions for out-of-stock products
-- Added cart and checkout stock validation
-- Added Supabase-backed stock deduction after successful orders
-- Added realtime product stock updates where supported
+- Extended products table with stock_quantity + updated_at (already migrated in Supabase)
+- Added deduct_stock_after_order RPC function (already deployed)
+- Updated Product interface to include stock_quantity
+- Public product cards show In Stock / Out of Stock badge
+- Add to Cart disabled for out-of-stock products
+- Cart and checkout validate stock before submission
+- Paystack webhook calls deduct_stock_after_order after payment verified
+- Admin dashboard shows exact stock, supports inline editing
+- Realtime subscription keeps storefront and admin in sync
 
 ## Safety
-- Does not expose exact stock quantity to customers
-- Prevents negative stock
-- Preserves existing Paystack checkout flow
-- Keeps admin-only stock controls protected
+- Exact stock quantity never exposed to customers
+- DB-level non-negative constraint (stock_quantity >= 0)
+- Row-level locking in RPC prevents race conditions
+- Existing Paystack checkout flow preserved
+- Existing order emails and notifications preserved
 
-## Tests
-- Product stock display tested
-- Cart blocking tested
-- Admin stock updates tested
-- Checkout stock deduction tested
-- Out-of-stock checkout blocking tested
+## Key Schema Notes
+- products PK = sku (text), not id (uuid)
+- price column = unit_price (integer, KES)
+- active flag = active (not is_active)
+- orders table is flat (no separate order_items)
+- ProSoil SKU = PS-25KG
 ```
 
 ---
 
-## 28. Implementation Reminder for Copilot
+## 25. Implementation Reminder
 
-Do not hardcode stock status in the frontend.
-
-The source of truth must be Supabase.
-
-Public frontend should derive display status from:
+The source of truth is always Supabase. Never hardcode stock status in the frontend.
 
 ```ts
-product.stock_quantity > 0
+// ✅ Correct
+const inStock = product.stock_quantity > 0;
+
+// ❌ Wrong
+const inStock = true;
 ```
 
-Admin dashboard should show and edit exact quantity.
-
-Checkout/order flow should update stock securely after successful order creation/payment verification.
-
+Use `product.sku` as the identifier everywhere. There is no `product.id` in this codebase.
