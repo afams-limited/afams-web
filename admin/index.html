@@ -1294,23 +1294,33 @@
       <div class="panel" id="panel-products">
         <div class="page-header">
           <div>
-            <div class="page-title">Products</div>
-            <div class="page-subtitle">Manage the FarmBag lineup</div>
+            <div class="page-title">Products &amp; Stock</div>
+            <div class="page-subtitle">Manage stock levels for all products</div>
+          </div>
+          <div class="header-actions">
+            <select id="stock-filter" class="filter-select" onchange="filterProducts()">
+              <option value="">All products</option>
+              <option value="in_stock">In Stock</option>
+              <option value="out_of_stock">Out of Stock</option>
+            </select>
+            <button class="btn-util" onclick="loadProducts()">↻ Refresh</button>
           </div>
         </div>
         <div class="table-wrap">
-          <div class="products-info">
-            Product management is currently done via <code>index.html</code> on Truehost.
-            Future version: DB-driven product catalogue via Supabase.
-            <br/><br/>
-            <strong>Current products:</strong>
-            <ul>
-              <li>FarmBag Classic — KES 7,500</li>
-              <li>FarmBag Vertical — KES 8,500</li>
-            </ul>
-            <br/>
-            <a href="https://afams.co.ke" target="_blank">→ Edit prices in index.html on Truehost ↗</a>
-          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th style="width:120px;text-align:center;">Stock Qty</th>
+                <th style="width:110px;text-align:center;">Status</th>
+                <th style="width:180px;text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr class="loading-row"><td colspan="5">Loading products…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1817,6 +1827,7 @@ function showPanel(name) {
   if (name === 'customers')    loadCustomers();
   if (name === 'analytics')    loadAnalytics();
   if (name === 'subscribers')  loadSubscribers();
+  if (name === 'products')     loadProducts();
 }
 
 // ════════════════════════════════════════════════════
@@ -2969,6 +2980,176 @@ function setupRealtimeSubscription() {
       }
     })
     .subscribe();
+}
+
+// ════════════════════════════════════════════════════
+// PRODUCTS & STOCK
+// ════════════════════════════════════════════════════
+var allProducts = [];
+
+async function loadProducts() {
+  var tbody = document.getElementById('products-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Loading products…</td></tr>';
+
+  var { data, error } = await sb
+    .from('products')
+    .select('sku, name, stock_quantity, active, product_line, updated_at')
+    .order('name', { ascending: true });
+
+  if (error) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5" style="color:#C0392B">Error: '
+      + escapeHtml(error.message) + '</td></tr>';
+    return;
+  }
+
+  allProducts = data || [];
+  renderProducts(allProducts);
+}
+
+function filterProducts() {
+  var filter = document.getElementById('stock-filter').value;
+  var filtered = allProducts.filter(function (p) {
+    if (!filter) return true;
+    if (filter === 'in_stock')    return (p.stock_quantity || 0) > 0;
+    if (filter === 'out_of_stock') return (p.stock_quantity || 0) <= 0;
+    return true;
+  });
+  renderProducts(filtered);
+}
+
+function renderProducts(products) {
+  var tbody = document.getElementById('products-tbody');
+  if (!tbody) return;
+  if (!products.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">No products found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = products.map(function (p) {
+    var qty       = p.stock_quantity || 0;
+    var inStock   = qty > 0;
+    var statusBadge = inStock
+      ? '<span class="badge badge-paid" style="background:#dcfce7;color:#166534;">In Stock</span>'
+      : '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
+    var updatedAt = p.updated_at
+      ? new Date(p.updated_at).toLocaleDateString('en-KE', { day: '2-digit', month: 'short', year: '2-digit' })
+      : '—';
+
+    return '<tr id="product-row-' + escapeHtml(p.sku) + '">'
+      + '<td>'
+      +   '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>'
+      +   '<div style="font-size:0.75rem;color:var(--text-muted);">Updated: ' + updatedAt + '</div>'
+      + '</td>'
+      + '<td style="font-family:monospace;font-size:0.82rem;color:var(--text-muted);">' + escapeHtml(p.sku) + '</td>'
+      + '<td style="text-align:center;">'
+      +   '<span id="stock-display-' + escapeHtml(p.sku) + '" style="font-weight:700;font-size:1rem;">' + qty + '</span>'
+      +   '<input id="stock-input-' + escapeHtml(p.sku) + '" type="number" min="0" value="' + qty + '"'
+      +     ' style="display:none;width:70px;text-align:center;padding:4px 6px;border:1.5px solid var(--accent);border-radius:6px;font-size:0.9rem;">'
+      + '</td>'
+      + '<td style="text-align:center;">' + statusBadge + '</td>'
+      + '<td style="text-align:center;">'
+      +   '<button class="action-btn" id="edit-btn-' + escapeHtml(p.sku) + '" onclick="startEditStock(\'' + escapeHtml(p.sku) + '\')" style="margin:0 2px;">Edit</button>'
+      +   '<button class="action-btn" id="save-btn-' + escapeHtml(p.sku) + '" onclick="saveStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;background:var(--accent);color:#fff;">Save</button>'
+      +   '<button class="action-btn" id="cancel-btn-' + escapeHtml(p.sku) + '" onclick="cancelEditStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;">Cancel</button>'
+      +   '<button class="action-btn" id="zero-btn-' + escapeHtml(p.sku) + '" onclick="setStockZero(\'' + escapeHtml(p.sku) + '\')" style="margin:0 2px;color:#991b1b;" title="Set to zero / mark out of stock">✕ Zero</button>'
+      + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function startEditStock(sku) {
+  document.getElementById('stock-display-' + sku).style.display = 'none';
+  document.getElementById('stock-input-'   + sku).style.display = '';
+  document.getElementById('stock-input-'   + sku).focus();
+  document.getElementById('edit-btn-'      + sku).style.display = 'none';
+  document.getElementById('zero-btn-'      + sku).style.display = 'none';
+  document.getElementById('save-btn-'      + sku).style.display = '';
+  document.getElementById('cancel-btn-'    + sku).style.display = '';
+}
+
+function cancelEditStock(sku) {
+  var product = allProducts.find(function (p) { return p.sku === sku; });
+  var qty     = product ? (product.stock_quantity || 0) : 0;
+  document.getElementById('stock-input-'   + sku).value = qty;
+  document.getElementById('stock-display-' + sku).style.display = '';
+  document.getElementById('stock-input-'   + sku).style.display = 'none';
+  document.getElementById('edit-btn-'      + sku).style.display = '';
+  document.getElementById('zero-btn-'      + sku).style.display = '';
+  document.getElementById('save-btn-'      + sku).style.display = 'none';
+  document.getElementById('cancel-btn-'    + sku).style.display = 'none';
+}
+
+async function saveStock(sku) {
+  var newQty = parseInt(document.getElementById('stock-input-' + sku).value, 10);
+  if (isNaN(newQty) || newQty < 0) {
+    alert('Please enter a valid non-negative number.');
+    return;
+  }
+
+  var saveBtn = document.getElementById('save-btn-' + sku);
+  saveBtn.disabled  = true;
+  saveBtn.textContent = 'Saving…';
+
+  var { error } = await sb
+    .from('products')
+    .update({ stock_quantity: newQty })
+    .eq('sku', sku);
+
+  saveBtn.disabled  = false;
+  saveBtn.textContent = 'Save';
+
+  if (error) {
+    alert('Failed to update stock: ' + error.message);
+    return;
+  }
+
+  // Update local data
+  var product = allProducts.find(function (p) { return p.sku === sku; });
+  if (product) product.stock_quantity = newQty;
+
+  // Update display
+  document.getElementById('stock-display-' + sku).textContent = newQty;
+  cancelEditStock(sku);
+
+  // Refresh status badge in row
+  var inStock = newQty > 0;
+  var row = document.getElementById('product-row-' + sku);
+  if (row) {
+    var statusCell = row.cells[3];
+    if (statusCell) {
+      statusCell.innerHTML = inStock
+        ? '<span class="badge badge-paid" style="background:#dcfce7;color:#166534;">In Stock</span>'
+        : '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
+    }
+  }
+}
+
+async function setStockZero(sku) {
+  if (!confirm('Set stock for ' + sku + ' to zero? This will mark it as Out of Stock.')) return;
+
+  var { error } = await sb
+    .from('products')
+    .update({ stock_quantity: 0 })
+    .eq('sku', sku);
+
+  if (error) {
+    alert('Failed to update stock: ' + error.message);
+    return;
+  }
+
+  var product = allProducts.find(function (p) { return p.sku === sku; });
+  if (product) product.stock_quantity = 0;
+
+  document.getElementById('stock-display-' + sku).textContent = 0;
+
+  var row = document.getElementById('product-row-' + sku);
+  if (row) {
+    var statusCell = row.cells[3];
+    if (statusCell) {
+      statusCell.innerHTML = '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════

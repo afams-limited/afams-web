@@ -271,6 +271,12 @@ function addToCart(arg) {
     // Object format: addToCart({sku, name, unit_price, qty, image, type})
     cartItem = Object.assign({}, arg, { qty: arg.qty || 1 });
   } else {
+    return; // arg is null/undefined/invalid — nothing to add
+  }
+
+  // Stock guard: block if product is confirmed out of stock
+  if (cartItem.sku && cartItem.sku in productStockMap && productStockMap[cartItem.sku] <= 0) {
+    showToast(cartItem.name + ' is currently out of stock.');
     return;
   }
 
@@ -602,6 +608,87 @@ function initStockBadge() {
   if (el) el.textContent = AFAMS.batchStock;
 }
 
+// ── LIVE STOCK FROM SUPABASE ──────────────────────────────────────
+// Fetches stock_quantity for known product SKUs. Applies In Stock /
+// Out of Stock badges to product cards and disables Add-to-Cart
+// buttons for products with stock_quantity <= 0.
+// Errors are silently caught — the page degrades gracefully (no badges).
+var productStockMap = {}; // { 'FB-CLS-01': 50, ... }
+
+async function fetchAndApplyStock() {
+  try {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/products?select=sku,stock_quantity&active=eq.true',
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        },
+      }
+    );
+    if (!res.ok) return;
+    var rows = await res.json();
+    rows.forEach(function (r) {
+      productStockMap[r.sku] = r.stock_quantity || 0;
+    });
+    applyStockToCards();
+  } catch (e) {
+    // silently ignore — stock badges won't appear but page still works
+  }
+}
+
+function applyStockToCards() {
+  // Map product-card data-product attr / button onclick SKU to canonical SKU
+  document.querySelectorAll('[data-product]').forEach(function (btn) {
+    var productId = btn.getAttribute('data-product');
+    var sku = PRODUCT_ID_TO_SKU[productId];
+    if (!sku || !(sku in productStockMap)) return;
+    applyStockToButton(btn, sku);
+  });
+
+  // Also cover buttons that have no data-product but call addToCart('ps-prosoil') etc.
+  // They are siblings inside .product-footer, and the card has a [data-product] elsewhere.
+  // Already handled by the loop above for cards that carry data-product.
+}
+
+function applyStockToButton(btn, sku) {
+  var qty = productStockMap[sku];
+  var inStock = qty > 0;
+  var card = btn.closest('.product-card');
+
+  if (!inStock) {
+    btn.disabled = true;
+    btn.textContent = 'Out of Stock';
+    btn.style.opacity = '0.55';
+    btn.style.cursor = 'not-allowed';
+  }
+
+  // Add / update stock badge on the card image wrap
+  if (card) {
+    var imgWrap = card.querySelector('.product-img-wrap');
+    if (imgWrap) {
+      var existing = imgWrap.querySelector('.stock-status-badge');
+      if (!existing) {
+        existing = document.createElement('span');
+        existing.className = 'stock-status-badge';
+        existing.style.cssText = 'position:absolute;bottom:0.55rem;left:0.7rem;'
+          + 'display:inline-flex;align-items:center;border-radius:999px;'
+          + 'padding:0.2rem 0.6rem;font-size:0.7rem;font-weight:700;z-index:2;';
+        imgWrap.appendChild(existing);
+      }
+      if (inStock) {
+        existing.textContent = 'In Stock';
+        existing.style.background = '#dcfce7';
+        existing.style.color = '#166534';
+      } else {
+        existing.textContent = 'Out of Stock';
+        existing.style.background = '#fee2e2';
+        existing.style.color = '#991b1b';
+      }
+    }
+  }
+}
+
 // ── PRODUCT IMAGE LOADING ─────────────────────────────────────────
 // Uses fetch() instead of <img src> so missing images don't produce
 // "Failed to load resource" console errors.
@@ -639,6 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCountdown();
   initStockBadge();
   initProductImages();
+  fetchAndApplyStock();
 
   // Cart overlay click to close
   document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
