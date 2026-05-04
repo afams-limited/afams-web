@@ -273,8 +273,12 @@
     if (typeof window.addToCart === 'function') {
       const original = window.addToCart;
       window.addToCart = function (product, ...args) {
-        // In pre-order mode, ignore stock checks — always allow
-        const patched = { ...product, stock_quantity: 999 };
+        // In pre-order mode, ignore stock checks — always allow.
+        // Guard: only spread objects; string IDs (e.g. 'fb-classic') used by
+        // index.html must be passed through unchanged so app.js can resolve them.
+        const patched = (typeof product === 'object' && product !== null)
+          ? { ...product, stock_quantity: 999 }
+          : product;
         return original.call(this, patched, ...args);
       };
     }
@@ -304,9 +308,9 @@
     injectStyles();
     window.__AFAMS_PREORDER__ = true;
 
-    // Show banner (unless dismissed this session)
+    // Show banner (unless dismissed this session or show_banner is 'false' in Supabase)
     const dismissed = (() => { try { return sessionStorage.getItem('afams_banner_dismissed'); } catch (_) { return null; } })();
-    if (!dismissed) {
+    if (!dismissed && config.show_banner !== 'false' && config.show_banner !== false) {
       const msg = config.preorder_message || 'We are currently accepting pre-orders.';
       // Wait for body to be ready
       if (document.body) {
