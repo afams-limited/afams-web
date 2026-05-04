@@ -23,8 +23,15 @@ const FARMBAG_SKUS    = ['FB-CLS-01', 'FB-GRW-01', 'FB-HYD-01', 'FB-HYP-01', 'FB
 
 function getCart() {
   try {
-    return JSON.parse(sessionStorage.getItem(CART_KEY)) ||
-      { items: [] };
+    var data = JSON.parse(sessionStorage.getItem(CART_KEY)) || { items: [] };
+    // Normalise legacy items that were stored with `price` instead of `unit_price`
+    data.items = (data.items || []).map(function(item) {
+      if (item.unit_price === undefined || item.unit_price === null) {
+        item = Object.assign({}, item, { unit_price: item.price || 0 });
+      }
+      return item;
+    });
+    return data;
   } catch {
     return { items: [] };
   }
