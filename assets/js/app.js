@@ -731,12 +731,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cart overlay click to close
   document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
 
-  // Counter on hero visible
+  // Counter on hero-stats visible.
+  // Observe .hero-stats directly (not the whole .hero) and use threshold:0 so
+  // the animation fires as soon as any part of the stat numbers enters the
+  // viewport — on mobile the hero is taller than the screen so threshold:0.5
+  // on .hero would never fire, leaving the counters stuck at 0.
   const heroObserver = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { animateCounters(); heroObserver.disconnect(); }});
-  }, { threshold: 0.5 });
-  const hero = document.querySelector('.hero');
-  if (hero) heroObserver.observe(hero);
+  }, { threshold: 0 });
+  const heroStats = document.querySelector('.hero-stats') || document.querySelector('.hero');
+  if (heroStats) heroObserver.observe(heroStats);
 
 });
 
