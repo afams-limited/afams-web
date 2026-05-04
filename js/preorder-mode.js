@@ -96,6 +96,7 @@
 
     /* ── Override any Out of Stock or In Stock badges ── */
     .stock-badge,
+    .stock-status-badge,
     [class*="stock-out"],
     [class*="stock-in"],
     [class*="StockBadge"],
@@ -150,10 +151,10 @@
   /**
    * Replace any stock badge inside a product card with the Pre-Order badge.
    * Works with whatever class names / text content the site uses.
+   * Note: no once-only guard — this must be re-runnable so the MutationObserver
+   * can re-patch cards after app.js asynchronously injects stock badges.
    */
   function patchProductCard (card) {
-    if (card.dataset.preorderPatched) return;
-    card.dataset.preorderPatched = 'true';
 
     // 1. Hide / replace existing stock badges by class
     const badgeSels = [
