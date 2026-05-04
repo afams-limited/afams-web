@@ -63,8 +63,8 @@ async function sendBrevoTemplate(
   return payload;
 }
 
-// ── Valid admin-triggered email types ────────────────────────
-const ADMIN_EMAIL_TYPES = ["order_dispatched", "order_delivered"] as const;
+// ── Valid email types ─────────────────────────────────────────
+const ADMIN_EMAIL_TYPES = ["order_received", "order_dispatched", "order_delivered"] as const;
 type AdminEmailType = (typeof ADMIN_EMAIL_TYPES)[number];
 
 function formatPaymentMethod(raw: unknown): string {
@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Require authenticated user (admin panel sends JWT)
+  // Require authenticated user (admin panel sends JWT) OR service-role key (webhook internal calls)
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -136,6 +136,9 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
+
+  // Allow internal service-role calls (e.g. from the paystack-webhook edge function)
+  const isServiceRoleCall = authHeader === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`;
 
   const brevoApiKey = Deno.env.get("BREVO_API_KEY");
   if (!brevoApiKey) {
@@ -176,20 +179,20 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // Authenticate the caller via their JWT — creates a user-scoped client
-  const supabaseUser = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
-
-  // Verify session is valid
-  const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+  // Verify session is valid for non-service-role calls (admin panel JWT)
+  if (!isServiceRoleCall) {
+    const supabaseUser = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
   }
 
   // Fetch order using service role (bypasses RLS)
@@ -260,7 +263,46 @@ Deno.serve(async (req: Request) => {
 
   try {
     let providerMessageId: string | undefined;
-    if (emailType === "order_dispatched") {
+    if (emailType === "order_received") {
+      const templateId = parseInt(
+        Deno.env.get("BREVO_TEMPLATE_ORDER_RECEIVED") ?? String(BREVO_TEMPLATES.order_received),
+        10,
+      );
+      const orderedAt = order.created_at
+        ? new Date(order.created_at).toLocaleDateString("en-KE", {
+            day: "numeric", month: "long", year: "numeric",
+          })
+        : new Date().toLocaleDateString("en-KE", {
+            day: "numeric", month: "long", year: "numeric",
+          });
+
+      const result = await sendBrevoTemplate(brevoApiKey, senderEmail, senderName, templateId, customerEmail, customerName, {
+        order_number:       orderRef,
+        order_ref:          orderRef,
+        order_reference:    orderRef,
+        customer_name:      customerName,
+        customer_email:     customerEmail,
+        customer_phone:     customerPhone,
+        delivery_address:   deliveryAddress,
+        county:             county,
+        product_name:       productName,
+        quantity:           quantity,
+        order_items:        orderItemsText,
+        order_items_text:   orderItemsText,
+        total_amount:       totalKES,
+        payment_method:     paymentMethod,
+        paystack_reference: paymentRef,
+        payment_reference:  paymentRef,
+        brand_logo_url:     "https://afams.co.ke/assets/images/afams_logo_stacked.png",
+        brand_icon_url:     "https://afams.co.ke/assets/images/afams_favicon_512.png",
+        estimated_delivery: "3–5 business days",
+        ordered_at:         orderedAt,
+      });
+      providerMessageId = result.messageId;
+
+      console.log(`[send-order-email] order_received → ${customerEmail} (order ${orderRef})`);
+
+    } else if (emailType === "order_dispatched") {
       const templateId = parseInt(
         Deno.env.get("BREVO_TEMPLATE_ORDER_DISPATCHED") ?? String(BREVO_TEMPLATES.order_dispatched),
         10,

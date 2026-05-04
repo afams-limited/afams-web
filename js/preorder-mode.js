@@ -302,6 +302,7 @@
     }
 
     injectStyles();
+    window.__AFAMS_PREORDER__ = true;
 
     // Show banner (unless dismissed this session)
     const dismissed = (() => { try { return sessionStorage.getItem('afams_banner_dismissed'); } catch (_) { return null; } })();

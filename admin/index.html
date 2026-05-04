@@ -2489,60 +2489,32 @@ function formatReceiptDateTime(iso) {
 function buildReceiptHTML(order) {
   var o           = order;
   var ref         = o.order_number || (o.id ? o.id.slice(0, 8) : 'AFAMS');
-  var total       = o.total_amount || ((o.unit_price || 0) * (o.quantity || 1));
-  var unitPrice   = o.unit_price   || 0;
-  var qty         = o.quantity     || 1;
-  var subtotal    = unitPrice * qty;
-  var productName = escapeHtml(o.product_name || o.product_sku || '—');
-  var freeSeeds   = Array.isArray(o.free_seeds)  ? o.free_seeds  : [];
-  var extraSeedSummaryData = getExtraSeedSummary(o);
-  var extraSeeds  = extraSeedSummaryData.extraSeeds;
-  var freeSeedSummary = summarizeAddonItems(freeSeeds);
-  var extraSeedSummary = summarizeAddonItems(extraSeeds);
-  var extraSeedCount = extraSeedSummaryData.extraSeedCount;
-  var extraSeedTotal = extraSeedSummaryData.extraSeedTotal;
-  var prosoilQty = Number(o.prosoil_qty || 0);
-  var prosoilTotal = Number(o.prosoil_total || 0);
-  var prosoilPromoQty = Number(o.prosoil_promo_qty || 0);
-  var receiptItemRows = ''
-    + '      <tr>'
-    + '<td class="td-product">' + productName + '</td>'
-    + '<td class="td-center">' + qty + '</td>'
-    + '<td class="td-right">' + formatReceiptKES(unitPrice) + '</td>'
-    + '<td class="td-right td-bold">' + formatReceiptKES(subtotal) + '</td>'
-    + '</tr>\n';
-  if (freeSeeds.length > 0) {
-    receiptItemRows += '      <tr>'
-      + '<td class="td-product">Certified Seeds (Free)'
-      + (freeSeedSummary ? ' — ' + escapeHtml(freeSeedSummary) : '')
-      + '</td>'
-      + '<td class="td-center">' + freeSeeds.length + '</td>'
-      + '<td class="td-right">' + formatReceiptKES(0) + '</td>'
-      + '<td class="td-right td-bold">' + formatReceiptKES(0) + '</td>'
-      + '</tr>\n';
+  var total       = Number(o.total_amount || 0);
+
+  // Use getOrderLineItems to read from order_items first, falling back to items JSONB / scalar fields
+  var lineItems   = getOrderLineItems(o);
+  if (!total) {
+    total = lineItems
+      .filter(function (i) { return !i.is_free; })
+      .reduce(function (sum, i) { return sum + ((Number(i.price) || 0) * (Number(i.qty) || 1)); }, 0);
   }
-  if (extraSeedCount > 0 || extraSeedTotal > 0) {
-    var avgExtraSeedPrice = calculateUnitPrice(extraSeedTotal, extraSeedCount);
-    receiptItemRows += '      <tr>'
-      + '<td class="td-product">' + PAID_SEED_ADDON_LABEL
-      + (extraSeedSummary ? ' — ' + escapeHtml(extraSeedSummary) : '')
-      + '</td>'
-      + '<td class="td-center">' + extraSeedCount + '</td>'
-      + '<td class="td-right">' + formatReceiptKES(avgExtraSeedPrice) + '</td>'
-      + '<td class="td-right td-bold">' + formatReceiptKES(extraSeedTotal) + '</td>'
+
+  var receiptItemRows = lineItems.map(function (item) {
+    var qty       = Math.max(1, Number(item.qty || 1));
+    var unitPrice = item.is_free ? 0 : Math.max(0, Number(item.price || 0));
+    var subtotal  = unitPrice * qty;
+    var label     = escapeHtml(item.name || 'Product');
+    if (item.is_free) {
+      label += ' <span style="font-size:0.72rem;color:#2D6A4F;font-weight:700;">(Free)</span>';
+    }
+    return '      <tr>'
+      + '<td class="td-product">' + label + '</td>'
+      + '<td class="td-center">' + qty + '</td>'
+      + '<td class="td-right">' + formatReceiptKES(unitPrice) + '</td>'
+      + '<td class="td-right td-bold">' + formatReceiptKES(subtotal) + '</td>'
       + '</tr>\n';
-  }
-  if (prosoilQty > 0) {
-    var prosoilUnitPrice = calculateUnitPrice(prosoilTotal, prosoilQty);
-    receiptItemRows += '      <tr>'
-      + '<td class="td-product">Afams ProSoil 25kg'
-      + (prosoilPromoQty > 0 ? ' — ' + prosoilQty + ' paid + ' + prosoilPromoQty + ' free' : '')
-      + '</td>'
-      + '<td class="td-center">' + prosoilQty + '</td>'
-      + '<td class="td-right">' + formatReceiptKES(prosoilUnitPrice) + '</td>'
-      + '<td class="td-right td-bold">' + formatReceiptKES(prosoilTotal) + '</td>'
-      + '</tr>\n';
-  }
+  }).join('');
+
   var payRef      = escapeHtml(o.paystack_ref || '—');
   var payMethod   = escapeHtml(formatPaymentMethodLabel(o.payment_method));
   var now         = formatReceiptDateTime(new Date().toISOString());
