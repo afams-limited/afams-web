@@ -371,7 +371,7 @@ function renderCartItems() {
       + '<div class="cart-item-img-slot"></div>'
       + '<div class="cart-item-info">'
       + '<div class="cart-item-name">' + item.name + '</div>'
-      + '<div class="cart-item-price">KES ' + item.unit_price.toLocaleString() + ' each</div>'
+      + '<div class="cart-item-price">KES ' + (item.unit_price || 0).toLocaleString() + ' each</div>'
       + '<div class="cart-item-qty">'
       + '<button class="qty-btn" onclick="updateQty(\'' + item.sku + '\', -1)">−</button>'
       + '<span class="qty-val">' + item.qty + '</span>'
