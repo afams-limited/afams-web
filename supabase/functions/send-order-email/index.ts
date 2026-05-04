@@ -63,6 +63,16 @@ async function sendBrevoTemplate(
   return payload;
 }
 
+// Constant-time string comparison to prevent timing-based credential leakage
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 // ── Valid email types ─────────────────────────────────────────
 const ADMIN_EMAIL_TYPES = ["order_received", "order_dispatched", "order_delivered"] as const;
 type AdminEmailType = (typeof ADMIN_EMAIL_TYPES)[number];
@@ -138,7 +148,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // Allow internal service-role calls (e.g. from the paystack-webhook edge function)
-  const isServiceRoleCall = authHeader === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`;
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const isServiceRoleCall = timingSafeEqual(authHeader, `Bearer ${serviceRoleKey}`);
 
   const brevoApiKey = Deno.env.get("BREVO_API_KEY");
   if (!brevoApiKey) {
