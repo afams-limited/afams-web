@@ -652,6 +652,10 @@ function applyStockToCards() {
 }
 
 function applyStockToButton(btn, sku) {
+  // In pre-order mode the site accepts orders regardless of stock_quantity.
+  // preorder-mode.js sets this flag and manages all stock-badge UI itself.
+  if (window.__AFAMS_PREORDER__) return;
+
   var qty = productStockMap[sku];
   var inStock = qty > 0;
   var card = btn.closest('.product-card');
