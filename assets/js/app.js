@@ -274,6 +274,12 @@ function addToCart(arg) {
     return; // arg is null/undefined/invalid — nothing to add
   }
 
+  // Active-state guard: block if product is disabled on storefront
+  if (cartItem.sku && cartItem.sku in productActivityMap && productActivityMap[cartItem.sku] === false) {
+    showToast(cartItem.name + ' is currently unavailable.');
+    return;
+  }
+
   // Stock guard: block if product is confirmed out of stock
   if (cartItem.sku && cartItem.sku in productStockMap && productStockMap[cartItem.sku] <= 0) {
     showToast(cartItem.name + ' is currently out of stock.');
@@ -614,11 +620,12 @@ function initStockBadge() {
 // buttons for products with stock_quantity <= 0.
 // Errors are silently caught — the page degrades gracefully (no badges).
 var productStockMap = {}; // { 'FB-CLS-01': 50, ... }
+var productActivityMap = {}; // { 'FB-CLS-01': true, ... }
 
 async function fetchAndApplyStock() {
   try {
     var res = await fetch(
-      SUPABASE_URL + '/rest/v1/products?select=sku,stock_quantity&active=eq.true',
+      SUPABASE_URL + '/rest/v1/products?select=sku,stock_quantity,active',
       {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -630,6 +637,7 @@ async function fetchAndApplyStock() {
     var rows = await res.json();
     rows.forEach(function (r) {
       productStockMap[r.sku] = r.stock_quantity || 0;
+      productActivityMap[r.sku] = r.active !== false;
     });
     applyStockToCards();
   } catch (e) {
@@ -652,17 +660,18 @@ function applyStockToCards() {
 }
 
 function applyStockToButton(btn, sku) {
-  // In pre-order mode the site accepts orders regardless of stock_quantity.
-  // preorder-mode.js sets this flag and manages all stock-badge UI itself.
-  if (window.__AFAMS_PREORDER__) return;
-
   var qty = productStockMap[sku];
+  var isActive = productActivityMap[sku] !== false;
+  // In pre-order mode the site accepts orders regardless of stock_quantity,
+  // but inactive products must still be blocked.
+  var ignoreStock = window.__AFAMS_PREORDER__ === true;
   var inStock = qty > 0;
+  var isPurchasable = isActive && (ignoreStock || inStock);
   var card = btn.closest('.product-card');
 
-  if (!inStock) {
+  if (!isPurchasable) {
     btn.disabled = true;
-    btn.textContent = 'Out of Stock';
+    btn.textContent = !isActive ? 'Unavailable' : 'Out of Stock';
     btn.style.opacity = '0.55';
     btn.style.cursor = 'not-allowed';
   }
@@ -680,7 +689,11 @@ function applyStockToButton(btn, sku) {
           + 'padding:0.2rem 0.6rem;font-size:0.7rem;font-weight:700;z-index:2;';
         imgWrap.appendChild(existing);
       }
-      if (inStock) {
+      if (!isActive) {
+        existing.textContent = 'Unavailable';
+        existing.style.background = '#E5E7EB';
+        existing.style.color = '#374151';
+      } else if (inStock || ignoreStock) {
         existing.textContent = 'In Stock';
         existing.style.background = '#dcfce7';
         existing.style.color = '#166534';
@@ -690,6 +703,11 @@ function applyStockToButton(btn, sku) {
         existing.style.color = '#991b1b';
       }
     }
+  }
+
+  if (card) {
+    card.style.opacity = isActive ? '' : '0.55';
+    card.style.filter = isActive ? '' : 'grayscale(0.2)';
   }
 }
 

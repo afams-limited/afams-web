@@ -85,6 +85,14 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.13);
       transform: translateY(-3px);
     }
+    .product-card.product-card-disabled {
+      opacity: 0.55;
+      filter: grayscale(0.2);
+    }
+    .product-card.product-card-disabled:hover {
+      transform: none;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
     .product-image {
       aspect-ratio: 4/3;
       background: #E6F0E7;
@@ -205,6 +213,16 @@
       display: inline-block;
     }
     .btn-order:hover { background: #155D27; transform: translateY(-1px); }
+    .btn-order.btn-order-disabled {
+      background: #6B7280;
+      cursor: not-allowed;
+      opacity: 0.85;
+      transform: none;
+    }
+    .btn-order.btn-order-disabled:hover {
+      background: #6B7280;
+      transform: none;
+    }
     .loading-state {
       text-align: center;
       padding: 4rem 1rem;
@@ -397,12 +415,41 @@ const SEED_PRODUCTS = [
 
 const ALL_PRODUCTS = [...MAIN_PRODUCTS, ...SEED_PRODUCTS];
 const SEEDS_CATEGORY_LABEL = 'Seeds & Seedlings';
+const SUPABASE_URL = (window.__CONFIG__ && window.__CONFIG__.SUPABASE_URL) || 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = (window.__CONFIG__ && (window.__CONFIG__.SUPABASE_ANON_KEY || window.__CONFIG__.SUPABASE_ANON))
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+const productActivityMap = {};
 const seedParams = new URLSearchParams(window.location.search);
 const INITIAL_SEED_SUBCATEGORY = seedParams.get('seedSubcategory') || '';
 let selectedSeedSubcategoryState = INITIAL_SEED_SUBCATEGORY;
 
 function getProductPrice(product) {
   return product.priceKES || product.unit_price || product.price || 0;
+}
+
+function isSkuActive(sku) {
+  if (!sku) return true;
+  if (!(sku in productActivityMap)) return true;
+  return productActivityMap[sku] !== false;
+}
+
+async function fetchProductActivityMap() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/products?select=sku,active',
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        }
+      }
+    );
+    if (!res.ok) return;
+    const rows = await res.json();
+    rows.forEach(function(row) {
+      if (row && row.sku) productActivityMap[row.sku] = row.active !== false;
+    });
+  } catch (_) {}
 }
 
 function escapeHtml(value) {
@@ -415,6 +462,7 @@ function escapeHtml(value) {
 }
 
 function renderProductCard(p) {
+  const isActive = isSkuActive(p.sku);
   const seedSubcategory = p.seedGroup || '';
   const displayCategory = p.category === 'Seeds'
     ? (seedSubcategory ? (SEEDS_CATEGORY_LABEL + ' · ' + seedSubcategory) : SEEDS_CATEGORY_LABEL)
@@ -454,7 +502,12 @@ function renderProductCard(p) {
     category: p.category || '',
     seedGroup: p.seedGroup || '',
   });
-  const actionHtml = p.detailsLink
+  const actionHtml = !isActive
+    ? `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
+         <button class="btn-order btn-order-disabled" disabled style="white-space:nowrap;">Unavailable</button>
+         ${p.detailsLink ? `<a href="${p.detailsLink}" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">View Details →</a>` : ''}
+       </div>`
+    : p.detailsLink
     ? `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
          <button class="btn-order btn-add-to-cart" data-cart='${cartData.replace(/'/g, "&#39;")}' style="white-space:nowrap;">Add to Cart</button>
          <a href="${p.detailsLink}" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">View Details →</a>
@@ -465,7 +518,7 @@ function renderProductCard(p) {
        </div>`;
 
   return `
-    <div class="product-card">
+    <div class="product-card${isActive ? '' : ' product-card-disabled'}" data-product-sku="${escapeHtml(p.sku || '')}" data-product-active="${isActive ? 'true' : 'false'}">
       ${mediaHtml}
       <div class="product-body">
         <div class="product-category">${displayCategory}</div>
@@ -660,6 +713,10 @@ function isFarmBagProduct(item) {
 }
 
 function onAddToCart(product) {
+  if (!isSkuActive(product && product.sku)) {
+    alert((product && product.name ? product.name : 'This product') + ' is currently unavailable.');
+    return;
+  }
   addToCart(product);
   if (isFarmBagProduct(product)) {
     triggerFreeSeedsPicker(2);
@@ -699,10 +756,18 @@ function renderGrowBagCard(grid) {
 
   function updateGBCard() {
     const cur = getCurrent();
+    const active = isSkuActive(cur.sku);
     const el = id => document.getElementById(id);
     if (el('pg-name'))    el('pg-name').textContent = `GrowBag ${gbSize} \u2014 ${gbVariant}`;
     if (el('pg-volume'))  el('pg-volume').textContent = `${cur.volume} · PP geotextile · Bonded liner`;
     if (el('pg-price'))   el('pg-price').textContent = `KES ${cur.price.toLocaleString()}`;
+    if (el('growbag-products-card')) el('growbag-products-card').classList.toggle('product-card-disabled', !active);
+    if (el('pg-add-btn')) {
+      el('pg-add-btn').disabled = !active;
+      el('pg-add-btn').style.background = active ? '' : '#6B7280';
+      el('pg-add-btn').style.cursor = active ? '' : 'not-allowed';
+      el('pg-add-btn').textContent = active ? 'Add to Cart' : 'Unavailable';
+    }
     const badge = el('pg-badge');
     if (badge) {
       const show = gbSize === 'Standard' && gbVariant === 'Wide';
@@ -740,6 +805,10 @@ function renderGrowBagCard(grid) {
   };
   window.pgAddToCart = function() {
     const cur = getCurrent();
+    if (!isSkuActive(cur.sku)) {
+      alert('This GrowBag option is currently unavailable.');
+      return;
+    }
     addToCart({ sku: cur.sku, name: `GrowBag ${gbSize} \u2014 ${gbVariant}`, unit_price: cur.price, qty: gbQty, image: 'assets/images/growbag-hero.jpg', type: 'growbag' });
   };
 
@@ -799,7 +868,7 @@ function renderGrowBagCard(grid) {
           <div class="product-price" id="pg-price">KES 1,050</div>
           <div class="product-price-sub">Basic range · Ships in 3–5 days</div>
         </div>
-        <button class="btn-order" onclick="pgAddToCart()">Add to Cart</button>
+        <button class="btn-order" id="pg-add-btn" onclick="pgAddToCart()">Add to Cart</button>
       </div>
     </div>
   `;
@@ -835,7 +904,8 @@ function renderGrowBagCard(grid) {
   updateGBCard();
 }
 
-function loadProducts() {
+async function loadProducts() {
+  await fetchProductActivityMap();
   renderProducts(ALL_PRODUCTS);
 }
 
@@ -856,8 +926,9 @@ function renderPremiumRange(grid) {
 
   PREMIUM.forEach(function(p) {
     const cartItem = { sku: p.sku, name: p.name, unit_price: p.price, qty: 1, image: '', type: 'farmbag' };
+    const isActive = isSkuActive(p.sku);
     const card = document.createElement('div');
-    card.className = 'product-card';
+    card.className = 'product-card' + (isActive ? '' : ' product-card-disabled');
     card.innerHTML = `
       <div class="product-image" style="${p.bgStyle};display:flex;align-items:center;justify-content:center;">
         <span class="product-badge-pill badge-premium" style="position:absolute;top:0.85rem;left:0.85rem;">Premium</span>
@@ -873,7 +944,7 @@ function renderPremiumRange(grid) {
             <div class="product-price">KES ${p.price.toLocaleString()}</div>
             <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
           </div>
-          <button class="btn-order btn-add-to-cart" style="background:#7B1FA2;white-space:nowrap;">Pre-Order</button>
+          <button class="btn-order btn-add-to-cart ${isActive ? '' : 'btn-order-disabled'}" ${isActive ? '' : 'disabled'} style="background:${isActive ? '#7B1FA2' : ''};white-space:nowrap;">${isActive ? 'Pre-Order' : 'Unavailable'}</button>
         </div>
       </div>
     `;

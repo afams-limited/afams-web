@@ -3000,18 +3000,30 @@ function renderProducts(products) {
 
   tbody.innerHTML = products.map(function (p) {
     var qty       = p.stock_quantity || 0;
+    var isActive  = p.active !== false;
     var inStock   = qty > 0;
-    var statusBadge = inStock
-      ? '<span class="badge badge-paid" style="background:#dcfce7;color:#166534;">In Stock</span>'
-      : '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
+    var statusBadge = !isActive
+      ? '<span class="badge" style="background:#E5E7EB;color:#374151;">Disabled</span>'
+      : (inStock
+        ? '<span class="badge badge-paid" style="background:#dcfce7;color:#166534;">In Stock</span>'
+        : '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>');
     var updatedAt = p.updated_at
       ? new Date(p.updated_at).toLocaleDateString('en-KE', { day: '2-digit', month: 'short', year: '2-digit' })
       : '—';
+    var toggleTitle = isActive ? 'Disable this product on storefront' : 'Enable this product on storefront';
+    var toggleLabel = isActive ? 'Disable' : 'Enable';
+    var toggleNextActive = isActive ? 'false' : 'true';
+    var toggleBtnStyle = 'margin:0 2px;' + (isActive ? 'color:#991b1b;' : 'background:#065F46;color:#fff;');
+    var toggleBtnHtml = '<button class="action-btn" id="toggle-active-btn-' + escapeHtml(p.sku)
+      + '" onclick="toggleProductActive(\'' + escapeHtml(p.sku) + '\',' + toggleNextActive + ')"'
+      + ' style="' + toggleBtnStyle + '" title="' + toggleTitle + '">'
+      + toggleLabel + '</button>';
 
     return '<tr id="product-row-' + escapeHtml(p.sku) + '">'
       + '<td>'
       +   '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>'
       +   '<div style="font-size:0.75rem;color:var(--text-muted);">Updated: ' + updatedAt + '</div>'
+      +   (isActive ? '' : '<div style="font-size:0.72rem;color:#6B7280;">Hidden on storefront</div>')
       + '</td>'
       + '<td style="font-family:monospace;font-size:0.82rem;color:var(--text-muted);">' + escapeHtml(p.sku) + '</td>'
       + '<td style="text-align:center;">'
@@ -3025,6 +3037,7 @@ function renderProducts(products) {
       +   '<button class="action-btn" id="save-btn-' + escapeHtml(p.sku) + '" onclick="saveStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;background:var(--accent);color:#fff;">Save</button>'
       +   '<button class="action-btn" id="cancel-btn-' + escapeHtml(p.sku) + '" onclick="cancelEditStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;">Cancel</button>'
       +   '<button class="action-btn" id="zero-btn-' + escapeHtml(p.sku) + '" onclick="setStockZero(\'' + escapeHtml(p.sku) + '\')" style="margin:0 2px;color:#991b1b;" title="Set to zero / mark out of stock">✕ Zero</button>'
+      +   toggleBtnHtml
       + '</td>'
       + '</tr>';
   }).join('');
@@ -3083,18 +3096,7 @@ async function saveStock(sku) {
   // Update display
   document.getElementById('stock-display-' + sku).textContent = newQty;
   cancelEditStock(sku);
-
-  // Refresh status badge in row
-  var inStock = newQty > 0;
-  var row = document.getElementById('product-row-' + sku);
-  if (row) {
-    var statusCell = row.cells[3];
-    if (statusCell) {
-      statusCell.innerHTML = inStock
-        ? '<span class="badge badge-paid" style="background:#dcfce7;color:#166534;">In Stock</span>'
-        : '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
-    }
-  }
+  filterProducts();
 }
 
 async function setStockZero(sku) {
@@ -3112,16 +3114,23 @@ async function setStockZero(sku) {
 
   var product = allProducts.find(function (p) { return p.sku === sku; });
   if (product) product.stock_quantity = 0;
+  filterProducts();
+}
 
-  document.getElementById('stock-display-' + sku).textContent = 0;
+async function toggleProductActive(sku, nextActive) {
+  var { error } = await sb
+    .from('products')
+    .update({ active: !!nextActive })
+    .eq('sku', sku);
 
-  var row = document.getElementById('product-row-' + sku);
-  if (row) {
-    var statusCell = row.cells[3];
-    if (statusCell) {
-      statusCell.innerHTML = '<span class="badge badge-cancelled" style="background:#fee2e2;color:#991b1b;">Out of Stock</span>';
-    }
+  if (error) {
+    alert('Failed to update product status: ' + error.message);
+    return;
   }
+
+  var product = allProducts.find(function (p) { return p.sku === sku; });
+  if (product) product.active = !!nextActive;
+  filterProducts();
 }
 
 // ════════════════════════════════════════════════════
