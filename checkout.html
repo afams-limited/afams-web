@@ -742,6 +742,56 @@ const CHECKOUT_PRODUCTS = {
   'FB-AQA-01': { name: 'FarmBag Aqua',             unit_price: 14999, image: '',                                   type: 'farmbag' },
   'FB-AHP-01': { name: 'FarmBag Aqua-Hydro Pro',   unit_price: 39999, image: '',                                   type: 'farmbag' },
 };
+const SUPABASE_URL = (window.__CONFIG__ && window.__CONFIG__.SUPABASE_URL) || 'https://dvquyzzqsnlcassvgdzz.supabase.co';
+const SUPABASE_ANON_KEY = (window.__CONFIG__ && (window.__CONFIG__.SUPABASE_ANON_KEY || window.__CONFIG__.SUPABASE_ANON))
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
+var checkoutProductActivityMap = {};
+
+async function fetchCheckoutProductActivityMap() {
+  try {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/products?select=sku,active',
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        },
+      }
+    );
+    if (!res.ok) return;
+    var rows = await res.json();
+    rows.forEach(function (row) {
+      if (row && row.sku) checkoutProductActivityMap[row.sku] = row.active !== false;
+    });
+  } catch (_) {}
+}
+
+function isCheckoutSkuActive(sku) {
+  if (!sku) return true;
+  if (!(sku in checkoutProductActivityMap)) return true;
+  return checkoutProductActivityMap[sku] !== false;
+}
+
+function pruneInactiveCheckoutItems(showMessage) {
+  var cart = getCart();
+  if (!cart.items || !cart.items.length) return false;
+  var removed = [];
+  var kept = cart.items.filter(function (item) {
+    var sku = item && item.sku;
+    var active = isCheckoutSkuActive(sku);
+    if (!active) removed.push(item && item.name ? item.name : (sku || 'a product'));
+    return active;
+  });
+
+  if (!removed.length) return false;
+  cart.items = kept;
+  cart.prosoilPromoBags = computeProsoilPromo(cart);
+  saveCart(cart);
+  if (showMessage) {
+    showError('Some cart items are unavailable and were removed: ' + removed.join(', ') + '.');
+  }
+  return true;
+}
 
 function cartHasFarmBag() {
   var cart = getCart();
@@ -835,6 +885,10 @@ window.addEventListener('afams:cart-updated', function() {
 
 // ── ProSoil Add-on at Checkout ────────────────────────────────────────────────
 function changeProsoilQty(delta) {
+  if (!isCheckoutSkuActive('PS-25KG')) {
+    showError('Afams ProSoil is currently unavailable.');
+    return;
+  }
   var hasFarmBag = cartHasFarmBag();
   var currentQty = window.prosoilState.qty;
   var newQty     = Math.max(0, currentQty + delta);
@@ -982,6 +1036,7 @@ function buildUnifiedOrderItems(cart) {
 
 function launchPaystack() {
   hideError();
+  pruneInactiveCheckoutItems(true);
   if (paystackLaunchInProgress || getCheckoutLock()) {
     return showError('Your payment request is already being processed. Please wait a few seconds.');
   }
@@ -1125,21 +1180,31 @@ function launchPaystack() {
 }
 
 // ── URL params — pre-load cart from ?sku= and ?qty= (deep-link from product pages)
-(function initFromUrlParams() {
+function initFromUrlParams() {
   var params = new URLSearchParams(window.location.search);
   var sku    = params.get('sku');
   var qty    = Math.max(1, parseInt(params.get('qty'), 10) || 1);
   if (!sku || !CHECKOUT_PRODUCTS[sku]) return;
+  if (!isCheckoutSkuActive(sku)) {
+    showError((CHECKOUT_PRODUCTS[sku].name || sku) + ' is currently unavailable.');
+    return;
+  }
   var existing = getCart().items.find(function(i) { return i.sku === sku; });
   if (existing) return; // Already in cart — don't duplicate
   addToCart(Object.assign({ sku: sku, qty: qty }, CHECKOUT_PRODUCTS[sku]));
-})();
+}
 
 // Initial render
 document.getElementById('f-county').addEventListener('change', syncLocationSelectors);
 document.getElementById('f-country').addEventListener('change', syncLocationSelectors);
 syncLocationSelectors();
-renderCartItems();
+async function initCheckoutPage() {
+  await fetchCheckoutProductActivityMap();
+  initFromUrlParams();
+  pruneInactiveCheckoutItems(false);
+  renderCartItems();
+}
+initCheckoutPage();
 
 document.getElementById('checkout-form').addEventListener('submit', function (e) {
   e.preventDefault();
