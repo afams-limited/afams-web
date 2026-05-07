@@ -274,7 +274,7 @@ function addToCart(arg) {
     return; // arg is null/undefined/invalid — nothing to add
   }
 
-  // Stock guard: block if product is confirmed out of stock
+  // Active-state guard: block if product is disabled on storefront
   if (cartItem.sku && cartItem.sku in productActivityMap && productActivityMap[cartItem.sku] === false) {
     showToast(cartItem.name + ' is currently unavailable.');
     return;

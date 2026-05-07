@@ -213,6 +213,16 @@
       display: inline-block;
     }
     .btn-order:hover { background: #155D27; transform: translateY(-1px); }
+    .btn-order.btn-order-disabled {
+      background: #6B7280;
+      cursor: not-allowed;
+      opacity: 0.85;
+      transform: none;
+    }
+    .btn-order.btn-order-disabled:hover {
+      background: #6B7280;
+      transform: none;
+    }
     .loading-state {
       text-align: center;
       padding: 4rem 1rem;
@@ -494,7 +504,7 @@ function renderProductCard(p) {
   });
   const actionHtml = !isActive
     ? `<div style="display:flex;flex-direction:column;gap:0.45rem;min-width:0;">
-         <button class="btn-order" disabled style="white-space:nowrap;background:#6B7280;cursor:not-allowed;opacity:0.85;">Unavailable</button>
+         <button class="btn-order btn-order-disabled" disabled style="white-space:nowrap;">Unavailable</button>
          ${p.detailsLink ? `<a href="${p.detailsLink}" class="btn-order" style="background:#2D6A4F;text-align:center;white-space:nowrap;">View Details →</a>` : ''}
        </div>`
     : p.detailsLink
@@ -934,7 +944,7 @@ function renderPremiumRange(grid) {
             <div class="product-price">KES ${p.price.toLocaleString()}</div>
             <div class="product-price-sub">Pre-order · First delivery 1 Sep 2026</div>
           </div>
-          <button class="btn-order btn-add-to-cart" ${isActive ? '' : 'disabled'} style="background:${isActive ? '#7B1FA2' : '#6B7280'};white-space:nowrap;${isActive ? '' : 'cursor:not-allowed;opacity:0.85;'}">${isActive ? 'Pre-Order' : 'Unavailable'}</button>
+          <button class="btn-order btn-add-to-cart ${isActive ? '' : 'btn-order-disabled'}" ${isActive ? '' : 'disabled'} style="background:${isActive ? '#7B1FA2' : ''};white-space:nowrap;">${isActive ? 'Pre-Order' : 'Unavailable'}</button>
         </div>
       </div>
     `;

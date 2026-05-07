@@ -3010,6 +3010,14 @@ function renderProducts(products) {
     var updatedAt = p.updated_at
       ? new Date(p.updated_at).toLocaleDateString('en-KE', { day: '2-digit', month: 'short', year: '2-digit' })
       : '—';
+    var toggleTitle = isActive ? 'Disable this product on storefront' : 'Enable this product on storefront';
+    var toggleLabel = isActive ? 'Disable' : 'Enable';
+    var toggleNextActive = isActive ? 'false' : 'true';
+    var toggleBtnStyle = 'margin:0 2px;' + (isActive ? 'color:#991b1b;' : 'background:#065F46;color:#fff;');
+    var toggleBtnHtml = '<button class="action-btn" id="toggle-active-btn-' + escapeHtml(p.sku)
+      + '" onclick="toggleProductActive(\'' + escapeHtml(p.sku) + '\',' + toggleNextActive + ')"'
+      + ' style="' + toggleBtnStyle + '" title="' + toggleTitle + '">'
+      + toggleLabel + '</button>';
 
     return '<tr id="product-row-' + escapeHtml(p.sku) + '">'
       + '<td>'
@@ -3029,7 +3037,7 @@ function renderProducts(products) {
       +   '<button class="action-btn" id="save-btn-' + escapeHtml(p.sku) + '" onclick="saveStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;background:var(--accent);color:#fff;">Save</button>'
       +   '<button class="action-btn" id="cancel-btn-' + escapeHtml(p.sku) + '" onclick="cancelEditStock(\'' + escapeHtml(p.sku) + '\')" style="display:none;margin:0 2px;">Cancel</button>'
       +   '<button class="action-btn" id="zero-btn-' + escapeHtml(p.sku) + '" onclick="setStockZero(\'' + escapeHtml(p.sku) + '\')" style="margin:0 2px;color:#991b1b;" title="Set to zero / mark out of stock">✕ Zero</button>'
-      +   '<button class="action-btn" id="toggle-active-btn-' + escapeHtml(p.sku) + '" onclick="toggleProductActive(\'' + escapeHtml(p.sku) + '\',' + (isActive ? 'false' : 'true') + ')" style="margin:0 2px;' + (isActive ? 'color:#991b1b;' : 'background:#065F46;color:#fff;') + '" title="' + (isActive ? 'Disable this product on storefront' : 'Enable this product on storefront') + '">' + (isActive ? 'Disable' : 'Enable') + '</button>'
+      +   toggleBtnHtml
       + '</td>'
       + '</tr>';
   }).join('');
