@@ -104,7 +104,7 @@ ON CONFLICT (sku) DO UPDATE
       volume_litres = EXCLUDED.volume_litres;
 
 -- ── Mark the GrowBag SKUs as a public-readable product group ─────────────────
--- The existing "products_public_read" RLS policy already covers active = true.
+-- The existing "products_public_read" RLS policy controls storefront visibility.
 
 -- ── Index for faster filtering by product line ───────────────────────────────
 CREATE INDEX IF NOT EXISTS products_product_line_idx ON public.products (product_line);
