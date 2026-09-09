@@ -1054,7 +1054,7 @@
 
     <div id="login-view">
       <label for="auth-email">Admin Email</label>
-      <input type="email" id="auth-email" value="iammwombe@gmail.com" autocomplete="username" />
+      <input type="email" id="auth-email" placeholder="you@afams.co.ke" autocomplete="username" />
 
       <label for="auth-password">Password</label>
       <input type="password" id="auth-password" placeholder="Enter password" autocomplete="current-password" />
@@ -1746,7 +1746,6 @@
 // ════════════════════════════════════════════════════
 const SUPABASE_URL     = 'https://dvquyzzqsnlcassvgdzz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2cXV5enpxc25sY2Fzc3ZnZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NDMyODksImV4cCI6MjA5MDIxOTI4OX0.cUPcNPGnw3dNh19sQlUr-FFU7piRUxDSw6wh6SdfPEA';
-const ADMIN_EMAIL      = 'iammwombe@gmail.com';
 const WA_NUMBER        = '254714128514';
 const EMAIL_SIGNATURE  = '\n\nBest regards,\nAfams LTD Team\norders@afams.co.ke  ·  afams.co.ke  ·  WhatsApp: +254 714 128 514';
 const DEFAULT_SEED_PRICE = 150;
@@ -1970,13 +1969,21 @@ function normalizeKenyanPhone(phone) {
 // ════════════════════════════════════════════════════
 // AUTH
 // ════════════════════════════════════════════════════
+// Verifies admin status against the database (public.admins table via the
+// get_my_role() RPC) rather than trusting anything held in client-side JS.
+// This is the same function every RLS policy on orders/products/subscribers
+// checks, so the UI and the data layer can never disagree about who is admin.
+async function verifyAdminSession() {
+  const { data, error } = await sb.rpc('get_my_role');
+  return !error && data === 'admin';
+}
+
 async function handleLogin() {
   const email    = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value.trim();
   const btn      = document.getElementById('login-btn');
 
   if (!email || !password) { setAuthMsg('Enter email and password.', 'error'); return; }
-  if (email !== ADMIN_EMAIL) { setAuthMsg('Unauthorised.', 'error'); return; }
 
   btn.disabled = true;
   btn.textContent = 'Signing in…';
@@ -1990,11 +1997,21 @@ async function handleLogin() {
     return;
   }
 
+  if (!(await verifyAdminSession())) {
+    await sb.auth.signOut();
+    setAuthMsg('Unauthorised.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+    return;
+  }
+
   startApp(data.user);
 }
 
 async function handleMagicLink() {
-  const email = document.getElementById('auth-email').value.trim() || ADMIN_EMAIL;
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { setAuthMsg('Enter your email first.', 'error'); return; }
+
   const { error } = await sb.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.href }
@@ -2034,8 +2051,14 @@ async function startApp(user) {
 
 window.addEventListener('DOMContentLoaded', async function () {
   const { data: { session } } = await sb.auth.getSession();
-  if (session?.user?.email === ADMIN_EMAIL) {
+  if (!session) return;
+
+  if (await verifyAdminSession()) {
     startApp(session.user);
+  } else {
+    // A valid Supabase session exists but the account isn't in public.admins —
+    // don't leave it signed in against the admin panel.
+    await sb.auth.signOut();
   }
 });
 
